@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Produk & Stok')
 @section('page-title', auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok Gas')
-@section('page-sub', 'Persediaan tabung isi, kosong, dan yang sedang dipinjam')
+@section('page-sub', 'Ringkasan persediaan tabung isi, kosong, dan dalam pinjaman')
 
 @section('topbar-actions')
     @if(auth()->user()->isOwner())
@@ -23,12 +23,12 @@
     <div class="summary-item">
         <div class="summary-label"><i class="dot dot-empty"></i> Tabung kosong</div>
         <div class="summary-value">{{ number_format($totalEmpty) }}</div>
-        <div class="summary-note">menunggu ditukar ke agen</div>
+        <div class="summary-note">menunggu penukaran ke agen</div>
     </div>
     <div class="summary-item">
         <div class="summary-label"><i class="dot dot-borrowed"></i> Tabung dipinjam</div>
         <div class="summary-value">{{ number_format($totalBorrowed) }}</div>
-        <div class="summary-note">ada di pelanggan</div>
+        <div class="summary-note">sedang di pelanggan</div>
     </div>
 </div>
 
@@ -68,7 +68,7 @@
                         @if($product->is_active)
                             <span class="badge badge-success badge-dot">Aktif</span>
                         @else
-                            <span class="badge badge-dot">Non-aktif</span>
+                            <span class="badge badge-dot">Nonaktif</span>
                         @endif
                     </td>
                     @if(auth()->user()->isOwner())
@@ -82,7 +82,7 @@
                                     data-price-buy="{{ (int) $product->price_buy }}" data-price-sell="{{ (int) $product->price_sell }}" data-price-tube="{{ (int) $product->price_tube }}">
                                 <x-icon name="pencil" size="15" />
                             </button>
-                            <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Stock opname (sesuaikan stok)" aria-label="Stock opname"
+                            <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Penyesuaian stok" aria-label="Penyesuaian stok"
                                     data-modal-open="adjustStockModal"
                                     data-action="{{ route('inventory.adjustStock', $product) }}"
                                     data-subject="{{ $product->name }}"
@@ -90,7 +90,7 @@
                                 <x-icon name="sliders" size="15" />
                             </button>
                             @if($product->transaction_details_count === 0)
-                            <form method="POST" action="{{ route('inventory.destroy', $product) }}" data-confirm="Hapus produk {{ $product->name }}? Tindakan ini tidak bisa dibatalkan.">
+                            <form method="POST" action="{{ route('inventory.destroy', $product) }}" data-confirm="Hapus produk {{ $product->name }}? Tindakan ini tidak dapat dibatalkan.">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus produk (belum pernah terjual)" aria-label="Hapus produk"><x-icon name="trash" size="15" /></button>
                             </form>
@@ -104,7 +104,7 @@
                 @empty
                 <tr><td colspan="7">
                     <div class="empty">
-                        <div class="empty-icon"><x-icon name="flame" size="24" /></div>
+                        <div class="empty-icon"><x-icon name="stock" size="24" /></div>
                         <div class="empty-title">Belum ada produk</div>
                         <div>Tambahkan produk gas pertama Anda.</div>
                     </div>
@@ -148,7 +148,7 @@
                     <input type="number" name="price_buy" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('price_buy') : '0' }}">
                 </div>
                 <div class="field">
-                    <label class="label">Harga jual refill <span class="req">*</span></label>
+                    <label class="label">Harga jual isi ulang <span class="req">*</span></label>
                     <input type="number" name="price_sell" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('price_sell') : '' }}" required>
                 </div>
                 <div class="field">
@@ -173,7 +173,7 @@
     </div>
 </div>
 
-{{-- Edit produk (tanpa stok — gunakan Stock Opname) --}}
+{{-- Edit produk (tanpa stok — gunakan Penyesuaian stok) --}}
 <div class="modal-overlay" id="editProductModal">
     <div class="modal">
         <div class="modal-head">
@@ -196,7 +196,7 @@
                     <label class="label">Status</label>
                     <select name="is_active" class="select">
                         <option value="1">Aktif — tampil di kasir</option>
-                        <option value="0">Non-aktif — disembunyikan</option>
+                        <option value="0">Nonaktif — disembunyikan</option>
                     </select>
                 </div>
                 <div class="field">
@@ -204,13 +204,13 @@
                     <input type="number" name="price_buy" class="input" min="0">
                 </div>
                 <div class="field">
-                    <label class="label">Harga jual refill <span class="req">*</span></label>
+                    <label class="label">Harga jual isi ulang <span class="req">*</span></label>
                     <input type="number" name="price_sell" class="input" min="0" required>
                 </div>
                 <div class="field span-all">
                     <label class="label">Harga tabung fisik</label>
                     <input type="number" name="price_tube" class="input" min="0">
-                    <div class="hint">Jumlah stok diubah lewat tombol Stock Opname di daftar produk.</div>
+                    <div class="hint">Jumlah stok diubah melalui tombol Penyesuaian stok pada daftar produk.</div>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan perubahan</button>
@@ -218,16 +218,16 @@
     </div>
 </div>
 
-{{-- Stock opname --}}
+{{-- Penyesuaian stok --}}
 <div class="modal-overlay" id="adjustStockModal">
     <div class="modal sm">
         <div class="modal-head">
-            <div class="modal-title">Stock opname</div>
+            <div class="modal-title">Penyesuaian stok</div>
             <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
         <form method="POST" action="" class="modal-body">
             @csrf
-            <div class="modal-note"><strong data-modal-subject></strong><div class="muted">Isi dengan jumlah hasil hitung fisik di gudang.</div></div>
+            <div class="modal-note"><strong data-modal-subject></strong><div class="muted">Masukkan jumlah hasil penghitungan fisik di gudang.</div></div>
             <div class="field">
                 <label class="label"><i class="dot dot-filled"></i> Tabung isi</label>
                 <input type="number" name="stock_filled" class="input" min="0" required>

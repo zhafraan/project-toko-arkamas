@@ -76,7 +76,7 @@ class ReportController extends Controller
     {
         $details = $transactions->flatMap->details;
 
-        // Uang masuk = dibayar - kembalian (termasuk DP kasbon & cicilan yang sudah tercatat)
+        // Uang masuk = dibayar - kembalian (termasuk DP piutang dan cicilan yang sudah tercatat)
         $received = fn ($method) => (float) $transactions->where('payment_method', $method)
             ->sum(fn ($t) => $t->paid_amount - $t->change_amount);
 

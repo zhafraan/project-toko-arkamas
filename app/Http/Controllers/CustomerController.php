@@ -37,7 +37,7 @@ class CustomerController extends Controller
             'address'       => 'nullable|string',
         ]);
         Customer::create($data);
-        return back()->with('success', 'Pelanggan berhasil ditambahkan!');
+        return back()->with('success', 'Pelanggan berhasil ditambahkan.');
     }
 
     public function update(Request $request, Customer $customer)
@@ -50,7 +50,7 @@ class CustomerController extends Controller
             'address'       => 'nullable|string',
         ]);
         $customer->update($data);
-        return back()->with('success', 'Data pelanggan berhasil diperbarui!');
+        return back()->with('success', 'Data pelanggan berhasil diperbarui.');
     }
 
     public function destroy(Customer $customer)

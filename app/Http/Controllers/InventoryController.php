@@ -44,10 +44,10 @@ class InventoryController extends Controller
         $data['is_active'] = true;
 
         $product = Product::create($data);
-        return back()->with('success', 'Produk "' . $product->name . '" berhasil ditambahkan!');
+        return back()->with('success', 'Produk "' . $product->name . '" berhasil ditambahkan.');
     }
 
-    /** Edit data produk. Stok diubah lewat Stock Opname (adjustStock), bukan di sini. */
+    /** Edit data produk. Stok diubah lewat penyesuaian stok (adjustStock), bukan di sini. */
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
@@ -63,14 +63,14 @@ class InventoryController extends Controller
         $data['price_tube'] = $data['price_tube'] ?? 0;
 
         $product->update($data);
-        return back()->with('success', 'Produk "' . $product->name . '" berhasil diperbarui!');
+        return back()->with('success', 'Produk "' . $product->name . '" berhasil diperbarui.');
     }
 
     /** Hanya produk yang belum pernah dipakai transaksi yang boleh dihapus; selain itu cukup dinonaktifkan. */
     public function destroy(Product $product)
     {
         if ($product->transactionDetails()->exists() || $product->tubeLoans()->exists()) {
-            return back()->with('error', 'Produk "' . $product->name . '" sudah punya riwayat transaksi sehingga tidak bisa dihapus. Ubah statusnya menjadi Non-Aktif.');
+            return back()->with('error', 'Produk "' . $product->name . '" memiliki riwayat transaksi sehingga tidak dapat dihapus. Ubah statusnya menjadi Nonaktif.');
         }
 
         $name = $product->name;
@@ -82,7 +82,7 @@ class InventoryController extends Controller
         return back()->with('success', 'Produk "' . $name . '" berhasil dihapus.');
     }
 
-    // Stock Opname / penyesuaian stok
+    // Penyesuaian stok
     public function adjustStock(Request $request, Product $product)
     {
         $data = $request->validate([
@@ -91,7 +91,7 @@ class InventoryController extends Controller
             'stock_borrowed' => 'required|integer|min:0',
         ]);
         $product->update($data);
-        return back()->with('success', 'Stok "' . $product->name . '" berhasil disesuaikan (Stock Opname).');
+        return back()->with('success', 'Stok "' . $product->name . '" berhasil disesuaikan.');
     }
 
     // Kiriman agen
@@ -118,7 +118,7 @@ class InventoryController extends Controller
             // Tukar tabung: isi masuk, kosong keluar ke agen
             if ($product->stock_empty < $data['qty_received']) {
                 throw ValidationException::withMessages([
-                    'qty_received' => "Tabung kosong {$product->name} hanya {$product->stock_empty}, kurang dari {$data['qty_received']} yang akan ditukar. Lakukan Stock Opname dulu bila angka stok belum sesuai.",
+                    'qty_received' => "Tabung kosong {$product->name} hanya {$product->stock_empty}, kurang dari {$data['qty_received']} yang akan ditukar. Lakukan penyesuaian stok terlebih dahulu bila angka stok belum sesuai.",
                 ]);
             }
 
@@ -131,6 +131,6 @@ class InventoryController extends Controller
             $product->decrement('stock_empty', $data['qty_received']);
         });
 
-        return back()->with('success', 'Pengiriman agen berhasil dicatat!');
+        return back()->with('success', 'Penerimaan dari agen berhasil dicatat.');
     }
 }

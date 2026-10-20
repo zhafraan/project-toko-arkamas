@@ -27,7 +27,7 @@
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Uang masuk hari ini</span>
+            <span class="stat-card-title">Penerimaan hari ini</span>
             <div class="stat-card-icon stat-icon-amber">
                 <x-icon name="banknote" size="18" />
             </div>
@@ -49,13 +49,13 @@
 
     <a href="{{ route('loans.index') }}" class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Tabung dipinjam</span>
+            <span class="stat-card-title">Tabung dalam pinjaman</span>
             <div class="stat-card-icon stat-icon-stone">
                 <x-icon name="package" size="18" />
             </div>
         </div>
         <div class="stat-card-value {{ $loanTubes > 0 ? 'highlight' : '' }}">{{ number_format($loanTubes) }} tabung</div>
-        <div class="stat-card-note">{{ $loanCustomers }} pelanggan belum mengembalikan</div>
+        <div class="stat-card-note">Dipinjam oleh {{ $loanCustomers }} pelanggan</div>
     </a>
 
     @if($monthRevenue !== null)
@@ -79,7 +79,7 @@
         {{-- Grafik 7 hari --}}
         <div class="card">
             <div class="card-head">
-                <span class="card-title"><x-icon name="bar-chart" /> Omzet 7 hari terakhir</span>
+                <span class="card-title"> Penjualan 7 hari terakhir</span>
             </div>
             <div class="card-body">
                 <div class="bars">
@@ -97,8 +97,8 @@
         {{-- Transaksi terbaru --}}
         <div class="card">
             <div class="card-head">
-                <span class="card-title"><x-icon name="receipt" /> {{ auth()->user()->isOwner() ? 'Transaksi terbaru' : 'Transaksi hari ini' }}</span>
-                <a href="{{ route('pos.history') }}" class="text-sm fw">Lihat semua</a>
+                <span class="card-title">{{ auth()->user()->isOwner() ? 'Transaksi terbaru' : 'Transaksi hari ini' }}</span>
+                <a href="{{ route('pos.history') }}" class="text-sm fw">Lihat semua transaksi</a>
             </div>
             @if($recentTransactions->count() > 0)
             <ul class="trx-list">
@@ -115,7 +115,7 @@
                                 @if($trx->payment_status === 'lunas')
                                     <span class="badge badge-success badge-dot">Lunas</span>
                                 @else
-                                    <span class="badge badge-danger badge-dot">Kasbon</span>
+                                    <span class="badge badge-danger badge-dot">Piutang</span>
                                 @endif
                             </div>
                         </div>
@@ -126,8 +126,8 @@
             @else
             <div class="empty">
                 <div class="empty-icon"><x-icon name="inbox" size="24" /></div>
-                <div class="empty-title">Belum ada transaksi</div>
-                <div>Transaksi dari kasir akan tampil di sini.</div>
+                <div class="empty-title">Belum ada transaksi.</div>
+                <div>Transaksi yang dicatat kasir akan muncul di sini.</div>
             </div>
             @endif
         </div>
@@ -137,8 +137,8 @@
     <div class="stack" style="gap:16px;">
         <div class="card">
             <div class="card-head">
-                <span class="card-title"><x-icon name="flame" /> Stok tabung</span>
-                <a href="{{ route('inventory.index') }}" class="text-sm fw">Lihat semua</a>
+                <span class="card-title"><x-icon name="stock" /> Stok tabung</span>
+                <a href="{{ route('inventory.index') }}" class="text-sm fw">Kelola stok</a>
             </div>
             <div class="card-body" style="border-bottom:1px solid var(--border);padding:14px 18px;">
                 <div class="legend">
@@ -177,21 +177,6 @@
             </div>
             @endforelse
         </div>
-
-        {{-- Warning stok tabung isi menipis --}}
-        @if($lowStock->count() > 0)
-        <div class="alert alert-warning" role="status" style="margin:0; border-radius:var(--r-lg); border-left:4px solid var(--warning); padding:12px 14px;">
-            <x-icon name="alert" size="18" style="flex-shrink:0; margin-top:2px;" />
-            <div class="alert-body" style="font-size:12.5px; line-height:1.45;">
-                <strong style="display:block; margin-bottom:2px;">Stok tabung isi menipis:</strong>
-                <div>
-                    @foreach($lowStock as $p)
-                        {{ $p->name }} ({{ $p->stock_filled }}){{ $loop->last ? '' : ', ' }}
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        @endif
     </div>
 </div>
 

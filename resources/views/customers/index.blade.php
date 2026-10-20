@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Pelanggan')
 @section('page-title', 'Pelanggan')
-@section('page-sub', 'Data pelanggan, kasbon, dan riwayat belanja')
+@section('page-sub', 'Data pelanggan, piutang, dan riwayat belanja')
 
 @section('topbar-actions')
     <button type="button" class="btn btn-primary" data-modal-open="addCustomerModal">
@@ -16,7 +16,7 @@
     <form method="GET" class="toolbar">
         <div class="search">
             <x-icon name="search" size="17" />
-            <input type="search" name="search" class="input" value="{{ request('search') }}" placeholder="Cari nama, no. HP, atau NIK…">
+            <input type="search" name="search" class="input" value="{{ request('search') }}" placeholder="Cari nama, nomor telepon, atau NIK">
         </div>
         <button type="submit" class="btn btn-outline">Cari</button>
         @if(request('search'))
@@ -28,8 +28,8 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Nama</th><th>No. HP</th><th>Tipe</th><th>Alamat</th>
-                    <th class="num">Transaksi</th><th class="num">Kasbon</th><th></th>
+                    <th>Nama</th><th>Nomor telepon</th><th>Tipe</th><th>Alamat</th>
+                    <th class="num">Transaksi</th><th class="num">Piutang</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -69,7 +69,7 @@
                     <div class="empty">
                         <div class="empty-icon"><x-icon name="users" size="24" /></div>
                         <div class="empty-title">{{ request('search') ? 'Pelanggan tidak ditemukan' : 'Belum ada pelanggan' }}</div>
-                        <div>{{ request('search') ? 'Coba kata kunci lain.' : 'Klik "Tambah Pelanggan" untuk mulai.' }}</div>
+                        <div>{{ request('search') ? 'Coba kata kunci lain.' : 'Tambahkan pelanggan pertama Anda.' }}</div>
                     </div>
                 </td></tr>
                 @endforelse
@@ -95,7 +95,7 @@
                     <input type="text" name="name" class="input" value="{{ $reopen === 'addCustomerModal' ? old('name') : '' }}" required>
                 </div>
                 <div class="field">
-                    <label class="label">No. HP</label>
+                    <label class="label">Nomor telepon</label>
                     <input type="text" name="phone" class="input" placeholder="08xxxxxxxxxx" value="{{ $reopen === 'addCustomerModal' ? old('phone') : '' }}">
                 </div>
                 <div class="field">
@@ -136,7 +136,7 @@
                     <input type="text" name="name" class="input" required>
                 </div>
                 <div class="field">
-                    <label class="label">No. HP</label>
+                    <label class="label">Nomor telepon</label>
                     <input type="text" name="phone" class="input">
                 </div>
                 <div class="field">

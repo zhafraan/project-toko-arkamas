@@ -39,7 +39,7 @@ class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles, Wi
             (float) $trx->total_amount,
             (float) $trx->paid_amount - (float) $trx->change_amount,
             (float) $trx->remaining_debt,
-            $trx->payment_status === 'lunas' ? 'LUNAS' : 'KASBON',
+            $trx->payment_status === 'lunas' ? 'LUNAS' : 'PIUTANG',
             strtoupper($trx->payment_method),
         ])->toArray();
     }
@@ -58,7 +58,7 @@ class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles, Wi
         return [
             1 => [
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF5B5F97']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF3F6B4F']],
             ],
         ];
     }

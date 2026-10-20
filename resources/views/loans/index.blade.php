@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Pinjaman Tabung')
 @section('page-title', 'Pinjaman Tabung')
-@section('page-sub', 'Tabung yang dibawa pelanggan dan belum dikembalikan')
+@section('page-sub', 'Daftar tabung yang masih berada di pelanggan')
 
 @section('content')
 <div class="card">
@@ -53,7 +53,7 @@
                                     data-subject="{{ $loan->customer->name }} — {{ $loan->product->name }}"
                                     data-remaining="{{ $loan->remaining_qty }}"
                                     data-qty-return="{{ $loan->remaining_qty }}">
-                                <x-icon name="undo" size="15" /> Kembalikan
+                                <x-icon name="undo" size="15" /> Catat pengembalian
                             </button>
                         </div>
                     </td>
@@ -63,7 +63,7 @@
                     <div class="empty">
                         <div class="empty-icon"><x-icon name="package" size="24" /></div>
                         <div class="empty-title">{{ request('search') ? 'Tidak ditemukan' : 'Tidak ada pinjaman aktif' }}</div>
-                        <div>{{ request('search') ? 'Coba nama pelanggan lain.' : 'Semua tabung pinjaman sudah kembali.' }}</div>
+                        <div>{{ request('search') ? 'Coba nama pelanggan lain.' : 'Seluruh tabung sudah dikembalikan.' }}</div>
                     </div>
                 </td></tr>
                 @endforelse

@@ -7,7 +7,7 @@
 @if($onlyToday)
 <div class="alert alert-info" role="status">
     <x-icon name="info" />
-    <div class="alert-body">Sebagai kasir, Anda hanya melihat transaksi hari ini. Riwayat lengkap tersedia untuk pemilik.</div>
+    <div class="alert-body">Akun kasir hanya dapat melihat transaksi hari ini. Riwayat lengkap dapat diakses oleh pemilik.</div>
 </div>
 @endif
 
@@ -20,7 +20,7 @@
         <select name="payment_status" class="select" onchange="this.form.submit()" aria-label="Status pembayaran">
             <option value="">Semua status</option>
             <option value="lunas" {{ request('payment_status') === 'lunas' ? 'selected' : '' }}>Lunas</option>
-            <option value="belum_lunas" {{ request('payment_status') === 'belum_lunas' ? 'selected' : '' }}>Kasbon</option>
+            <option value="belum_lunas" {{ request('payment_status') === 'belum_lunas' ? 'selected' : '' }}>Piutang</option>
         </select>
         <select name="payment_method" class="select" onchange="this.form.submit()" aria-label="Metode pembayaran">
             <option value="">Semua metode</option>
@@ -63,7 +63,7 @@
                         @if($trx->payment_status === 'lunas')
                             <span class="badge badge-success badge-dot">Lunas</span>
                         @else
-                            <span class="badge badge-danger badge-dot">Kasbon</span>
+                            <span class="badge badge-danger badge-dot">Piutang</span>
                         @endif
                     </td>
                     <td><div class="actions"><a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-outline btn-xs"><x-icon name="receipt" size="14" /> Nota</a></div></td>

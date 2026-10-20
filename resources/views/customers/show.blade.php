@@ -46,11 +46,11 @@
                 <div class="summary-value" style="font-size:20px;">{{ $customer->transactions->count() }}</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">Kasbon belum lunas</div>
+                <div class="summary-label">Piutang belum lunas</div>
                 <div class="summary-value {{ $totalDebt > 0 ? 'text-danger' : 'text-success' }}" style="font-size:20px;">@rupiah($totalDebt)</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">Tabung masih dipinjam</div>
+                <div class="summary-label">Tabung dalam pinjaman</div>
                 <div class="summary-value" style="font-size:20px;">{{ $activeLoanCount }} pinjaman</div>
             </div>
         </div>
@@ -103,7 +103,7 @@
                                 @if($trx->payment_status === 'lunas')
                                     <span class="badge badge-success">Lunas</span>
                                 @else
-                                    <span class="badge badge-danger">Kasbon</span>
+                                    <span class="badge badge-danger">Piutang</span>
                                 @endif
                             </td>
                             <td><a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-outline btn-xs"><x-icon name="receipt" size="14" /> Nota</a></td>

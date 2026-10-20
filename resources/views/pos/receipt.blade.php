@@ -15,7 +15,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
         body { display: grid; place-items: start center; padding: 28px 16px 40px; }
@@ -23,7 +23,7 @@
         /* Kertas nota selalu putih agar tercetak benar, apa pun tema layar */
         .receipt { background: #fff; color: #1d1f2e; border-radius: 14px; padding: 22px 22px 18px; box-shadow: var(--shadow-md); font-size: 13px; }
         .r-head { text-align: center; }
-        .r-name { font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+        .r-name { font-family: 'Lexend', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0; }
         .r-sub { font-size: 12px; color: #6b6f8c; }
         .r-line { border: 0; border-top: 1px dashed #b9bdd2; margin: 14px 0; }
         .r-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
@@ -32,8 +32,8 @@
         .r-item { margin-bottom: 10px; }
         .r-item-name { font-weight: 700; }
         .r-item-meta { display: flex; justify-content: space-between; color: #4b4f6e; font-variant-numeric: tabular-nums; }
-        .r-tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: #ecedf7; color: #3e4270; margin: 2px 0; }
-        .r-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 17px; font-weight: 800; margin: 8px 0; }
+        .r-tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: #E3EBDD; color: #2E5239; margin: 2px 0; }
+        .r-total { font-family: 'Lexend', sans-serif; display: flex; justify-content: space-between; align-items: baseline; font-size: 17px; font-weight: 600; margin: 8px 0; }
         .r-status { text-align: center; font-weight: 800; letter-spacing: .04em; padding: 8px; border-radius: 8px; margin-top: 12px; }
         .r-status.lunas { background: #e0f6ec; color: #05694a; }
         .r-status.belum { background: #fdeaea; color: #a8262b; }
@@ -70,9 +70,9 @@
         <div class="r-item">
             <div class="r-item-name">{{ $detail->product->name }}</div>
             <span class="r-tag">
-                @if($detail->transaction_type === 'refill') Refill (tukar tabung)
+                @if($detail->transaction_type === 'refill') Isi ulang (tukar tabung)
                 @elseif($detail->transaction_type === 'pinjam_tabung') Pinjam tabung
-                @else Beli + tabung
+                @else Beli tabung dan isi
                 @endif
             </span>
             <div class="r-item-meta">
@@ -107,7 +107,7 @@
                 @if($loan->deposit_amount > 0) · deposit @rupiah($loan->deposit_amount) @endif
             </div>
             @endforeach
-            <div style="margin-top:4px;">Harap kembalikan tabung dalam keadaan bersih.</div>
+            <div style="margin-top:4px;">Mohon kembalikan tabung dalam kondisi bersih.</div>
         </div>
         @endif
 

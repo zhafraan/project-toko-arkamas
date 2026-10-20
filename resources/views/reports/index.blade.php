@@ -64,18 +64,18 @@
         <div class="summary-note">harga jual − harga beli</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">Tunai masuk</div>
+        <div class="summary-label">Penerimaan tunai</div>
         <div class="summary-value">@rupiah($metrics['totalCash'])</div>
-        <div class="summary-note">dikurangi kembalian</div>
+        <div class="summary-note">sudah dikurangi kembalian</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">Transfer masuk</div>
+        <div class="summary-label">Penerimaan transfer</div>
         <div class="summary-value">@rupiah($metrics['totalTransfer'])</div>
     </div>
     <div class="summary-item">
         <div class="summary-label">Piutang periode ini</div>
         <div class="summary-value {{ $metrics['totalPiutang'] > 0 ? 'text-danger' : '' }}">@rupiah($metrics['totalPiutang'])</div>
-        <div class="summary-note">belum dibayar</div>
+        <div class="summary-note">belum terbayar</div>
     </div>
 </div>
 
@@ -105,7 +105,7 @@
                             @if($trx->payment_status === 'lunas')
                                 <span class="badge badge-success badge-dot">Lunas</span>
                             @else
-                                <span class="badge badge-danger badge-dot">Kasbon</span>
+                                <span class="badge badge-danger badge-dot">Piutang</span>
                             @endif
                         </td>
                     </tr>
@@ -118,7 +118,7 @@
     </div>
 
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="flame" /> Penjualan per produk</span></div>
+        <div class="card-head"><span class="card-title"><x-icon name="stock" /> Penjualan per produk</span></div>
         @forelse($metrics['productSummary'] as $item)
         <div class="stock-item">
             <div class="cell-title" style="margin-bottom:6px;">{{ $item['product_name'] }}</div>

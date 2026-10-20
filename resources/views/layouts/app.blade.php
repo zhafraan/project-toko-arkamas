@@ -8,7 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
@@ -20,8 +20,8 @@
     <div class="sidebar-brand">
         <svg viewBox="0 0 72 72" fill="none" aria-hidden="true">
             <defs>
-                <linearGradient id="agBrand" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#984B43"/><stop offset="100%" stop-color="#76323F"/></linearGradient>
-                <linearGradient id="agGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F5D58A"/><stop offset="100%" stop-color="#EAC67A"/></linearGradient>
+                <linearGradient id="agBrand" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4F7F61"/><stop offset="100%" stop-color="#2E5239"/></linearGradient>
+                <linearGradient id="agGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F2B66B"/><stop offset="100%" stop-color="#D9822B"/></linearGradient>
             </defs>
             <rect width="72" height="72" rx="18" fill="url(#agBrand)"/>
             <text x="34" y="48" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="32" letter-spacing="-1">
@@ -56,16 +56,16 @@
             <x-icon name="package" /><span class="label">Pinjaman Tabung</span>
         </a>
         <a href="{{ route('debts.index') }}" class="nav-link {{ request()->routeIs('debts.*') ? 'active' : '' }}" title="Piutang">
-            <x-icon name="wallet" /><span class="label">Piutang / Kasbon</span>
+            <x-icon name="wallet" /><span class="label">Piutang</span>
         </a>
         <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') ? 'active' : '' }}" title="Stok gas">
-            <x-icon name="flame" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok Gas' }}</span>
+            <x-icon name="stock" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok Gas' }}</span>
         </a>
 
         @if(auth()->user()->isOwner())
         <div class="nav-group">Manajemen</div>
-        <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Kiriman agen">
-            <x-icon name="truck" /><span class="label">Kiriman Agen</span>
+        <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen">
+            <x-icon name="truck" /><span class="label">Penerimaan dari Agen</span>
         </a>
         <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" title="Laporan">
             <x-icon name="report" /><span class="label">Laporan</span>
@@ -91,7 +91,7 @@
 
 <div class="main">
     <header class="topbar">
-        <button type="button" class="btn btn-ghost btn-icon" onclick="toggleSidebar()" title="Tampilkan / sembunyikan menu" aria-label="Menu">
+        <button type="button" class="btn btn-ghost btn-icon" onclick="toggleSidebar()" title="Ciutkan atau perluas menu" aria-label="Menu">
             <x-icon name="panel-left" size="20" />
         </button>
         <div class="topbar-title">
@@ -134,7 +134,7 @@
         <div class="alert alert-error" role="alert">
             <x-icon name="alert" />
             <div class="alert-body">
-                <strong>Periksa kembali isian Anda:</strong>
+                <strong>Mohon periksa kembali data yang Anda isi:</strong>
                 <ul style="margin:4px 0 0 18px;">
                     @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Kasir')
 @section('page-title', 'Kasir')
-@section('page-sub', 'Pilih produk untuk memasukkan ke keranjang')
+@section('page-sub', 'Pilih produk untuk menambahkannya ke keranjang')
 
 @section('content')
 <div class="pos-grid">
@@ -10,12 +10,12 @@
     <section>
         <div class="search" style="max-width:none;margin-bottom:14px;">
             <x-icon name="search" size="17" />
-            <input type="search" id="productSearch" class="input" placeholder="Cari produk atau SKU…" autocomplete="off">
+            <input type="search" id="productSearch" class="input" placeholder="Cari nama produk atau kode SKU" autocomplete="off">
         </div>
 
         @if($products->count() === 0)
         <div class="card"><div class="empty">
-            <div class="empty-icon"><x-icon name="flame" size="24" /></div>
+            <div class="empty-icon"><x-icon name="stock" size="24" /></div>
             <div class="empty-title">Belum ada produk aktif</div>
             <div>Tambahkan produk di menu Produk &amp; Stok.</div>
         </div></div>
@@ -38,7 +38,7 @@
                     @else
                         <span class="badge badge-success">Stok {{ $product->stock_filled }}</span>
                     @endif
-                    <span class="muted">kosong {{ $product->stock_empty }}</span>
+                    <span class="muted">Tabung kosong: {{ $product->stock_empty }}</span>
                 </span>
             </button>
             @endforeach
@@ -50,18 +50,18 @@
     <aside class="card cart">
         <div class="card-head">
             <span class="card-title"><x-icon name="cart" /> Keranjang <span class="badge badge-info" id="cartCount">0</span></span>
-            <button type="button" class="btn btn-ghost btn-sm" id="btnClear"><x-icon name="trash" size="15" /> Kosongkan</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnClear"><x-icon name="trash" size="15" /> Hapus semua</button>
         </div>
 
         <div class="cart-items" id="cartItems"></div>
 
         <div class="cart-pay">
             <div class="field">
-                <label class="label" for="custInput">Pelanggan <span class="req" id="custReq" hidden>(wajib untuk pinjam tabung / kasbon)</span></label>
+                <label class="label" for="custInput">Pelanggan <span class="req" id="custReq" hidden>(wajib untuk pinjaman tabung atau piutang)</span></label>
                 <div class="combo" id="custCombo">
                     <div class="row" style="gap:8px;">
                         <div class="grow">
-                            <input type="text" id="custInput" class="input" placeholder="Pelanggan umum — ketik nama / no. HP" autocomplete="off">
+                            <input type="text" id="custInput" class="input" placeholder="Pelanggan umum. Cari nama atau nomor telepon" autocomplete="off">
                             <div class="chip" id="custChip" hidden>
                                 <span class="grow" id="custChipName"></span>
                                 <button type="button" class="btn btn-ghost btn-icon btn-xs" id="custClear" title="Ganti pelanggan"><x-icon name="x" size="15" /></button>
@@ -86,13 +86,13 @@
                     <span class="label">Status</span>
                     <div class="seg" id="segStatus">
                         <button type="button" data-v="lunas" aria-pressed="true">Lunas</button>
-                        <button type="button" data-v="belum_lunas" aria-pressed="false">Kasbon</button>
+                        <button type="button" data-v="belum_lunas" aria-pressed="false">Piutang</button>
                     </div>
                 </div>
             </div>
 
             <div class="field" id="noteField" hidden>
-                <label class="label" for="payNote">Referensi transfer / QRIS</label>
+                <label class="label" for="payNote">Nomor referensi transfer atau QRIS</label>
                 <input type="text" id="payNote" class="input" placeholder="Contoh: BCA 12345" maxlength="255">
             </div>
 
@@ -100,7 +100,7 @@
                 <label class="label" for="paidInput" id="paidLabel">Uang diterima</label>
                 <div class="input-affix">
                     <span class="affix">Rp</span>
-                    <input type="text" id="paidInput" class="input num" inputmode="numeric" placeholder="Kosongkan = uang pas" autocomplete="off">
+                    <input type="text" id="paidInput" class="input num" inputmode="numeric" placeholder="Kosongkan jika uang pas" autocomplete="off">
                 </div>
                 <div class="quick-cash" id="quickCash">
                     <button type="button" class="btn btn-outline btn-xs" data-cash="exact">Uang pas</button>
@@ -115,7 +115,7 @@
             <div class="field-error" id="payError" hidden style="margin:-4px 0 10px;"></div>
 
             <button type="button" id="btnCheckout" class="btn btn-accent btn-lg btn-block" disabled>
-                <x-icon name="check" /> <span id="btnCheckoutText">Proses Transaksi</span>
+                <x-icon name="check" /> <span id="btnCheckoutText">Selesaikan Transaksi</span>
             </button>
         </div>
     </aside>
@@ -132,7 +132,7 @@
                 <div class="pay-line"><span>Total</span><strong class="num" id="successTotal"></strong></div>
                 <div class="pay-line"><span>Dibayar</span><strong class="num" id="successPaid"></strong></div>
                 <div class="pay-line" id="successChangeRow"><span>Kembalian</span><strong class="num text-success" id="successChange"></strong></div>
-                <div class="pay-line" id="successDebtRow" hidden><span>Sisa kasbon</span><strong class="num text-danger" id="successDebt"></strong></div>
+                <div class="pay-line" id="successDebtRow" hidden><span>Sisa piutang</span><strong class="num text-danger" id="successDebt"></strong></div>
             </div>
             <div class="grid cols-2" style="gap:10px;">
                 <a href="#" id="btnReceipt" target="_blank" rel="noopener" class="btn btn-outline"><x-icon name="printer" /> Cetak nota</a>
@@ -156,7 +156,7 @@
                     <input type="text" id="ncName" class="input" maxlength="255">
                 </div>
                 <div class="field">
-                    <label class="label" for="ncPhone">No. HP</label>
+                    <label class="label" for="ncPhone">Nomor telepon</label>
                     <input type="text" id="ncPhone" class="input" placeholder="08xxxxxxxxxx" maxlength="20">
                 </div>
                 <div class="field">
@@ -173,7 +173,7 @@
                 </div>
             </div>
             <div class="field-error" id="ncError" hidden style="margin-bottom:12px;"></div>
-            <button type="button" class="btn btn-primary btn-block" id="btnSaveCustomer"><x-icon name="check" /> Simpan & pilih</button>
+            <button type="button" class="btn btn-primary btn-block" id="btnSaveCustomer"><x-icon name="check" /> Simpan dan pilih</button>
         </div>
     </div>
 </div>
@@ -191,7 +191,7 @@
     };
     var LOW = {{ $lowStockLimit }};
     var STORE_KEY = 'arkamas_pos_cart_v2';
-    var TYPES = { refill: 'Refill (tukar tabung)', pinjam_tabung: 'Pinjam tabung', plus_tabung: 'Beli + tabung' };
+    var TYPES = { refill: 'Isi ulang (tukar tabung)', pinjam_tabung: 'Pinjam tabung', plus_tabung: 'Beli tabung dan isi' };
 
     var $ = function (id) { return document.getElementById(id); };
     var ICON = {
@@ -243,14 +243,14 @@
     function addProduct(id) {
         var p = products[id];
         if (!p || p.stock <= 0) return;
-        if (qtyOfProduct(id) >= p.stock) { toast('Stok ' + p.name + ' tinggal ' + p.stock, 'error'); return; }
+        if (qtyOfProduct(id) >= p.stock) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); return; }
         var line = cart.find(function (l) { return l.id === id && l.type === 'refill'; });
         if (line) { line.qty++; } else { cart.push({ id: id, type: 'refill', qty: 1 }); }
         render();
     }
     function changeQty(idx, delta) {
         var l = cart[idx], p = products[l.id];
-        if (delta > 0 && qtyOfProduct(l.id) >= p.stock) { toast('Stok ' + p.name + ' tinggal ' + p.stock, 'error'); return; }
+        if (delta > 0 && qtyOfProduct(l.id) >= p.stock) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); return; }
         l.qty = Math.max(1, l.qty + delta);
         render();
     }
@@ -267,7 +267,7 @@
         if (cart.length === 0) {
             box.innerHTML = '<div class="cart-empty"><div class="empty-icon" style="width:44px;height:44px;margin-bottom:8px;">' +
                 '<svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></div>' +
-                'Keranjang masih kosong.<br>Klik produk di sebelah kiri.</div>';
+                'Keranjang kosong.<br>Pilih produk untuk memulai transaksi.</div>';
         } else {
             box.innerHTML = cart.map(function (l, i) {
                 var p = products[l.id];
@@ -317,7 +317,7 @@
             else { label.textContent = 'Kurang'; value.textContent = rupiah(total - eff); value.classList.add('text-danger'); ok = false; }
         } else {
             $('paidLabel').textContent = 'Uang muka (DP)';
-            label.textContent = 'Sisa kasbon';
+            label.textContent = 'Sisa piutang';
             value.textContent = rupiah(Math.max(0, total - (paid || 0)));
             if (total > 0) value.classList.add('text-danger');
         }
@@ -365,7 +365,7 @@
         if (e.target.dataset.act === 'type') changeType(parseInt(e.target.dataset.idx, 10), e.target.value);
     });
     $('btnClear').addEventListener('click', function () {
-        if (cart.length && confirm('Kosongkan keranjang?')) { cart = []; render(); }
+        if (cart.length && confirm('Hapus semua item dari keranjang?')) { cart = []; render(); }
     });
     $('productSearch').addEventListener('input', function () {
         var q = this.value.trim().toLowerCase(), shown = 0;
@@ -385,7 +385,7 @@
             $('custChipName').textContent = c.name + (c.phone ? ' · ' + c.phone : '');
             $('custList').hidden = true;
             $('custDebt').hidden = !(c.debt > 0);
-            $('custDebt').textContent = c.debt > 0 ? 'Pelanggan ini masih punya kasbon belum lunas ' + rupiah(c.debt) + '.' : '';
+            $('custDebt').textContent = c.debt > 0 ? 'Pelanggan ini masih memiliki piutang sebesar ' + rupiah(c.debt) + '.' : '';
         } else {
             $('custInput').value = ''; $('custDebt').hidden = true;
         }
@@ -393,11 +393,11 @@
     }
     function drawList() {
         var list = $('custList');
-        if (!results.length) { list.innerHTML = '<div class="combo-empty">Pelanggan tidak ditemukan.</div>'; list.hidden = false; return; }
+        if (!results.length) { list.innerHTML = '<div class="combo-empty">Pelanggan tidak ditemukan. Periksa nama atau nomor telepon.</div>'; list.hidden = false; return; }
         list.innerHTML = results.map(function (c, i) {
             return '<button type="button" class="combo-option' + (i === focusIdx ? ' focus' : '') + '" data-i="' + i + '">' +
                 '<strong>' + esc(c.name) + '</strong>' + (c.phone ? ' <span class="muted">· ' + esc(c.phone) + '</span>' : '') +
-                (c.debt > 0 ? ' <span class="text-danger text-sm">· kasbon ' + rupiah(c.debt) + '</span>' : '') + '</button>';
+                (c.debt > 0 ? ' <span class="text-danger text-sm">· piutang ' + rupiah(c.debt) + '</span>' : '') + '</button>';
         }).join('');
         list.hidden = false;
     }
@@ -449,7 +449,7 @@
         var btn = this, txt = $('btnCheckoutText'), err = $('payError');
         if (!cart.length) return;
         if (needCustomer() && !customer) {
-            err.textContent = 'Pilih pelanggan dulu — wajib untuk pinjam tabung atau kasbon.'; err.hidden = false;
+            err.textContent = 'Pilih pelanggan terlebih dahulu. Pelanggan wajib diisi untuk pinjaman tabung atau piutang.'; err.hidden = false;
             $('custInput').focus(); return;
         }
         var label = txt.textContent;

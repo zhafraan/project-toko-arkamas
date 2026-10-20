@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title', 'Piutang / Kasbon')
-@section('page-title', 'Piutang / Kasbon')
-@section('page-sub', 'Nota yang belum dibayar lunas')
+@section('title', 'Piutang')
+@section('page-title', 'Piutang')
+@section('page-sub', 'Nota yang belum dibayar penuh')
 
 @section('content')
 <div class="summary mb-2">
@@ -67,8 +67,8 @@
                 <tr><td colspan="7">
                     <div class="empty">
                         <div class="empty-icon" style="background:var(--success-soft);color:var(--success-ink);"><x-icon name="check" size="24" /></div>
-                        <div class="empty-title">{{ request('search') ? 'Tidak ditemukan' : 'Semua nota sudah lunas' }}</div>
-                        <div>{{ request('search') ? 'Coba kata kunci lain.' : 'Tidak ada piutang yang perlu ditagih.' }}</div>
+                        <div class="empty-title">{{ request('search') ? 'Tidak ditemukan' : 'Tidak ada piutang.' }}</div>
+                        <div>{{ request('search') ? 'Coba kata kunci lain.' : 'Seluruh nota sudah lunas.' }}</div>
                     </div>
                 </td></tr>
                 @endforelse
@@ -94,7 +94,7 @@
                     <span class="affix">Rp</span>
                     <input type="number" name="amount_paid" id="payAmount" class="input num" min="1" step="any" required>
                 </div>
-                <div class="hint"><button type="button" class="btn btn-ghost btn-xs" id="btnPayFull" style="margin-left:-8px;">Isi sisa tagihan (lunasi)</button></div>
+                <div class="hint"><button type="button" class="btn btn-ghost btn-xs" id="btnPayFull" style="margin-left:-8px;">Bayar seluruh sisa tagihan</button></div>
             </div>
             <div class="field">
                 <label class="label" for="payMethod">Metode</label>

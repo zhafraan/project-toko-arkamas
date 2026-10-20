@@ -104,8 +104,8 @@
             return res.json().catch(function () { return {}; }).then(function (body) {
                 if (!res.ok) {
                     var err = body || {};
-                    if (!err.message) err.message = 'Terjadi kesalahan (' + res.status + ').';
-                    if (res.status === 419) err.message = 'Sesi habis. Muat ulang halaman lalu coba lagi.';
+                    if (!err.message) err.message = 'Terjadi kesalahan pada sistem (' + res.status + '). Silakan coba lagi.';
+                    if (res.status === 419) err.message = 'Sesi Anda telah berakhir. Muat ulang halaman lalu coba lagi.';
                     throw err;
                 }
                 return body;

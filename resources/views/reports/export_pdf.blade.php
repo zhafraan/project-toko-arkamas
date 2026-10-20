@@ -5,7 +5,7 @@
     <title>{{ $label }}</title>
     <style>
         body { font-family: 'DejaVu Sans', sans-serif; font-size: 10.5px; color: #18121E; margin: 0; }
-        .header { background: #984B43; color: #fff; padding: 18px 24px; }
+        .header { background: #3F6B4F; color: #fff; padding: 18px 24px; }
         .header h1 { font-size: 17px; margin: 0 0 4px; }
         .header p { font-size: 10.5px; margin: 0; opacity: .85; }
         .content { padding: 18px 24px; }
@@ -13,14 +13,14 @@
         .metrics td { width: 33.33%; padding: 0 6px 10px 0; vertical-align: top; }
         .metric-box { background: #F5F0EB; border: 1px solid #D7CEC7; padding: 9px 11px; }
         .metric-label { font-size: 9.5px; color: #987654; }
-        .metric-value { font-size: 14px; font-weight: bold; color: #76323F; margin-top: 3px; }
+        .metric-value { font-size: 14px; font-weight: bold; color: #2E5239; margin-top: 3px; }
         .data { margin-top: 8px; }
-        .data th { background: #984B43; color: #fff; padding: 7px 8px; text-align: left; font-size: 9.5px; }
+        .data th { background: #3F6B4F; color: #fff; padding: 7px 8px; text-align: left; font-size: 9.5px; }
         .data td { padding: 7px 8px; border-bottom: 1px solid #D7CEC7; font-size: 10px; }
         .data tr.even td { background: #F0EAE4; }
         .right { text-align: right; }
         .ok { color: #1B5C44; font-weight: bold; }
-        .bad { color: #76323F; font-weight: bold; }
+        .bad { color: #C0392B; font-weight: bold; }
         .footer { text-align: center; padding: 10px; font-size: 9.5px; color: #987654; margin-top: 14px; }
     </style>
 </head>
@@ -39,9 +39,9 @@
                 <td><div class="metric-box"><div class="metric-label">Total transaksi</div><div class="metric-value">{{ $metrics['transactionCount'] }}</div></div></td>
             </tr>
             <tr>
-                <td><div class="metric-box"><div class="metric-label">Tunai masuk</div><div class="metric-value">@rupiah($metrics['totalCash'])</div></div></td>
-                <td><div class="metric-box"><div class="metric-label">Transfer masuk</div><div class="metric-value">@rupiah($metrics['totalTransfer'])</div></div></td>
-                <td><div class="metric-box"><div class="metric-label">Piutang periode ini</div><div class="metric-value">@rupiah($metrics['totalPiutang'])</div></div></td>
+                <td><div class="metric-box"><div class="metric-label">Penerimaan tunai</div><div class="metric-value">@rupiah($metrics['totalCash'])</div></div></td>
+                <td><div class="metric-box"><div class="metric-label">Penerimaan transfer</div><div class="metric-value">@rupiah($metrics['totalTransfer'])</div></div></td>
+                <td><div class="metric-box"><div class="metric-label">Piutang pada periode ini</div><div class="metric-value">@rupiah($metrics['totalPiutang'])</div></div></td>
             </tr>
         </table>
 
@@ -61,7 +61,7 @@
                     <td class="right">@rupiah($trx->paid_amount - $trx->change_amount)</td>
                     <td class="right">@rupiah($trx->remaining_debt)</td>
                     <td>{{ $trx->payment_method === 'cash' ? 'Tunai' : 'Transfer' }}</td>
-                    <td class="{{ $trx->payment_status === 'lunas' ? 'ok' : 'bad' }}">{{ $trx->payment_status === 'lunas' ? 'Lunas' : 'Kasbon' }}</td>
+                    <td class="{{ $trx->payment_status === 'lunas' ? 'ok' : 'bad' }}">{{ $trx->payment_status === 'lunas' ? 'Lunas' : 'Piutang' }}</td>
                     <td>{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
                 </tr>
                 @empty

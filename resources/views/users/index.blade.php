@@ -86,11 +86,11 @@
                 </select>
             </div>
             <div class="field">
-                <label class="label">Password <span class="req">*</span></label>
+                <label class="label">Kata sandi <span class="req">*</span></label>
                 <input type="password" name="password" class="input" minlength="6" autocomplete="new-password" required>
             </div>
             <div class="field">
-                <label class="label">Ulangi password <span class="req">*</span></label>
+                <label class="label">Konfirmasi kata sandi <span class="req">*</span></label>
                 <input type="password" name="password_confirmation" class="input" autocomplete="new-password" required>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan</button>
@@ -124,12 +124,12 @@
                 </select>
             </div>
             <div class="field">
-                <label class="label">Password baru</label>
+                <label class="label">Kata sandi baru</label>
                 <input type="password" name="password" class="input" minlength="6" autocomplete="new-password">
-                <div class="hint">Kosongkan jika tidak ingin mengubah password.</div>
+                <div class="hint">Kosongkan jika kata sandi tidak diubah.</div>
             </div>
             <div class="field">
-                <label class="label">Ulangi password baru</label>
+                <label class="label">Konfirmasi kata sandi baru</label>
                 <input type="password" name="password_confirmation" class="input" autocomplete="new-password">
             </div>
             <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan perubahan</button>

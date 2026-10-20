@@ -1,13 +1,13 @@
 @extends('layouts.app')
-@section('title', 'Kiriman Agen')
-@section('page-title', 'Kiriman Agen')
+@section('title', 'Penerimaan dari Agen')
+@section('page-title', 'Penerimaan dari Agen')
 @section('page-sub', 'Catat tabung isi yang diterima dari agen')
 
 @section('content')
 <div class="layout-side side-left">
 
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="truck" /> Catat kiriman baru</span></div>
+        <div class="card-head"><span class="card-title"><x-icon name="truck" /> Catat penerimaan baru</span></div>
         <form method="POST" action="{{ route('inventory.storeDelivery') }}" class="card-body">
             @csrf
             <div class="field">
@@ -20,7 +20,7 @@
                 </select>
             </div>
             <div class="field">
-                <label class="label">Tanggal kiriman <span class="req">*</span></label>
+                <label class="label">Tanggal penerimaan <span class="req">*</span></label>
                 <input type="date" name="delivery_date" class="input" value="{{ old('delivery_date', today()->toDateString()) }}" required>
             </div>
             <div class="form-grid">
@@ -29,23 +29,23 @@
                     <input type="number" name="qty_received" class="input" min="1" placeholder="0" value="{{ old('qty_received') }}" required>
                 </div>
                 <div class="field">
-                    <label class="label">Harga tebus / tabung <span class="req">*</span></label>
+                    <label class="label">Harga tebus per tabung <span class="req">*</span></label>
                     <input type="number" name="buy_price_per_unit" class="input" min="0" placeholder="0" value="{{ old('buy_price_per_unit') }}" required>
                 </div>
             </div>
             <div class="field">
-                <label class="label">Catatan (no. DO / nama sopir)</label>
+                <label class="label">Catatan (nomor DO atau nama sopir)</label>
                 <input type="text" name="notes" class="input" maxlength="255" placeholder="Opsional" value="{{ old('notes') }}">
             </div>
             <div class="modal-note">
-                <strong>Stok otomatis:</strong> tabung isi <span class="text-success fw">bertambah</span> sebanyak jumlah diterima, tabung kosong <span class="text-danger fw">berkurang</span> sama banyak (ditukar ke agen).
+                <strong>Stok diperbarui otomatis:</strong> tabung isi <span class="text-success fw">bertambah</span> dan tabung kosong <span class="text-danger fw">berkurang</span> sebanyak jumlah yang diterima.
             </div>
-            <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Catat kiriman</button>
+            <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Catat penerimaan</button>
         </form>
     </div>
 
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="history" /> Riwayat kiriman</span></div>
+        <div class="card-head"><span class="card-title"><x-icon name="history" /> Riwayat penerimaan</span></div>
         <div class="table-wrap">
             <table class="table">
                 <thead>
@@ -68,7 +68,7 @@
                     <tr><td colspan="6">
                         <div class="empty">
                             <div class="empty-icon"><x-icon name="truck" size="24" /></div>
-                            <div class="empty-title">Belum ada kiriman tercatat</div>
+                            <div class="empty-title">Belum ada penerimaan tercatat</div>
                         </div>
                     </td></tr>
                     @endforelse

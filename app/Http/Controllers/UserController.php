@@ -24,7 +24,7 @@ class UserController extends Controller
         ]);
         $data['password'] = Hash::make($data['password']);
         User::create($data);
-        return back()->with('success', 'Pengguna berhasil ditambahkan!');
+        return back()->with('success', 'Pengguna berhasil ditambahkan.');
     }
 
     public function update(Request $request, User $user)
@@ -48,13 +48,13 @@ class UserController extends Controller
         }
 
         $user->update($data);
-        return back()->with('success', 'Data pengguna berhasil diperbarui!');
+        return back()->with('success', 'Data pengguna berhasil diperbarui.');
     }
 
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'Tidak dapat menghapus akun sendiri.');
+            return back()->with('error', 'Akun yang sedang digunakan tidak dapat dihapus.');
         }
 
         if ($user->transactions()->exists() || $user->agentDeliveries()->exists() || $user->debtPayments()->exists()) {

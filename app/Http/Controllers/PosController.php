@@ -38,11 +38,11 @@ class PosController extends Controller
         $lines      = collect($data['items']);
         $customerId = $data['customer_id'] ?? null;
 
-        // Pelanggan wajib untuk pinjam tabung atau kasbon
+        // Pelanggan wajib untuk pinjam tabung atau piutang
         $hasPinjam = $lines->contains('transaction_type', 'pinjam_tabung');
         if (($hasPinjam || $data['payment_status'] === 'belum_lunas') && !$customerId) {
             throw ValidationException::withMessages([
-                'customer_id' => 'Pelanggan wajib dipilih untuk transaksi pinjam tabung atau kasbon.',
+                'customer_id' => 'Pelanggan wajib dipilih untuk transaksi pinjaman tabung atau piutang.',
             ]);
         }
 
@@ -57,7 +57,7 @@ class PosController extends Controller
                 $needed  = (int) $group->sum('qty');
 
                 if (!$product->is_active) {
-                    throw ValidationException::withMessages(['items' => "Produk {$product->name} sudah tidak aktif."]);
+                    throw ValidationException::withMessages(['items' => "Produk {$product->name} sudah tidak aktif dan tidak dapat dijual."]);
                 }
                 if ($product->stock_filled < $needed) {
                     throw ValidationException::withMessages([
@@ -87,7 +87,7 @@ class PosController extends Controller
                 $paid ??= $total; // kolom dikosongkan = uang pas
                 if ($paid < $total) {
                     throw ValidationException::withMessages([
-                        'paid_amount' => 'Uang diterima kurang dari total. Pilih "Kasbon" jika pembayaran belum penuh.',
+                        'paid_amount' => 'Uang yang diterima kurang dari total tagihan. Pilih status "Piutang" jika pembayaran belum penuh.',
                     ]);
                 }
             } else {
@@ -163,7 +163,7 @@ class PosController extends Controller
             ]);
         }
 
-        return redirect()->route('pos.receipt', $transaction)->with('success', 'Transaksi berhasil disimpan!');
+        return redirect()->route('pos.receipt', $transaction)->with('success', 'Transaksi berhasil disimpan.');
     }
 
     public function receipt(Transaction $transaction)

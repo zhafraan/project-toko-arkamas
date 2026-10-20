@@ -35,7 +35,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             $response = redirect()->intended(route('dashboard'))
-                ->with('success', "Selamat datang kembali, {$user->name}!");
+                ->with('success', "Selamat datang, {$user->name}.");
 
             // Atur cookie remembered_email
             if ($remember) {
@@ -48,7 +48,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password yang Anda masukkan salah.',
+            'email' => 'Email atau kata sandi tidak sesuai. Silakan coba lagi.',
         ])->onlyInput('email');
     }
 
@@ -59,6 +59,6 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login')
-            ->with('info', 'Anda telah berhasil logout dari sistem.');
+            ->with('info', 'Anda telah keluar dari sistem.');
     }
 }
