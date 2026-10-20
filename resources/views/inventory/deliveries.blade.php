@@ -29,7 +29,7 @@
                     <input type="number" name="qty_received" class="input" min="1" placeholder="0" value="{{ old('qty_received') }}" required>
                 </div>
                 <div class="field">
-                    <label class="label">Harga tebus per tabung <span class="req">*</span></label>
+                    <label class="label">Harga dari agen<span class="req">*</span></label>
                     <input type="number" name="buy_price_per_unit" class="input" min="0" placeholder="0" value="{{ old('buy_price_per_unit') }}" required>
                 </div>
             </div>
