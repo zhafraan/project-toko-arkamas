@@ -30,14 +30,23 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'role'  => 'required|in:owner,kasir',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $user->id,
+            'role'     => 'required|in:owner,kasir',
+            'password' => 'nullable|string|min:6|confirmed',
         ]);
-        if ($request->filled('password')) {
-            $request->validate(['password' => 'min:6|confirmed']);
-            $data['password'] = Hash::make($request->password);
+
+        // Cegah pemilik menurunkan perannya sendiri (akan terkunci dari menu pemilik)
+        if ($user->id === auth()->id() && $data['role'] !== 'owner') {
+            return back()->with('error', 'Anda tidak dapat mengubah peran akun Anda sendiri.');
         }
+
+        if (empty($data['password'])) {
+            unset($data['password']);
+        } else {
+            $data['password'] = Hash::make($data['password']);
+        }
+
         $user->update($data);
         return back()->with('success', 'Data pengguna berhasil diperbarui!');
     }
@@ -47,6 +56,11 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Tidak dapat menghapus akun sendiri.');
         }
+
+        if ($user->transactions()->exists() || $user->agentDeliveries()->exists() || $user->debtPayments()->exists()) {
+            return back()->with('error', 'Akun "' . $user->name . '" sudah tercatat di riwayat transaksi sehingga tidak bisa dihapus.');
+        }
+
         $user->delete();
         return back()->with('success', 'Pengguna berhasil dihapus.');
     }

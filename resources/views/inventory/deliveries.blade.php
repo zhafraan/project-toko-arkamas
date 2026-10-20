@@ -1,86 +1,81 @@
 @extends('layouts.app')
 @section('title', 'Kiriman Agen')
-@section('page-title', 'Penerimaan Kiriman Gas dari Agen')
+@section('page-title', 'Kiriman Agen')
+@section('page-sub', 'Catat tabung isi yang diterima dari agen')
 
 @section('content')
-<div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;">
+<div class="layout-side side-left">
 
-    {{-- Form Catat Kiriman --}}
     <div class="card">
-        <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-truck" style="color:var(--accent);margin-right:6px;"></i> Catat Kiriman Baru</span>
-        </div>
-        <div class="card-body">
-            <form method="POST" action="{{ route('inventory.storeDelivery') }}">
-                @csrf
-                <div class="form-group">
-                    <label class="form-label">Produk Gas *</label>
-                    <select name="product_id" class="form-control" required>
-                        <option value="">-- Pilih Produk --</option>
-                        @foreach($products as $p)
-                        <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
+        <div class="card-head"><span class="card-title"><x-icon name="truck" /> Catat kiriman baru</span></div>
+        <form method="POST" action="{{ route('inventory.storeDelivery') }}" class="card-body">
+            @csrf
+            <div class="field">
+                <label class="label">Produk <span class="req">*</span></label>
+                <select name="product_id" class="select" required>
+                    <option value="">Pilih produk…</option>
+                    @foreach($products as $p)
+                    <option value="{{ $p->id }}" {{ old('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="field">
+                <label class="label">Tanggal kiriman <span class="req">*</span></label>
+                <input type="date" name="delivery_date" class="input" value="{{ old('delivery_date', today()->toDateString()) }}" required>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label class="label">Jumlah diterima <span class="req">*</span></label>
+                    <input type="number" name="qty_received" class="input" min="1" placeholder="0" value="{{ old('qty_received') }}" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Tanggal Pengiriman *</label>
-                    <input type="date" name="delivery_date" class="form-control" value="{{ today()->toDateString() }}" required>
+                <div class="field">
+                    <label class="label">Harga tebus / tabung <span class="req">*</span></label>
+                    <input type="number" name="buy_price_per_unit" class="input" min="0" placeholder="0" value="{{ old('buy_price_per_unit') }}" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Jumlah Tabung Diterima *</label>
-                    <input type="number" name="qty_received" class="form-control" placeholder="0" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Harga Tebus per Tabung (Rp) *</label>
-                    <input type="number" name="buy_price_per_unit" class="form-control" placeholder="0" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Catatan (No. DO / Nama Sopir)</label>
-                    <input type="text" name="notes" class="form-control" placeholder="Opsional">
-                </div>
-                <div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;">
-                    <i class="fa-solid fa-circle-info" style="color:var(--info);"></i>
-                    <strong>Logika Otomatis:</strong> Tabung Isi <span style="color:var(--success);">+Qty</span>, Tabung Kosong <span style="color:var(--danger);">−Qty</span>
-                </div>
-                <button type="submit" class="btn btn-accent" style="width:100%;justify-content:center;">
-                    <i class="fa-solid fa-truck"></i> Catat Pengiriman
-                </button>
-            </form>
-        </div>
+            </div>
+            <div class="field">
+                <label class="label">Catatan (no. DO / nama sopir)</label>
+                <input type="text" name="notes" class="input" maxlength="255" placeholder="Opsional" value="{{ old('notes') }}">
+            </div>
+            <div class="modal-note">
+                <strong>Stok otomatis:</strong> tabung isi <span class="text-success fw">bertambah</span> sebanyak jumlah diterima, tabung kosong <span class="text-danger fw">berkurang</span> sama banyak (ditukar ke agen).
+            </div>
+            <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Catat kiriman</button>
+        </form>
     </div>
 
-    {{-- Delivery History --}}
     <div class="card">
-        <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-light);margin-right:6px;"></i> Riwayat Kiriman Agen</span>
-        </div>
-        <div class="table-wrapper">
-            <table>
+        <div class="card-head"><span class="card-title"><x-icon name="history" /> Riwayat kiriman</span></div>
+        <div class="table-wrap">
+            <table class="table">
                 <thead>
-                    <tr>
-                        <th>Tanggal</th><th>Produk</th><th>Qty</th>
-                        <th>Harga Tebus/Unit</th><th>Total Biaya</th>
-                        <th>Pencatat</th><th>Catatan</th>
-                    </tr>
+                    <tr><th>Tanggal</th><th>Produk</th><th class="num">Jumlah</th><th class="num">Harga tebus</th><th class="num">Total biaya</th><th>Pencatat</th></tr>
                 </thead>
                 <tbody>
                     @forelse($deliveries as $delivery)
                     <tr>
-                        <td>{{ $delivery->delivery_date->isoFormat('D MMM Y') }}</td>
-                        <td style="font-weight:600;">{{ $delivery->product->name }}</td>
-                        <td><span style="background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:20px;font-weight:700;">{{ $delivery->qty_received }}</span></td>
-                        <td>Rp {{ number_format($delivery->buy_price_per_unit,0,',','.') }}</td>
-                        <td style="font-weight:700;color:var(--primary);">Rp {{ number_format($delivery->total_cost,0,',','.') }}</td>
-                        <td style="font-size:12px;">{{ $delivery->user->name }}</td>
-                        <td style="font-size:12px;color:var(--text-muted);">{{ $delivery->notes ?? '-' }}</td>
+                        <td class="nowrap">{{ $delivery->delivery_date->isoFormat('D MMM Y') }}</td>
+                        <td>
+                            <div class="cell-title">{{ $delivery->product->name }}</div>
+                            @if($delivery->notes)<div class="cell-sub">{{ $delivery->notes }}</div>@endif
+                        </td>
+                        <td class="num"><span class="qty-pill qty-filled">{{ $delivery->qty_received }}</span></td>
+                        <td class="num">@rupiah($delivery->buy_price_per_unit)</td>
+                        <td class="num fw">@rupiah($delivery->total_cost)</td>
+                        <td class="muted">{{ $delivery->user->name }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Belum ada riwayat kiriman</td></tr>
+                    <tr><td colspan="6">
+                        <div class="empty">
+                            <div class="empty-icon"><x-icon name="truck" size="24" /></div>
+                            <div class="empty-title">Belum ada kiriman tercatat</div>
+                        </div>
+                    </td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <div style="padding:0 16px;">{{ $deliveries->links('vendor.pagination.simple') }}</div>
+        {{ $deliveries->links('vendor.pagination.simple') }}
     </div>
 </div>
 @endsection

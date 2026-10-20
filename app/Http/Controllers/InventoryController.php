@@ -6,13 +6,23 @@ use App\Models\AgentDelivery;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class InventoryController extends Controller
 {
     public function index()
     {
-        $products = Product::orderBy('name')->paginate(20);
-        return view('inventory.index', compact('products'));
+        $products = Product::withCount('transactionDetails')->orderBy('name')->paginate(20);
+
+        // Total stok dihitung dari semua produk, bukan hanya halaman yang tampil
+        $totals = Product::selectRaw('COALESCE(SUM(stock_filled),0) as filled, COALESCE(SUM(stock_empty),0) as empty_, COALESCE(SUM(stock_borrowed),0) as borrowed')->first();
+        $totalFilled   = (int) $totals->filled;
+        $totalEmpty    = (int) $totals->empty_;
+        $totalBorrowed = (int) $totals->borrowed;
+
+        $lowStockLimit = Product::LOW_STOCK;
+
+        return view('inventory.index', compact('products', 'totalFilled', 'totalEmpty', 'totalBorrowed', 'lowStockLimit'));
     }
 
     public function store(Request $request)
@@ -28,64 +38,51 @@ class InventoryController extends Controller
             'stock_borrowed' => 'nullable|integer|min:0',
         ]);
 
-        $data['price_buy']      = $data['price_buy'] ?? 0;
-        $data['price_tube']     = $data['price_tube'] ?? 0;
-        $data['stock_filled']   = $data['stock_filled'] ?? 0;
-        $data['stock_empty']    = $data['stock_empty'] ?? 0;
-        $data['stock_borrowed'] = $data['stock_borrowed'] ?? 0;
-        $data['is_active']      = true;
+        foreach (['price_buy', 'price_tube', 'stock_filled', 'stock_empty', 'stock_borrowed'] as $key) {
+            $data[$key] = $data[$key] ?? 0;
+        }
+        $data['is_active'] = true;
 
         $product = Product::create($data);
         return back()->with('success', 'Produk "' . $product->name . '" berhasil ditambahkan!');
     }
 
+    /** Edit data produk. Stok diubah lewat Stock Opname (adjustStock), bukan di sini. */
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
-            'name'           => 'required|string|max:255',
-            'sku'            => 'required|string|max:50|unique:products,sku,' . $product->id,
-            'price_buy'      => 'nullable|numeric|min:0',
-            'price_sell'     => 'required|numeric|min:0',
-            'price_tube'     => 'nullable|numeric|min:0',
-            'is_active'      => 'nullable',
-            'stock_filled'   => 'nullable|integer|min:0',
-            'stock_empty'    => 'nullable|integer|min:0',
-            'stock_borrowed' => 'nullable|integer|min:0',
+            'name'       => 'required|string|max:255',
+            'sku'        => 'required|string|max:50|unique:products,sku,' . $product->id,
+            'price_buy'  => 'nullable|numeric|min:0',
+            'price_sell' => 'required|numeric|min:0',
+            'price_tube' => 'nullable|numeric|min:0',
+            'is_active'  => 'required|boolean',
         ]);
 
         $data['price_buy']  = $data['price_buy'] ?? 0;
         $data['price_tube'] = $data['price_tube'] ?? 0;
-        $data['is_active']  = $request->filled('is_active') ? (bool)$request->is_active : $product->is_active;
-
-        if ($request->has('stock_filled') && $request->stock_filled !== null) {
-            $data['stock_filled'] = (int)$request->stock_filled;
-        }
-        if ($request->has('stock_empty') && $request->stock_empty !== null) {
-            $data['stock_empty'] = (int)$request->stock_empty;
-        }
-        if ($request->has('stock_borrowed') && $request->stock_borrowed !== null) {
-            $data['stock_borrowed'] = (int)$request->stock_borrowed;
-        }
 
         $product->update($data);
         return back()->with('success', 'Produk "' . $product->name . '" berhasil diperbarui!');
     }
 
+    /** Hanya produk yang belum pernah dipakai transaksi yang boleh dihapus; selain itu cukup dinonaktifkan. */
     public function destroy(Product $product)
     {
-        $name = $product->name;
+        if ($product->transactionDetails()->exists() || $product->tubeLoans()->exists()) {
+            return back()->with('error', 'Produk "' . $product->name . '" sudah punya riwayat transaksi sehingga tidak bisa dihapus. Ubah statusnya menjadi Non-Aktif.');
+        }
 
+        $name = $product->name;
         DB::transaction(function () use ($product) {
-            $product->transactionDetails()->delete();
             $product->agentDeliveries()->delete();
-            $product->tubeLoans()->delete();
             $product->delete();
         });
 
-        return back()->with('success', 'Produk "' . $name . '" berhasil dihapus!');
+        return back()->with('success', 'Produk "' . $name . '" berhasil dihapus.');
     }
 
-    // Stock Opname / Adjustment
+    // Stock Opname / penyesuaian stok
     public function adjustStock(Request $request, Product $product)
     {
         $data = $request->validate([
@@ -94,38 +91,44 @@ class InventoryController extends Controller
             'stock_borrowed' => 'required|integer|min:0',
         ]);
         $product->update($data);
-        return back()->with('success', 'Stok berhasil disesuaikan (Stock Opname).');
+        return back()->with('success', 'Stok "' . $product->name . '" berhasil disesuaikan (Stock Opname).');
     }
 
-    // Deliveries
+    // Kiriman agen
     public function deliveries()
     {
         $products   = Product::where('is_active', true)->orderBy('name')->get();
-        $deliveries = AgentDelivery::with(['product', 'user'])
-            ->latest('delivery_date')->paginate(20);
+        $deliveries = AgentDelivery::with(['product', 'user'])->latest('delivery_date')->latest('id')->paginate(20);
         return view('inventory.deliveries', compact('products', 'deliveries'));
     }
 
     public function storeDelivery(Request $request)
     {
         $data = $request->validate([
-            'product_id'          => 'required|exists:products,id',
-            'delivery_date'       => 'required|date',
-            'qty_received'        => 'required|integer|min:1',
-            'buy_price_per_unit'  => 'required|numeric|min:0',
-            'notes'               => 'nullable|string|max:255',
+            'product_id'         => 'required|exists:products,id',
+            'delivery_date'      => 'required|date',
+            'qty_received'       => 'required|integer|min:1',
+            'buy_price_per_unit' => 'required|numeric|min:0',
+            'notes'              => 'nullable|string|max:255',
         ]);
 
         DB::transaction(function () use ($data) {
-            $data['user_id']    = auth()->id();
-            $data['total_cost'] = $data['qty_received'] * $data['buy_price_per_unit'];
+            $product = Product::lockForUpdate()->findOrFail($data['product_id']);
 
-            AgentDelivery::create($data);
+            // Tukar tabung: isi masuk, kosong keluar ke agen
+            if ($product->stock_empty < $data['qty_received']) {
+                throw ValidationException::withMessages([
+                    'qty_received' => "Tabung kosong {$product->name} hanya {$product->stock_empty}, kurang dari {$data['qty_received']} yang akan ditukar. Lakukan Stock Opname dulu bila angka stok belum sesuai.",
+                ]);
+            }
 
-            // Logika stok: isi +qty, kosong -qty
-            $product = Product::findOrFail($data['product_id']);
+            AgentDelivery::create($data + [
+                'user_id'    => auth()->id(),
+                'total_cost' => $data['qty_received'] * $data['buy_price_per_unit'],
+            ]);
+
             $product->increment('stock_filled', $data['qty_received']);
-            $product->decrement('stock_empty',  $data['qty_received']);
+            $product->decrement('stock_empty', $data['qty_received']);
         });
 
         return back()->with('success', 'Pengiriman agen berhasil dicatat!');

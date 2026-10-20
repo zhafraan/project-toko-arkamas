@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 // Guest routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('throttle:10,1');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -57,7 +57,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{transaction}/pay', [DebtController::class, 'pay'])->name('pay');
     });
 
-    // Inventori & Pengiriman Agen (Owner only untuk edit)
+    // Stok (kasir boleh melihat) & pengelolaan produk / kiriman agen (pemilik)
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('/', [InventoryController::class, 'index'])->name('index');
 
@@ -68,8 +68,11 @@ Route::middleware('auth')->group(function () {
             Route::post('/{product}/adjust-stock',[InventoryController::class, 'adjustStock'])->name('adjustStock');
         });
 
-        Route::get('/deliveries',    [InventoryController::class, 'deliveries'])->name('deliveries');
-        Route::post('/deliveries',   [InventoryController::class, 'storeDelivery'])->name('storeDelivery');
+        // Kiriman agen: hanya pemilik (menu ini memang disembunyikan dari kasir)
+        Route::middleware('role:owner')->group(function () {
+            Route::get('/deliveries',  [InventoryController::class, 'deliveries'])->name('deliveries');
+            Route::post('/deliveries', [InventoryController::class, 'storeDelivery'])->name('storeDelivery');
+        });
     });
 
     // Laporan (Owner only)

@@ -1,189 +1,149 @@
 @extends('layouts.app')
 @section('title', 'Laporan')
-@section('page-title', 'Laporan Keuangan & Penjualan')
+@section('page-title', 'Laporan')
+@section('page-sub', $periodLabel)
 
 @section('content')
 
-{{-- Filter Panel --}}
-<div class="card" style="margin-bottom:20px;">
-    <div class="card-body" style="padding:16px;">
-        <form method="GET" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
-            <div>
-                <label class="form-label">Tipe Laporan</label>
-                <select name="type" class="form-control" onchange="toggleFilters(this.value)">
-                    <option value="daily"   {{ $type=='daily'   ?'selected':'' }}>📅 Harian</option>
-                    <option value="weekly"  {{ $type=='weekly'  ?'selected':'' }}>📆 Mingguan</option>
-                    <option value="monthly" {{ $type=='monthly' ?'selected':'' }}>🗓️ Bulanan</option>
-                    <option value="yearly"  {{ $type=='yearly'  ?'selected':'' }}>📊 Tahunan</option>
-                </select>
-            </div>
-            <div id="filterDaily" class="{{ $type !== 'daily' ? 'hidden' : '' }}">
-                <label class="form-label">Tanggal</label>
-                <input type="date" name="date" class="form-control" value="{{ $date }}">
-            </div>
-            <div id="filterWeekly" style="{{ $type !== 'weekly' ? 'display:none;' : '' }}">
-                <label class="form-label">Dari</label>
-                <input type="date" name="week_start" class="form-control" value="{{ $weekStart }}">
-            </div>
-            <div id="filterWeekly2" style="{{ $type !== 'weekly' ? 'display:none;' : '' }}">
-                <label class="form-label">Sampai</label>
-                <input type="date" name="week_end" class="form-control" value="{{ $weekEnd }}">
-            </div>
-            <div id="filterMonthly" style="{{ !in_array($type,['monthly','yearly']) ? 'display:none;' : '' }}">
-                <label class="form-label">Bulan</label>
-                <select name="month" class="form-control">
-                    @foreach(range(1,12) as $m)
-                    <option value="{{ $m }}" {{ $month==$m?'selected':''}}>{{ \Carbon\Carbon::create(null,$m)->isoFormat('MMMM') }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div id="filterYear" style="{{ $type === 'daily' || $type === 'weekly' ? 'display:none;' : '' }}">
-                <label class="form-label">Tahun</label>
-                <select name="year" class="form-control">
-                    @foreach(range(date('Y')-2, date('Y')) as $y)
-                    <option value="{{ $y }}" {{ $year==$y?'selected':''}}>{{ $y }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-filter"></i> Tampilkan
-            </button>
-            <a href="{{ route('reports.exportPdf', request()->query()) }}" class="btn btn-danger" target="_blank">
-                <i class="fa-solid fa-file-pdf"></i> PDF
-            </a>
-            <a href="{{ route('reports.exportExcel', request()->query()) }}" class="btn btn-success">
-                <i class="fa-solid fa-file-excel"></i> Excel
-            </a>
-        </form>
+<div class="card mb-2">
+    <form method="GET" action="{{ route('reports.index') }}" class="toolbar" id="reportForm" style="border-bottom:0;align-items:flex-end;">
+        <div>
+            <label class="label" for="repType">Periode</label>
+            <select name="type" id="repType" class="select">
+                <option value="daily" {{ $type === 'daily' ? 'selected' : '' }}>Harian</option>
+                <option value="weekly" {{ $type === 'weekly' ? 'selected' : '' }}>Mingguan</option>
+                <option value="monthly" {{ $type === 'monthly' ? 'selected' : '' }}>Bulanan</option>
+                <option value="yearly" {{ $type === 'yearly' ? 'selected' : '' }}>Tahunan</option>
+            </select>
+        </div>
+        <div data-for="daily" {{ $type === 'daily' ? '' : 'hidden' }}>
+            <label class="label">Tanggal</label>
+            <input type="date" name="date" class="input" value="{{ $date }}">
+        </div>
+        <div data-for="weekly" {{ $type === 'weekly' ? '' : 'hidden' }}>
+            <label class="label">Dari</label>
+            <input type="date" name="week_start" class="input" value="{{ $weekStart }}">
+        </div>
+        <div data-for="weekly" {{ $type === 'weekly' ? '' : 'hidden' }}>
+            <label class="label">Sampai</label>
+            <input type="date" name="week_end" class="input" value="{{ $weekEnd }}">
+        </div>
+        <div data-for="monthly" {{ $type === 'monthly' ? '' : 'hidden' }}>
+            <label class="label">Bulan</label>
+            <select name="month" class="select">
+                @foreach(range(1, 12) as $m)
+                <option value="{{ $m }}" {{ (int) $month === $m ? 'selected' : '' }}>{{ \Carbon\Carbon::create(2000, $m, 1)->isoFormat('MMMM') }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div data-for="monthly yearly" {{ ($type === 'monthly' || $type === 'yearly') ? '' : 'hidden' }}>
+            <label class="label">Tahun</label>
+            <select name="year" class="select">
+                @foreach(range((int) date('Y') - 3, (int) date('Y')) as $y)
+                <option value="{{ $y }}" {{ (int) $year === $y ? 'selected' : '' }}>{{ $y }}</option>
+                @endforeach
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary"><x-icon name="filter" size="16" /> Tampilkan</button>
+        <div class="row" style="margin-left:auto;gap:8px;">
+            <button type="submit" class="btn btn-outline" formaction="{{ route('reports.exportPdf') }}" formtarget="_blank"><x-icon name="file-text" size="16" /> PDF</button>
+            <button type="submit" class="btn btn-outline" formaction="{{ route('reports.exportExcel') }}"><x-icon name="sheet" size="16" /> Excel</button>
+        </div>
+    </form>
+</div>
+
+<div class="summary mb-2">
+    <div class="summary-item">
+        <div class="summary-label">Omzet</div>
+        <div class="summary-value">@rupiah($metrics['totalRevenue'])</div>
+        <div class="summary-note">{{ $metrics['transactionCount'] }} transaksi</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label">Estimasi laba kotor</div>
+        <div class="summary-value text-success">@rupiah($metrics['totalProfit'])</div>
+        <div class="summary-note">harga jual − harga beli</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label">Tunai masuk</div>
+        <div class="summary-value">@rupiah($metrics['totalCash'])</div>
+        <div class="summary-note">dikurangi kembalian</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label">Transfer masuk</div>
+        <div class="summary-value">@rupiah($metrics['totalTransfer'])</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label">Piutang periode ini</div>
+        <div class="summary-value {{ $metrics['totalPiutang'] > 0 ? 'text-danger' : '' }}">@rupiah($metrics['totalPiutang'])</div>
+        <div class="summary-note">belum dibayar</div>
     </div>
 </div>
 
-{{-- Period Label --}}
-<div style="background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
-    <i class="fa-solid fa-chart-bar" style="font-size:20px;"></i>
-    <span style="font-size:16px;font-weight:700;">{{ $periodLabel }}</span>
-</div>
-
-{{-- Metrics --}}
-<div class="stat-grid" style="margin-bottom:20px;">
-    <div class="stat-card green">
-        <div class="stat-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-        <div class="stat-info">
-            <div class="stat-value">Rp {{ number_format($metrics['totalRevenue'],0,',','.') }}</div>
-            <div class="stat-label">Total Omset ({{ $metrics['transactionCount'] }} transaksi)</div>
-        </div>
-    </div>
-    <div class="stat-card blue">
-        <div class="stat-icon blue"><i class="fa-solid fa-piggy-bank"></i></div>
-        <div class="stat-info">
-            <div class="stat-value">Rp {{ number_format($metrics['totalProfit'],0,',','.') }}</div>
-            <div class="stat-label">Estimasi Laba Bersih</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon" style="background:linear-gradient(135deg,#34d399,#059669);"><i class="fa-solid fa-money-bill"></i></div>
-        <div class="stat-info">
-            <div class="stat-value">Rp {{ number_format($metrics['totalCash'],0,',','.') }}</div>
-            <div class="stat-label">Cash Masuk</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon" style="background:linear-gradient(135deg,#60a5fa,#2563eb);"><i class="fa-solid fa-mobile-screen"></i></div>
-        <div class="stat-info">
-            <div class="stat-value">Rp {{ number_format($metrics['totalTransfer'],0,',','.') }}</div>
-            <div class="stat-label">Transfer Masuk</div>
-        </div>
-    </div>
-    <div class="stat-card red">
-        <div class="stat-icon red"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-        <div class="stat-info">
-            <div class="stat-value">Rp {{ number_format($metrics['totalPiutang'],0,',','.') }}</div>
-            <div class="stat-label">Piutang Periode Ini</div>
-        </div>
-    </div>
-</div>
-
-<div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;">
-
-    {{-- Transaction Table --}}
+<div class="layout-side">
     <div class="card">
-        <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-receipt" style="color:var(--primary-light);margin-right:6px;"></i> Detail Transaksi</span>
-        </div>
-        <div class="table-wrapper">
-            <table>
+        <div class="card-head"><span class="card-title"><x-icon name="receipt" /> Detail transaksi</span></div>
+        <div class="table-wrap">
+            <table class="table">
                 <thead>
-                    <tr>
-                        <th>Invoice</th><th>Pelanggan</th><th>Total</th>
-                        <th>Metode</th><th>Status</th><th>Tanggal</th>
-                    </tr>
+                    <tr><th>Invoice</th><th>Pelanggan</th><th>Tanggal</th><th class="num">Total</th><th>Metode</th><th>Status</th></tr>
                 </thead>
                 <tbody>
                     @forelse($transactions as $trx)
                     <tr>
-                        <td style="font-size:12px;font-weight:700;color:var(--primary-light);">{{ $trx->invoice_number }}</td>
-                        <td>{{ $trx->customer?->name ?: '-' }}</td>
-                        <td style="font-weight:700;">Rp {{ number_format($trx->total_amount,0,',','.') }}</td>
+                        <td class="cell-title nowrap">{{ $trx->invoice_number }}</td>
+                        <td>{{ $trx->customer?->name ?? 'Umum' }}</td>
+                        <td class="muted nowrap">{{ $trx->transaction_date->isoFormat('D MMM Y, HH:mm') }}</td>
+                        <td class="num fw">@rupiah($trx->total_amount)</td>
                         <td>
                             @if($trx->payment_method === 'cash')
-                                <span class="badge badge-info">Cash</span>
+                                <span class="badge">Tunai</span>
                             @else
-                                <span class="badge badge-gray">Transfer</span>
+                                <span class="badge badge-info">Transfer</span>
                             @endif
                         </td>
                         <td>
                             @if($trx->payment_status === 'lunas')
-                                <span class="badge badge-success">Lunas</span>
+                                <span class="badge badge-success badge-dot">Lunas</span>
                             @else
-                                <span class="badge badge-danger">Kasbon</span>
+                                <span class="badge badge-danger badge-dot">Kasbon</span>
                             @endif
                         </td>
-                        <td style="font-size:12px;color:var(--text-muted);">{{ $trx->transaction_date->isoFormat('D MMM Y, HH:mm') }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data periode ini</td></tr>
+                    <tr><td colspan="6"><div class="empty"><div class="empty-icon"><x-icon name="inbox" size="24" /></div><div class="empty-title">Tidak ada transaksi pada periode ini</div></div></td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    {{-- Product Summary --}}
     <div class="card">
-        <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-fire" style="color:var(--accent);margin-right:6px;"></i> Penjualan per Produk</span>
+        <div class="card-head"><span class="card-title"><x-icon name="flame" /> Penjualan per produk</span></div>
+        @forelse($metrics['productSummary'] as $item)
+        <div class="stock-item">
+            <div class="cell-title" style="margin-bottom:6px;">{{ $item['product_name'] }}</div>
+            <div class="pay-line"><span>Terjual</span><strong class="num">{{ $item['qty_sold'] }} tabung</strong></div>
+            <div class="pay-line"><span>Omzet</span><strong class="num">@rupiah($item['revenue'])</strong></div>
+            <div class="pay-line" style="margin-bottom:0;"><span>Laba kotor</span><strong class="num text-success">@rupiah($item['profit'])</strong></div>
         </div>
-        <div class="card-body" style="padding:14px;">
-            @foreach($metrics['productSummary'] as $item)
-            <div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;">
-                <div style="font-weight:700;font-size:14px;margin-bottom:8px;">{{ $item['product_name'] }}</div>
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:4px;">
-                    <span>Qty Terjual</span><strong style="color:var(--text);">{{ $item['qty_sold'] }}</strong>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:4px;">
-                    <span>Omset</span><strong style="color:var(--primary);">Rp {{ number_format($item['revenue'],0,',','.') }}</strong>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);">
-                    <span>Laba</span><strong style="color:var(--success);">Rp {{ number_format($item['profit'],0,',','.') }}</strong>
-                </div>
-            </div>
-            @endforeach
-            @if($metrics['productSummary']->isEmpty())
-            <div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">Tidak ada data</div>
-            @endif
-        </div>
+        @empty
+        <div class="empty"><div class="empty-title">Belum ada data</div></div>
+        @endforelse
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-function toggleFilters(type) {
-    document.getElementById('filterDaily').style.display   = type==='daily'   ? '' : 'none';
-    document.getElementById('filterWeekly').style.display  = type==='weekly'  ? '' : 'none';
-    document.getElementById('filterWeekly2').style.display = type==='weekly'  ? '' : 'none';
-    document.getElementById('filterMonthly').style.display = ['monthly','yearly'].includes(type) ? '' : 'none';
-    document.getElementById('filterYear').style.display    = ['monthly','yearly'].includes(type) ? '' : 'none';
-}
+(function () {
+    var form = document.getElementById('reportForm');
+    function sync() {
+        var type = document.getElementById('repType').value;
+        form.querySelectorAll('[data-for]').forEach(function (el) {
+            el.hidden = el.dataset.for.split(' ').indexOf(type) === -1;
+        });
+    }
+    document.getElementById('repType').addEventListener('change', sync);
+})();
 </script>
 @endpush
-@endsection

@@ -3,19 +3,17 @@
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles
+class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles, WithColumnFormatting, ShouldAutoSize
 {
-    protected array $data;
-
-    public function __construct(array $data)
-    {
-        $this->data = $data;
-    }
+    public function __construct(protected array $data) {}
 
     public function title(): string
     {
@@ -31,27 +29,37 @@ class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles
         ];
     }
 
+    /** Angka dikirim sebagai angka (bukan teks) agar bisa dijumlah di Excel. */
     public function array(): array
     {
-        return $this->data['transactions']->map(function ($trx, $i) {
-            return [
-                $trx->invoice_number,
-                $trx->transaction_date->format('d/m/Y H:i'),
-                $trx->customer?->name ?? 'Umum',
-                number_format($trx->total_amount, 0, ',', '.'),
-                number_format($trx->paid_amount, 0, ',', '.'),
-                number_format($trx->remaining_debt, 0, ',', '.'),
-                strtoupper($trx->payment_status),
-                strtoupper($trx->payment_method),
-            ];
-        })->toArray();
+        return $this->data['transactions']->map(fn ($trx) => [
+            $trx->invoice_number,
+            $trx->transaction_date->format('d/m/Y H:i'),
+            $trx->customer?->name ?? 'Umum',
+            (float) $trx->total_amount,
+            (float) $trx->paid_amount - (float) $trx->change_amount,
+            (float) $trx->remaining_debt,
+            $trx->payment_status === 'lunas' ? 'LUNAS' : 'KASBON',
+            strtoupper($trx->payment_method),
+        ])->toArray();
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => NumberFormat::FORMAT_NUMBER,
+            'E' => NumberFormat::FORMAT_NUMBER,
+            'F' => NumberFormat::FORMAT_NUMBER,
+        ];
     }
 
     public function styles(Worksheet $sheet): array
     {
         return [
-            1 => ['font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-                  'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF1a3a5c']]],
+            1 => [
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF5B5F97']],
+            ],
         ];
     }
 }

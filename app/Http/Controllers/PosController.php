@@ -3,153 +3,167 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Models\DebtPayment;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\TubeLoan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PosController extends Controller
 {
     public function index()
     {
-        $products  = Product::where('is_active', true)->where('stock_filled', '>', 0)->get();
-        $customers = Customer::orderBy('name')->get();
-        return view('pos.index', compact('products', 'customers'));
+        // Semua produk aktif ditampilkan; yang stok isinya 0 ditandai "Habis" di kasir.
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        $lowStockLimit = Product::LOW_STOCK;
+        return view('pos.index', compact('products', 'lowStockLimit'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'items'                    => 'required|array|min:1',
             'items.*.product_id'       => 'required|exists:products,id',
             'items.*.transaction_type' => 'required|in:refill,pinjam_tabung,plus_tabung',
             'items.*.qty'              => 'required|integer|min:1',
+            'customer_id'              => 'nullable|exists:customers,id',
             'payment_method'           => 'required|in:cash,transfer',
             'payment_status'           => 'required|in:lunas,belum_lunas',
-            'paid_amount'              => 'required|numeric|min:0',
+            'paid_amount'              => 'nullable|numeric|min:0',
+            'payment_note'             => 'nullable|string|max:255',
         ]);
 
-        // Validasi: pelanggan wajib jika ada pinjam tabung / belum lunas
-        $hasPinjam  = collect($request->items)->contains('transaction_type', 'pinjam_tabung');
-        $isBelumLunas = $request->payment_status === 'belum_lunas';
+        $lines      = collect($data['items']);
+        $customerId = $data['customer_id'] ?? null;
 
-        if (($hasPinjam || $isBelumLunas) && !$request->customer_id) {
-            return back()->withErrors(['customer_id' => 'Pelanggan wajib dipilih untuk transaksi pinjam tabung atau kasbon.'])->withInput();
+        // Pelanggan wajib untuk pinjam tabung atau kasbon
+        $hasPinjam = $lines->contains('transaction_type', 'pinjam_tabung');
+        if (($hasPinjam || $data['payment_status'] === 'belum_lunas') && !$customerId) {
+            throw ValidationException::withMessages([
+                'customer_id' => 'Pelanggan wajib dipilih untuk transaksi pinjam tabung atau kasbon.',
+            ]);
         }
 
-        DB::transaction(function () use ($request) {
-            $totalAmount = 0;
-            $itemsData   = [];
+        $transaction = DB::transaction(function () use ($data, $lines, $customerId) {
+            // Kunci baris produk agar dua kasir tidak menjual stok yang sama
+            $products = Product::whereIn('id', $lines->pluck('product_id')->unique())
+                ->lockForUpdate()->get()->keyBy('id');
 
-            foreach ($request->items as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $qty     = (int) $item['qty'];
-                $type    = $item['transaction_type'];
+            // Cek stok per produk (gabungan semua baris keranjang)
+            foreach ($lines->groupBy('product_id') as $productId => $group) {
+                $product = $products[$productId];
+                $needed  = (int) $group->sum('qty');
 
-                // Hitung harga
-                $price = $type === 'plus_tabung'
-                    ? $product->price_sell + $product->price_tube
-                    : $product->price_sell;
-
-                $subtotal     = $price * $qty;
-                $totalAmount += $subtotal;
-
-                $itemsData[] = [
-                    'product'  => $product,
-                    'qty'      => $qty,
-                    'type'     => $type,
-                    'price'    => $price,
-                    'cost'     => $product->price_buy,
-                    'subtotal' => $subtotal,
-                ];
+                if (!$product->is_active) {
+                    throw ValidationException::withMessages(['items' => "Produk {$product->name} sudah tidak aktif."]);
+                }
+                if ($product->stock_filled < $needed) {
+                    throw ValidationException::withMessages([
+                        'items' => "Stok {$product->name} tidak cukup (tersisa {$product->stock_filled}, diminta {$needed}).",
+                    ]);
+                }
             }
 
-            $paidAmount    = (float) $request->paid_amount;
-            $remainingDebt = max(0, $totalAmount - $paidAmount);
-            $changeAmount  = max(0, $paidAmount - $totalAmount);
-            $status        = $remainingDebt <= 0 ? 'lunas' : 'belum_lunas';
+            // Hitung harga di server (harga dari browser tidak dipercaya)
+            $total   = 0.0;
+            $details = [];
+            foreach ($lines as $line) {
+                $product = $products[$line['product_id']];
+                $qty     = (int) $line['qty'];
+                $type    = $line['transaction_type'];
+                $price   = (float) $product->price_sell + ($type === 'plus_tabung' ? (float) $product->price_tube : 0);
 
-            // Buat transaksi
+                $total    += $price * $qty;
+                $details[] = compact('product', 'qty', 'type', 'price');
+            }
+
+            // Pembayaran
+            $status = $data['payment_status'];
+            $paid   = isset($data['paid_amount']) ? (float) $data['paid_amount'] : null;
+
+            if ($status === 'lunas') {
+                $paid ??= $total; // kolom dikosongkan = uang pas
+                if ($paid < $total) {
+                    throw ValidationException::withMessages([
+                        'paid_amount' => 'Uang diterima kurang dari total. Pilih "Kasbon" jika pembayaran belum penuh.',
+                    ]);
+                }
+            } else {
+                $paid ??= 0;
+            }
+
+            $remaining = max(0, $total - $paid);
+            $change    = max(0, $paid - $total);
+            $finalStatus = $remaining <= 0 ? 'lunas' : 'belum_lunas';
+
             $transaction = Transaction::create([
                 'invoice_number'   => Transaction::generateInvoiceNumber(),
                 'user_id'          => auth()->id(),
-                'customer_id'      => $request->customer_id ?: null,
+                'customer_id'      => $customerId,
                 'transaction_date' => now(),
-                'total_amount'     => $totalAmount,
-                'paid_amount'      => $paidAmount,
-                'remaining_debt'   => $remainingDebt,
-                'change_amount'    => $changeAmount,
-                'payment_status'   => $status,
-                'payment_method'   => $request->payment_method,
-                'payment_note'     => $request->payment_note,
-                'paid_at'          => $status === 'lunas' ? now() : null,
+                'total_amount'     => $total,
+                'paid_amount'      => $paid,
+                'remaining_debt'   => $remaining,
+                'change_amount'    => $change,
+                'payment_status'   => $finalStatus,
+                'payment_method'   => $data['payment_method'],
+                'payment_note'     => $data['payment_note'] ?? null,
+                'paid_at'          => $finalStatus === 'lunas' ? now() : null,
             ]);
 
-            // Buat detail & update stok
-            foreach ($itemsData as $item) {
-                $product = $item['product'];
-                $qty     = $item['qty'];
-                $type    = $item['type'];
+            foreach ($details as $d) {
+                $product = $d['product'];
 
                 TransactionDetail::create([
                     'transaction_id'   => $transaction->id,
                     'product_id'       => $product->id,
-                    'transaction_type' => $type,
-                    'qty'              => $qty,
-                    'price'            => $item['price'],
-                    'cost_price'       => $item['cost'],
-                    'subtotal'         => $item['subtotal'],
+                    'transaction_type' => $d['type'],
+                    'qty'              => $d['qty'],
+                    'price'            => $d['price'],
+                    'cost_price'       => $product->price_buy,
+                    'subtotal'         => $d['price'] * $d['qty'],
                 ]);
 
-                // Logika stok berdasarkan matriks PRD
-                match ($type) {
-                    'refill' => $product->decrement('stock_filled', $qty) || $product->increment('stock_empty', $qty),
-                    'pinjam_tabung' => $product->decrement('stock_filled', $qty) || $product->increment('stock_borrowed', $qty),
-                    'plus_tabung' => $product->decrement('stock_filled', $qty),
-                };
+                // Matriks stok:
+                //  refill        : isi -qty, kosong +qty (pelanggan menukar tabung kosongnya)
+                //  pinjam_tabung : isi -qty, dipinjam +qty (tabung dibawa pelanggan, wajib kembali)
+                //  plus_tabung   : isi -qty (tabung ikut terjual)
+                $product->decrement('stock_filled', $d['qty']);
+                if ($d['type'] === 'refill') {
+                    $product->increment('stock_empty', $d['qty']);
+                } elseif ($d['type'] === 'pinjam_tabung') {
+                    $product->increment('stock_borrowed', $d['qty']);
 
-                // Catat pinjaman tabung
-                if ($type === 'pinjam_tabung') {
                     TubeLoan::create([
                         'transaction_id' => $transaction->id,
-                        'customer_id'    => $request->customer_id,
+                        'customer_id'    => $customerId,
                         'product_id'     => $product->id,
-                        'qty_borrowed'   => $qty,
-                        'deposit_amount' => $item['deposit_amount'] ?? 0,
+                        'qty_borrowed'   => $d['qty'],
+                        'deposit_amount' => 0,
                         'status'         => 'dipinjam',
                         'borrow_date'    => today(),
                     ]);
                 }
             }
 
-            session(['last_transaction_id' => $transaction->id]);
-            session()->increment('session_tx_count');
+            return $transaction;
         });
 
-        $transactionId = session('last_transaction_id');
-        $transaction   = Transaction::with(['customer', 'details.product'])->find($transactionId);
-
-        if ($request->expectsJson() || $request->ajax()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'success'        => true,
-                'message'        => 'Transaksi berhasil diproses via AJAX!',
-                'transaction_id' => $transaction->id,
                 'invoice_number' => $transaction->invoice_number,
-                'receipt_url'    => route('pos.receipt', $transaction->id),
-                'total_amount'   => $transaction->total_amount,
-                'paid_amount'    => $transaction->paid_amount,
-                'change_amount'  => $transaction->change_amount,
-                'remaining_debt' => $transaction->remaining_debt,
-                'payment_status' => $transaction->payment_status,
-                'session_tx'     => session('session_tx_count', 1),
+                'receipt_url'    => route('pos.receipt', $transaction),
+                'total_amount'   => (float) $transaction->total_amount,
+                'paid_amount'    => (float) $transaction->paid_amount,
+                'change_amount'  => (float) $transaction->change_amount,
+                'remaining_debt' => (float) $transaction->remaining_debt,
             ]);
         }
 
-        return redirect()->route('pos.receipt', $transactionId)
-            ->with('success', 'Transaksi berhasil disimpan!');
+        return redirect()->route('pos.receipt', $transaction)->with('success', 'Transaksi berhasil disimpan!');
     }
 
     public function receipt(Transaction $transaction)
@@ -160,29 +174,29 @@ class PosController extends Controller
 
     public function history(Request $request)
     {
-        $user  = auth()->user();
-        $query = Transaction::with(['customer', 'user'])->latest('transaction_date');
+        $onlyToday = auth()->user()->isKasir();
+        $query     = Transaction::with(['customer', 'user'])->latest('transaction_date');
 
-        if ($user->isKasir()) {
+        if ($onlyToday) {
             $query->whereDate('transaction_date', today());
         }
 
-        if ($request->search) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn($q) => $q->where('name', 'like', "%{$search}%"));
+                  ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$search}%"));
             });
         }
-        if ($request->payment_status) {
+        if ($request->filled('payment_status')) {
             $query->where('payment_status', $request->payment_status);
         }
-        if ($request->payment_method) {
+        if ($request->filled('payment_method')) {
             $query->where('payment_method', $request->payment_method);
         }
 
         $transactions = $query->paginate(20)->withQueryString();
-        return view('pos.history', compact('transactions'));
+        return view('pos.history', compact('transactions', 'onlyToday'));
     }
 
     public function storeCustomer(Request $request)
@@ -190,12 +204,16 @@ class PosController extends Controller
         $data = $request->validate([
             'name'          => 'required|string|max:255',
             'phone'         => 'nullable|string|max:20',
-            'nik'           => 'nullable|string|max:16',
+            'nik'           => 'nullable|string|max:16|unique:customers,nik',
             'customer_type' => 'required|in:rumah_tangga,umkm,pengecer',
             'address'       => 'nullable|string',
         ]);
 
         $customer = Customer::create($data);
-        return response()->json(['success' => true, 'customer' => $customer]);
+
+        return response()->json([
+            'success'  => true,
+            'customer' => $customer->only(['id', 'name', 'phone', 'customer_type']) + ['debt' => 0],
+        ]);
     }
 }

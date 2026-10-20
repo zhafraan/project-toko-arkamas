@@ -1,661 +1,491 @@
 @extends('layouts.app')
-@section('title', 'Kasir / POS')
-@section('page-title', 'Kasir / Point of Sale')
-
-@push('styles')
-<style>
-    .pos-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-    .product-card {
-        background: #fff; border: 1.5px solid var(--border);
-        border-radius: 14px; padding: 18px; cursor: pointer;
-        transition: all .2s; user-select: none;
-        box-shadow: 0 4px 14px rgba(34, 58, 94, 0.04);
-    }
-    .product-card:hover {
-        border-color: var(--holst-3);
-        transform: translateY(-3px);
-        box-shadow: 0 10px 28px rgba(34, 58, 94, 0.12);
-    }
-    .product-card.selected { border-color: var(--holst-2); background: #eef5fc; }
-    .product-name { font-size: 14.5px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
-    .product-price { font-size: 16px; font-weight: 800; color: var(--holst-2); }
-    .product-stock { font-size: 11.5px; margin-top: 8px; color: var(--text-muted); }
-    .cart-section {
-        background: #fff; border-radius: 14px;
-        box-shadow: var(--shadow); position: sticky; top: 80px;
-        border: 1px solid var(--border); overflow: hidden;
-    }
-    .cart-header {
-        padding: 16px 18px;
-        border-bottom: 1px solid var(--border);
-        background: var(--grad-card-header);
-    }
-    .cart-body { padding: 14px 18px; max-height: 400px; overflow-y: auto; }
-    .cart-item { display: flex; align-items: start; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .cart-item:last-child { border-bottom: none; }
-    .cart-item-name { font-size: 13.5px; font-weight: 600; color: var(--primary); }
-    .cart-item-type { font-size: 11px; color: var(--text-muted); }
-    .cart-item-price { font-size: 13.5px; font-weight: 700; color: var(--holst-2); }
-    .cart-footer { padding: 16px 18px; border-top: 1px solid var(--border); background: #F3F8FD; border-radius: 0 0 14px 14px; }
-    .qty-control { display: flex; align-items: center; gap: 6px; }
-    .qty-btn {
-        width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--border);
-        background: #fff; cursor: pointer; font-weight: 700; font-size: 14px;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--primary);
-        transition: all .15s;
-    }
-    .qty-btn:hover { background: var(--holst-2); color: #fff; border-color: var(--holst-2); }
-    .qty-value { width: 32px; text-align: center; font-weight: 700; font-size: 14px; color: var(--primary); }
-    .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .total-label { font-size: 13px; color: var(--text-muted); }
-    .total-value { font-size: 13px; font-weight: 600; }
-    .grand-total { font-size: 21px; font-weight: 800; color: var(--primary); }
-    .change-display {
-        background: #e1ecf7; color: var(--holst-1);
-        padding: 9px 12px; border-radius: 8px;
-        font-weight: 700; font-size: 14px;
-        border: 1px solid var(--holst-5);
-    }
-    .type-select {
-        width: 100%; padding: 6px 8px; border: 1.5px solid var(--border);
-        border-radius: 7px; font-size: 12px; background: #fff;
-        color: var(--primary); font-family: 'Inter', sans-serif;
-    }
-</style>
-@endpush
+@section('title', 'Kasir')
+@section('page-title', 'Kasir')
+@section('page-sub', 'Pilih produk untuk memasukkan ke keranjang')
 
 @section('content')
 <div class="pos-grid">
 
-    {{-- Products Section --}}
-    <div>
-        {{-- Search & Filter --}}
-        <div class="card" style="margin-bottom:16px;">
-            <div class="card-body" style="padding:14px;">
-                <input type="text" id="productSearch" class="form-control" placeholder="🔍 Cari produk gas...">
-            </div>
+    {{-- ===== Produk ===== --}}
+    <section>
+        <div class="search" style="max-width:none;margin-bottom:14px;">
+            <x-icon name="search" size="17" />
+            <input type="search" id="productSearch" class="input" placeholder="Cari produk atau SKU…" autocomplete="off">
         </div>
 
-        {{-- Product Grid --}}
+        @if($products->count() === 0)
+        <div class="card"><div class="empty">
+            <div class="empty-icon"><x-icon name="flame" size="24" /></div>
+            <div class="empty-title">Belum ada produk aktif</div>
+            <div>Tambahkan produk di menu Produk &amp; Stok.</div>
+        </div></div>
+        @endif
+
         <div class="product-grid" id="productGrid">
             @foreach($products as $product)
-            <div class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}"
-                 data-price-sell="{{ $product->price_sell }}" data-price-tube="{{ $product->price_tube }}"
-                 data-cost="{{ $product->price_buy }}" data-stock="{{ $product->stock_filled }}"
-                 onclick="addToCart(this)">
-                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px;">
-                    <div class="product-name">{{ $product->name }}</div>
-                    <span style="font-size:10px;background:var(--success);color:#fff;padding:2px 7px;border-radius:20px;">
-                        {{ $product->stock_filled }}
-                    </span>
-                </div>
-                <div class="product-price">Rp {{ number_format($product->price_sell, 0, ',', '.') }}</div>
-                <div class="product-stock">
-                    <span style="color:var(--text-muted);">Kosong: {{ $product->stock_empty }}</span>
-                </div>
-                <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">SKU: {{ $product->sku }}</div>
-            </div>
+            <button type="button" class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-sku="{{ $product->sku }}"
+                    data-price="{{ (float) $product->price_sell }}" data-tube="{{ (float) $product->price_tube }}" data-stock="{{ $product->stock_filled }}"
+                    @if($product->stock_filled <= 0) disabled @endif>
+                <span class="in-cart" hidden></span>
+                <span class="product-name">{{ $product->name }}</span>
+                <span class="product-sku">SKU {{ $product->sku }}</span>
+                <span class="product-price">@rupiah($product->price_sell)</span>
+                <span class="product-stock">
+                    @if($product->stock_filled <= 0)
+                        <span class="badge badge-danger">Habis</span>
+                    @elseif($product->stock_filled <= $lowStockLimit)
+                        <span class="badge badge-warning">Sisa {{ $product->stock_filled }}</span>
+                    @else
+                        <span class="badge badge-success">Stok {{ $product->stock_filled }}</span>
+                    @endif
+                    <span class="muted">kosong {{ $product->stock_empty }}</span>
+                </span>
+            </button>
             @endforeach
         </div>
-    </div>
+        <div class="empty" id="noProductMatch" hidden>Tidak ada produk yang cocok.</div>
+    </section>
 
-    {{-- Cart Section --}}
-    <div class="cart-section">
-        {{-- Cart Header --}}
-        <div class="cart-header" style="display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:15px;font-weight:700;color:var(--primary);">
-                <i class="fa-solid fa-shopping-cart" style="color:var(--accent);margin-right:6px;"></i>
-                Keranjang
+    {{-- ===== Keranjang & pembayaran ===== --}}
+    <aside class="card cart">
+        <div class="card-head">
+            <span class="card-title"><x-icon name="cart" /> Keranjang <span class="badge badge-info" id="cartCount">0</span></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnClear"><x-icon name="trash" size="15" /> Kosongkan</button>
+        </div>
+
+        <div class="cart-items" id="cartItems"></div>
+
+        <div class="cart-pay">
+            <div class="field">
+                <label class="label" for="custInput">Pelanggan <span class="req" id="custReq" hidden>(wajib untuk pinjam tabung / kasbon)</span></label>
+                <div class="combo" id="custCombo">
+                    <div class="row" style="gap:8px;">
+                        <div class="grow">
+                            <input type="text" id="custInput" class="input" placeholder="Pelanggan umum — ketik nama / no. HP" autocomplete="off">
+                            <div class="chip" id="custChip" hidden>
+                                <span class="grow" id="custChipName"></span>
+                                <button type="button" class="btn btn-ghost btn-icon btn-xs" id="custClear" title="Ganti pelanggan"><x-icon name="x" size="15" /></button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-icon" data-modal-open="addCustomerModal" title="Tambah pelanggan baru" aria-label="Tambah pelanggan baru"><x-icon name="user-plus" /></button>
+                    </div>
+                    <div class="combo-list" id="custList" hidden></div>
+                </div>
+                <div class="hint text-danger" id="custDebt" hidden></div>
             </div>
-            <button onclick="clearCart()" class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger);">
-                <i class="fa-solid fa-trash"></i> Kosongkan
+
+            <div class="pay-row">
+                <div>
+                    <span class="label">Metode</span>
+                    <div class="seg" id="segMethod">
+                        <button type="button" data-v="cash" aria-pressed="true">Tunai</button>
+                        <button type="button" data-v="transfer" aria-pressed="false">Transfer</button>
+                    </div>
+                </div>
+                <div>
+                    <span class="label">Status</span>
+                    <div class="seg" id="segStatus">
+                        <button type="button" data-v="lunas" aria-pressed="true">Lunas</button>
+                        <button type="button" data-v="belum_lunas" aria-pressed="false">Kasbon</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field" id="noteField" hidden>
+                <label class="label" for="payNote">Referensi transfer / QRIS</label>
+                <input type="text" id="payNote" class="input" placeholder="Contoh: BCA 12345" maxlength="255">
+            </div>
+
+            <div class="field">
+                <label class="label" for="paidInput" id="paidLabel">Uang diterima</label>
+                <div class="input-affix">
+                    <span class="affix">Rp</span>
+                    <input type="text" id="paidInput" class="input num" inputmode="numeric" placeholder="Kosongkan = uang pas" autocomplete="off">
+                </div>
+                <div class="quick-cash" id="quickCash">
+                    <button type="button" class="btn btn-outline btn-xs" data-cash="exact">Uang pas</button>
+                    <button type="button" class="btn btn-outline btn-xs" data-cash="50000">50 rb</button>
+                    <button type="button" class="btn btn-outline btn-xs" data-cash="100000">100 rb</button>
+                    <button type="button" class="btn btn-outline btn-xs" data-cash="200000">200 rb</button>
+                </div>
+            </div>
+
+            <div class="pay-line"><span id="resultLabel">Kembalian</span><strong class="num" id="resultValue">Rp 0</strong></div>
+            <div class="pay-total"><span class="fw">Total</span><strong id="grandTotal">Rp 0</strong></div>
+            <div class="field-error" id="payError" hidden style="margin:-4px 0 10px;"></div>
+
+            <button type="button" id="btnCheckout" class="btn btn-accent btn-lg btn-block" disabled>
+                <x-icon name="check" /> <span id="btnCheckoutText">Proses Transaksi</span>
             </button>
         </div>
+    </aside>
+</div>
 
-        {{-- Cart Items --}}
-        <div class="cart-body" id="cartBody">
-            <div id="emptyCart" style="text-align:center;padding:30px;color:var(--text-muted);">
-                <i class="fa-solid fa-fire" style="font-size:28px;opacity:.2;display:block;margin-bottom:8px;"></i>
-                <div style="font-size:13px;">Pilih produk untuk menambahkan ke keranjang</div>
+{{-- Modal: transaksi berhasil --}}
+<div class="modal-overlay" id="successModal">
+    <div class="modal sm">
+        <div class="modal-body center">
+            <div class="empty-icon" style="background:var(--success-soft);color:var(--success-ink);width:60px;height:60px;"><x-icon name="check" size="28" /></div>
+            <h2 style="font-size:19px;font-weight:800;">Transaksi berhasil</h2>
+            <p class="muted" id="successInvoice" style="margin-bottom:16px;"></p>
+            <div class="modal-note" style="text-align:left;">
+                <div class="pay-line"><span>Total</span><strong class="num" id="successTotal"></strong></div>
+                <div class="pay-line"><span>Dibayar</span><strong class="num" id="successPaid"></strong></div>
+                <div class="pay-line" id="successChangeRow"><span>Kembalian</span><strong class="num text-success" id="successChange"></strong></div>
+                <div class="pay-line" id="successDebtRow" hidden><span>Sisa kasbon</span><strong class="num text-danger" id="successDebt"></strong></div>
             </div>
-        </div>
-
-        {{-- Cart Footer / Payment --}}
-        <div class="cart-footer">
-            {{-- Customer --}}
-            <div class="form-group">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                    <label class="form-label" style="margin-bottom:0;">Pelanggan <span id="customerRequired" style="color:var(--danger);display:none;">*Wajib</span></label>
-                </div>
-                <div style="display:flex;gap:6px;margin-bottom:6px;">
-                    <input type="text" id="customerSearchInput" class="form-control" style="font-size:12px;padding:6px 10px;"
-                           placeholder="Ketik nama / no. HP pelanggan..." oninput="searchCustomersAjax(this.value)">
-                    <button type="button" onclick="openAddCustomer()" class="btn btn-outline btn-icon" title="Tambah Pelanggan Baru">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                </div>
-                <select name="customer_id" id="customerSelect" class="form-control" form="posForm">
-                    <option value="">-- Umum / Tanpa Nama --</option>
-                    @foreach($customers as $customer)
-                    <option value="{{ $customer->id }}">{{ $customer->name }} {{ $customer->phone ? '('.$customer->phone.')' : '' }}</option>
-                    @endforeach
-                </select>
+            <div class="grid cols-2" style="gap:10px;">
+                <a href="#" id="btnReceipt" target="_blank" rel="noopener" class="btn btn-outline"><x-icon name="printer" /> Cetak nota</a>
+                <button type="button" class="btn btn-primary" data-modal-close><x-icon name="plus" /> Transaksi baru</button>
             </div>
-
-            {{-- Payment Method --}}
-            <div class="form-group">
-                <label class="form-label">Metode Pembayaran</label>
-                <select name="payment_method" class="form-control" form="posForm" id="paymentMethod" onchange="updatePaymentUI()">
-                    <option value="cash">💵 Cash / Tunai</option>
-                    <option value="transfer">📱 Transfer / QRIS</option>
-                </select>
-            </div>
-
-            {{-- Payment Note (for transfer) --}}
-            <div class="form-group" id="paymentNoteGroup" style="display:none;">
-                <label class="form-label">No. Referensi / Bank</label>
-                <input type="text" name="payment_note" class="form-control" form="posForm"
-                       placeholder="Contoh: BCA #12345">
-            </div>
-
-            {{-- Status --}}
-            <div class="form-group">
-                <label class="form-label">Status Bayar</label>
-                <select name="payment_status" class="form-control" form="posForm" id="paymentStatus" onchange="updatePaymentUI()">
-                    <option value="lunas">✅ Lunas</option>
-                    <option value="belum_lunas">🔴 Belum Lunas (Kasbon)</option>
-                </select>
-            </div>
-
-            {{-- Amount Paid with Quick Cash Presets --}}
-            <div class="form-group" id="paidAmountGroup">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <label class="form-label">Uang Diterima (Rp)</label>
-                    <span style="font-size:10px;color:var(--text-muted);">Pecahan Cepat:</span>
-                </div>
-                <input type="number" name="paid_amount" id="paidAmount" class="form-control" form="posForm"
-                       placeholder="0" min="0" oninput="calcChange()">
-
-                {{-- Preset Buttons --}}
-                <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;" id="quickCashButtons">
-                    <button type="button" class="btn btn-outline btn-xs" onclick="setExactCash()">Uang Pas</button>
-                    <button type="button" class="btn btn-outline btn-xs" onclick="addCash(20000)">+20k</button>
-                    <button type="button" class="btn btn-outline btn-xs" onclick="addCash(50000)">+50k</button>
-                    <button type="button" class="btn btn-outline btn-xs" onclick="addCash(100000)">+100k</button>
-                    <button type="button" class="btn btn-outline btn-xs" onclick="setCash(100000)">100k</button>
-                    <button type="button" class="btn btn-outline btn-xs" onclick="setCash(200000)">200k</button>
-                </div>
-            </div>
-
-            {{-- Change --}}
-            <div class="form-group" id="changeGroup">
-                <label class="form-label">Kembalian</label>
-                <div class="change-display" id="changeDisplay">Rp 0</div>
-            </div>
-
-            {{-- Totals --}}
-            <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;margin-bottom:12px;">
-                <div class="total-row">
-                    <span class="total-label">Subtotal</span>
-                    <span class="total-value" id="subtotalDisplay">Rp 0</span>
-                </div>
-                <div class="total-row">
-                    <span style="font-size:16px;font-weight:700;">TOTAL</span>
-                    <span class="grand-total" id="grandTotalDisplay">Rp 0</span>
-                </div>
-            </div>
-
-            <form id="posForm" method="POST" action="{{ route('pos.store') }}" onsubmit="handlePosCheckout(event)">
-                @csrf
-                <div id="cartInputs"></div>
-                <button type="submit" id="btnCheckout" class="btn btn-accent" style="width:100%;justify-content:center;padding:13px;font-size:15px;" disabled>
-                    <span id="btnCheckoutText"><i class="fa-solid fa-check-circle"></i> Proses Transaksi</span>
-                </button>
-            </form>
         </div>
     </div>
 </div>
 
-{{-- Modal: Sukses Transaksi --}}
-<div class="modal-overlay" id="checkoutSuccessModal">
-    <div class="modal" style="text-align:center;max-width:440px;">
-        <div style="width:64px;height:64px;background:#d1fae5;color:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;">
-            <i class="fa-solid fa-check"></i>
-        </div>
-        <h3 style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;">Transaksi Berhasil!</h3>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;" id="successInvoiceText">Invoice #TRX-20261015-0000</p>
-
-        <div style="background:var(--bg);padding:14px;border-radius:10px;text-align:left;font-size:13px;margin-bottom:20px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <span style="color:var(--text-muted);">Total Tagihan:</span>
-                <strong id="successTotal">Rp 0</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <span style="color:var(--text-muted);">Jumlah Dibayar:</span>
-                <strong id="successPaid">Rp 0</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <span style="color:var(--text-muted);">Kembalian:</span>
-                <strong style="color:var(--success);" id="successChange">Rp 0</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;" id="successDebtRow">
-                <span style="color:var(--danger);">Sisa Kasbon:</span>
-                <strong style="color:var(--danger);" id="successDebt">Rp 0</strong>
-            </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <a href="#" id="btnReceiptLink" target="_blank" class="btn btn-primary" style="justify-content:center;padding:11px;">
-                <i class="fa-solid fa-print"></i> Cetak Struk
-            </a>
-            <button onclick="closeSuccessModal()" class="btn btn-accent" style="justify-content:center;padding:11px;">
-                <i class="fa-solid fa-plus-circle"></i> Transaksi Baru
-            </button>
-        </div>
-    </div>
-</div>
-
-{{-- Modal: Tambah Pelanggan Cepat --}}
+{{-- Modal: pelanggan baru --}}
 <div class="modal-overlay" id="addCustomerModal">
     <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title"><i class="fa-solid fa-user-plus"></i> Tambah Pelanggan Baru</div>
-            <button class="modal-close" onclick="closeAddCustomer()"><i class="fa-solid fa-times"></i></button>
+        <div class="modal-head">
+            <div class="modal-title">Pelanggan baru</div>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
-        <div class="form-grid">
-            <div class="form-group">
-                <label class="form-label">Nama *</label>
-                <input type="text" id="newCustName" class="form-control" placeholder="Nama pelanggan">
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="field span-all">
+                    <label class="label" for="ncName">Nama <span class="req">*</span></label>
+                    <input type="text" id="ncName" class="input" maxlength="255">
+                </div>
+                <div class="field">
+                    <label class="label" for="ncPhone">No. HP</label>
+                    <input type="text" id="ncPhone" class="input" placeholder="08xxxxxxxxxx" maxlength="20">
+                </div>
+                <div class="field">
+                    <label class="label" for="ncType">Tipe pelanggan</label>
+                    <select id="ncType" class="select">
+                        <option value="rumah_tangga">Rumah tangga</option>
+                        <option value="umkm">UMKM</option>
+                        <option value="pengecer">Pengecer</option>
+                    </select>
+                </div>
+                <div class="field span-all">
+                    <label class="label" for="ncNik">NIK (opsional)</label>
+                    <input type="text" id="ncNik" class="input" maxlength="16" inputmode="numeric">
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">No. HP</label>
-                <input type="text" id="newCustPhone" class="form-control" placeholder="08xxxxxxxxxx">
-            </div>
-            <div class="form-group">
-                <label class="form-label">NIK (opsional)</label>
-                <input type="text" id="newCustNik" class="form-control" placeholder="16 digit NIK">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Tipe Pelanggan</label>
-                <select id="newCustType" class="form-control">
-                    <option value="rumah_tangga">Rumah Tangga</option>
-                    <option value="umkm">UMKM</option>
-                    <option value="pengecer">Pengecer</option>
-                </select>
-            </div>
+            <div class="field-error" id="ncError" hidden style="margin-bottom:12px;"></div>
+            <button type="button" class="btn btn-primary btn-block" id="btnSaveCustomer"><x-icon name="check" /> Simpan & pilih</button>
         </div>
-        <div class="form-group">
-            <label class="form-label">Alamat (opsional)</label>
-            <textarea id="newCustAddress" class="form-control" rows="2" placeholder="Alamat lengkap"></textarea>
-        </div>
-        <button onclick="saveNewCustomer()" id="btnSaveCust" class="btn btn-primary" style="width:100%;justify-content:center;">
-            <i class="fa-solid fa-save"></i> Simpan Pelanggan
-        </button>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-// ==================== KERANJANG BELANJA (DENGAN LOCALSTORAGE / COOKIE BACKUP) ====================
-let cart = [];
+(function () {
+    'use strict';
 
-function saveCartToStorage() {
-    try {
-        localStorage.setItem('simlpg_pos_cart', JSON.stringify(cart));
-    } catch(e){}
-}
-
-function loadCartFromStorage() {
-    try {
-        const saved = localStorage.getItem('simlpg_pos_cart');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                cart = parsed;
-                renderCart();
-            }
-        }
-    } catch(e){}
-}
-
-function addToCart(el) {
-    const id    = el.dataset.id;
-    const name  = el.dataset.name;
-    const price = parseFloat(el.dataset.priceSell);
-    const tube  = parseFloat(el.dataset.priceTube);
-    const cost  = parseFloat(el.dataset.cost);
-    const stock = parseInt(el.dataset.stock);
-
-    if (stock <= 0) { alert('Stok gas isi sedang habis!'); return; }
-
-    const existing = cart.find(i => i.id === id);
-    if (existing) {
-        existing.qty++;
-    } else {
-        cart.push({ id, name, price, tube, cost, qty: 1, type: 'refill', deposit: 0 });
-    }
-    renderCart();
-}
-
-function removeFromCart(idx) {
-    cart.splice(idx, 1);
-    renderCart();
-}
-
-function updateQty(idx, delta) {
-    cart[idx].qty = Math.max(1, cart[idx].qty + delta);
-    renderCart();
-}
-
-function updateType(idx, type) {
-    cart[idx].type = type;
-    renderCart();
-}
-
-function calcItemPrice(item) {
-    return item.type === 'plus_tabung' ? item.price + item.tube : item.price;
-}
-
-function getGrandTotal() {
-    return cart.reduce((s, i) => s + calcItemPrice(i) * i.qty, 0);
-}
-
-function renderCart() {
-    const body = document.getElementById('cartBody');
-    const empty = document.getElementById('emptyCart');
-    const inputs = document.getElementById('cartInputs');
-
-    if (cart.length === 0) {
-        if (empty) empty.style.display = 'block';
-        document.getElementById('btnCheckout').disabled = true;
-        document.getElementById('subtotalDisplay').textContent = 'Rp 0';
-        document.getElementById('grandTotalDisplay').textContent = 'Rp 0';
-        body.innerHTML = '';
-        if (empty) body.appendChild(empty);
-        inputs.innerHTML = '';
-        saveCartToStorage();
-        calcChange();
-        return;
-    }
-
-    if (empty) empty.style.display = 'none';
-    document.getElementById('btnCheckout').disabled = false;
-
-    let html = '';
-    let total = 0;
-    let hiddenInputs = '';
-    let hasPinjam = false;
-
-    cart.forEach((item, idx) => {
-        const unitPrice = calcItemPrice(item);
-        const subtotal = unitPrice * item.qty;
-        total += subtotal;
-        if (item.type === 'pinjam_tabung') hasPinjam = true;
-
-        html += `<div class="cart-item">
-            <div style="flex:1;">
-                <div class="cart-item-name">${item.name}</div>
-                <select class="type-select" onchange="updateType(${idx}, this.value)" style="margin-top:4px;">
-                    <option value="refill" ${item.type==='refill'?'selected':''}>🔄 Refill (Tukar Tabung)</option>
-                    <option value="pinjam_tabung" ${item.type==='pinjam_tabung'?'selected':''}>📦 Pinjam Tabung</option>
-                    <option value="plus_tabung" ${item.type==='plus_tabung'?'selected':''}>🆕 Beli + Tabung</option>
-                </select>
-                ${item.type === 'plus_tabung' ? `<div style="font-size:11px;color:var(--text-muted);margin-top:3px;">+Tabung Rp ${formatNum(item.tube)}</div>` : ''}
-            </div>
-            <div style="text-align:right;flex-shrink:0;">
-                <div class="cart-item-price" style="margin-bottom:4px;">Rp ${formatNum(subtotal)}</div>
-                <div class="qty-control">
-                    <button class="qty-btn" type="button" onclick="updateQty(${idx}, -1)">−</button>
-                    <span class="qty-value">${item.qty}</span>
-                    <button class="qty-btn" type="button" onclick="updateQty(${idx}, +1)">+</button>
-                    <button class="qty-btn" type="button" onclick="removeFromCart(${idx})" style="color:var(--danger);">✕</button>
-                </div>
-            </div>
-        </div>`;
-
-        hiddenInputs += `<input type="hidden" name="items[${idx}][product_id]" value="${item.id}">
-            <input type="hidden" name="items[${idx}][transaction_type]" value="${item.type}">
-            <input type="hidden" name="items[${idx}][qty]" value="${item.qty}">`;
-    });
-
-    body.innerHTML = html;
-    inputs.innerHTML = hiddenInputs;
-
-    document.getElementById('subtotalDisplay').textContent = 'Rp ' + formatNum(total);
-    document.getElementById('grandTotalDisplay').textContent = 'Rp ' + formatNum(total);
-
-    // Show customer required hint if pinjam tabung or belum lunas
-    const status = document.getElementById('paymentStatus').value;
-    document.getElementById('customerRequired').style.display = (hasPinjam || status === 'belum_lunas') ? 'inline' : 'none';
-
-    saveCartToStorage();
-    calcChange();
-}
-
-// ==================== QUICK CASH / PEMBAYARAN CEPAT ====================
-function setExactCash() {
-    const total = getGrandTotal();
-    document.getElementById('paidAmount').value = total;
-    calcChange();
-}
-
-function addCash(amount) {
-    const cur = parseFloat(document.getElementById('paidAmount').value) || 0;
-    document.getElementById('paidAmount').value = cur + amount;
-    calcChange();
-}
-
-function setCash(amount) {
-    document.getElementById('paidAmount').value = amount;
-    calcChange();
-}
-
-function calcChange() {
-    const total = getGrandTotal();
-    const paid  = parseFloat(document.getElementById('paidAmount').value) || 0;
-    const change = Math.max(0, paid - total);
-    document.getElementById('changeDisplay').textContent = 'Rp ' + formatNum(change);
-}
-
-function updatePaymentUI() {
-    const method = document.getElementById('paymentMethod').value;
-    const status = document.getElementById('paymentStatus').value;
-    document.getElementById('paymentNoteGroup').style.display = method === 'transfer' ? 'block' : 'none';
-    const paidGroup = document.getElementById('paidAmountGroup');
-
-    if (status === 'belum_lunas') {
-        paidGroup.querySelector('label').textContent = 'Uang Muka (DP) / Dibayar (Rp)';
-        document.getElementById('customerRequired').style.display = 'inline';
-    } else {
-        paidGroup.querySelector('label').textContent = 'Uang Diterima (Rp)';
-        const hasPinjam = cart.some(i => i.type === 'pinjam_tabung');
-        document.getElementById('customerRequired').style.display = hasPinjam ? 'inline' : 'none';
-    }
-    calcChange();
-}
-
-function clearCart() {
-    if (cart.length && confirm('Kosongkan keranjang belanja?')) {
-        cart = [];
-        renderCart();
-    }
-}
-
-function formatNum(n) {
-    return Math.round(n).toLocaleString('id-ID');
-}
-
-// ==================== AJAX LIVE SEARCH PELANGGAN ====================
-let searchTimer = null;
-function searchCustomersAjax(query) {
-    clearTimeout(searchTimer);
-    if (!query || query.trim().length === 0) return;
-
-    searchTimer = setTimeout(() => {
-        fetch('{{ route("customers.search") }}?q=' + encodeURIComponent(query), {
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(r => r.json())
-        .then(list => {
-            const sel = document.getElementById('customerSelect');
-            sel.innerHTML = '<option value="">-- Umum / Tanpa Nama --</option>';
-            list.forEach(c => {
-                const opt = new Option(c.name + (c.phone ? ' (' + c.phone + ')' : '') + ' [' + c.customer_type + ']', c.id, true, true);
-                sel.appendChild(opt);
-            });
-        })
-        .catch(err => console.error('Error live search customer:', err));
-    }, 250);
-}
-
-// ==================== AJAX TAMBAH PELANGGAN CEPAT ====================
-function openAddCustomer() { document.getElementById('addCustomerModal').classList.add('active'); }
-function closeAddCustomer() { document.getElementById('addCustomerModal').classList.remove('active'); }
-
-function saveNewCustomer() {
-    const btn = document.getElementById('btnSaveCust');
-    const origText = btn.innerHTML;
-    const data = {
-        name:          document.getElementById('newCustName').value.trim(),
-        phone:         document.getElementById('newCustPhone').value.trim(),
-        nik:           document.getElementById('newCustNik').value.trim(),
-        customer_type: document.getElementById('newCustType').value,
-        address:       document.getElementById('newCustAddress').value.trim(),
-        _token:        '{{ csrf_token() }}'
+    var URLS = {
+        search: '{{ route("customers.search") }}',
+        store: '{{ route("pos.store") }}',
+        newCustomer: '{{ route("pos.storeCustomer") }}'
     };
+    var LOW = {{ $lowStockLimit }};
+    var STORE_KEY = 'arkamas_pos_cart_v2';
+    var TYPES = { refill: 'Refill (tukar tabung)', pinjam_tabung: 'Pinjam tabung', plus_tabung: 'Beli + tabung' };
 
-    if (!data.name) { alert('Nama pelanggan wajib diisi!'); return; }
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
-
-    fetch('{{ route("pos.storeCustomer") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': data._token
-        },
-        body: JSON.stringify(data)
-    })
-    .then(r => r.json())
-    .then(res => {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        if (res.success) {
-            const sel = document.getElementById('customerSelect');
-            const opt = new Option(res.customer.name + (res.customer.phone ? ' ('+res.customer.phone+')' : ''), res.customer.id, true, true);
-            sel.appendChild(opt);
-            document.getElementById('newCustName').value = '';
-            document.getElementById('newCustPhone').value = '';
-            document.getElementById('newCustNik').value = '';
-            document.getElementById('newCustAddress').value = '';
-            closeAddCustomer();
-        } else {
-            alert(res.message || 'Gagal menyimpan pelanggan.');
-        }
-    })
-    .catch(err => {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        alert('Terjadi kesalahan saat menyimpan pelanggan.');
-    });
-}
-
-// ==================== AJAX POS CHECKOUT ====================
-function handlePosCheckout(e) {
-    e.preventDefault();
-
-    if (cart.length === 0) {
-        alert('Keranjang belanja masih kosong!');
-        return;
+    var $ = function (id) { return document.getElementById(id); };
+    var ICON = {
+        plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+        minus: '<path d="M5 12h14"/>',
+        trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>'
+    };
+    function svg(name) {
+        return '<svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[name] + '</svg>';
     }
 
-    const form = document.getElementById('posForm');
-    const formData = new FormData(form);
-    const btn = document.getElementById('btnCheckout');
-    const btnText = document.getElementById('btnCheckoutText');
-    const origContent = btnText.innerHTML;
+    /* ---------- State ---------- */
+    var products = {};              // id -> {id,name,sku,price,tube,stock}
+    var cart = [];                  // {id,type,qty}
+    var customer = null;            // {id,name,phone,debt}
+    var method = 'cash', status = 'lunas';
 
-    btn.disabled = true;
-    btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses Transaksi...';
+    document.querySelectorAll('.product-card').forEach(function (el) {
+        products[el.dataset.id] = {
+            id: el.dataset.id, name: el.dataset.name, sku: el.dataset.sku,
+            price: parseFloat(el.dataset.price) || 0, tube: parseFloat(el.dataset.tube) || 0,
+            stock: parseInt(el.dataset.stock, 10) || 0, el: el
+        };
+    });
 
-    fetch('{{ route("pos.store") }}', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: formData
-    })
-    .then(r => {
-        if (!r.ok) {
-            return r.json().then(errData => { throw errData; });
-        }
-        return r.json();
-    })
-    .then(res => {
-        btn.disabled = false;
-        btnText.innerHTML = origContent;
+    function unitPrice(line) { var p = products[line.id]; return p.price + (line.type === 'plus_tabung' ? p.tube : 0); }
+    function grandTotal() { return cart.reduce(function (s, l) { return s + unitPrice(l) * l.qty; }, 0); }
+    function qtyOfProduct(id) { return cart.reduce(function (s, l) { return l.id === id ? s + l.qty : s; }, 0); }
+    function needCustomer() { return status === 'belum_lunas' || cart.some(function (l) { return l.type === 'pinjam_tabung'; }); }
 
-        if (res.success) {
-            // Tampilkan popup sukses
-            document.getElementById('successInvoiceText').textContent = 'Invoice: ' + res.invoice_number;
-            document.getElementById('successTotal').textContent = 'Rp ' + formatNum(res.total_amount);
-            document.getElementById('successPaid').textContent = 'Rp ' + formatNum(res.paid_amount);
-            document.getElementById('successChange').textContent = 'Rp ' + formatNum(res.change_amount);
+    function save() {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) {}
+    }
+    function restore() {
+        try {
+            var saved = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+            if (!Array.isArray(saved)) return;
+            saved.forEach(function (l) {
+                var p = products[l.id];
+                if (!p || p.stock <= 0 || !TYPES[l.type]) return;
+                var room = p.stock - qtyOfProduct(l.id);
+                var qty = Math.min(parseInt(l.qty, 10) || 1, room);
+                if (qty > 0) cart.push({ id: l.id, type: l.type, qty: qty });
+            });
+        } catch (e) {}
+    }
 
-            const debtRow = document.getElementById('successDebtRow');
-            if (res.remaining_debt > 0) {
-                debtRow.style.display = 'flex';
-                document.getElementById('successDebt').textContent = 'Rp ' + formatNum(res.remaining_debt);
-            } else {
-                debtRow.style.display = 'none';
-            }
+    /* ---------- Keranjang ---------- */
+    function addProduct(id) {
+        var p = products[id];
+        if (!p || p.stock <= 0) return;
+        if (qtyOfProduct(id) >= p.stock) { toast('Stok ' + p.name + ' tinggal ' + p.stock, 'error'); return; }
+        var line = cart.find(function (l) { return l.id === id && l.type === 'refill'; });
+        if (line) { line.qty++; } else { cart.push({ id: id, type: 'refill', qty: 1 }); }
+        render();
+    }
+    function changeQty(idx, delta) {
+        var l = cart[idx], p = products[l.id];
+        if (delta > 0 && qtyOfProduct(l.id) >= p.stock) { toast('Stok ' + p.name + ' tinggal ' + p.stock, 'error'); return; }
+        l.qty = Math.max(1, l.qty + delta);
+        render();
+    }
+    function changeType(idx, type) {
+        var l = cart[idx];
+        var same = cart.find(function (o, i) { return i !== idx && o.id === l.id && o.type === type; });
+        if (same) { same.qty += l.qty; cart.splice(idx, 1); } else { l.type = type; }
+        render();
+    }
+    function removeLine(idx) { cart.splice(idx, 1); render(); }
 
-            // Link Cetak Nota
-            document.getElementById('btnReceiptLink').href = res.receipt_url;
-
-            // Buka Modal
-            document.getElementById('checkoutSuccessModal').classList.add('active');
-
-            // Reset keranjang lokal & storage
-            cart = [];
-            localStorage.removeItem('simlpg_pos_cart');
-            renderCart();
-            document.getElementById('paidAmount').value = '';
-            document.getElementById('changeDisplay').textContent = 'Rp 0';
-        }
-    })
-    .catch(err => {
-        btn.disabled = false;
-        btnText.innerHTML = origContent;
-        if (err && err.errors) {
-            const msgs = Object.values(err.errors).flat().join('\n');
-            alert('Validasi Gagal:\n' + msgs);
+    function render() {
+        var box = $('cartItems');
+        if (cart.length === 0) {
+            box.innerHTML = '<div class="cart-empty"><div class="empty-icon" style="width:44px;height:44px;margin-bottom:8px;">' +
+                '<svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></div>' +
+                'Keranjang masih kosong.<br>Klik produk di sebelah kiri.</div>';
         } else {
-            alert(err.message || 'Terjadi kesalahan sistem saat memproses transaksi.');
+            box.innerHTML = cart.map(function (l, i) {
+                var p = products[l.id];
+                var opts = Object.keys(TYPES).map(function (t) {
+                    var label = TYPES[t] + (t === 'plus_tabung' && p.tube > 0 ? ' (+' + rupiah(p.tube) + ')' : '');
+                    return '<option value="' + t + '"' + (t === l.type ? ' selected' : '') + '>' + esc(label) + '</option>';
+                }).join('');
+                return '<div class="cart-item">' +
+                    '<div style="min-width:0;"><div class="cart-item-name">' + esc(p.name) + '</div>' +
+                    '<select class="select select-sm" data-act="type" data-idx="' + i + '" style="margin-top:6px;" aria-label="Jenis transaksi">' + opts + '</select></div>' +
+                    '<div style="text-align:right;"><div class="cart-item-price">' + rupiah(unitPrice(l) * l.qty) + '</div>' +
+                    '<div class="stepper" style="margin-top:8px;">' +
+                    '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="dec" data-idx="' + i + '" aria-label="Kurangi">' + svg('minus') + '</button>' +
+                    '<span class="qty">' + l.qty + '</span>' +
+                    '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="inc" data-idx="' + i + '" aria-label="Tambah">' + svg('plus') + '</button>' +
+                    '<button type="button" class="btn btn-ghost btn-xs btn-icon" data-act="del" data-idx="' + i + '" title="Hapus" aria-label="Hapus">' + svg('trash') + '</button>' +
+                    '</div></div></div>';
+            }).join('');
         }
+
+        // lencana jumlah di kartu produk
+        Object.keys(products).forEach(function (id) {
+            var badge = products[id].el.querySelector('.in-cart'), n = qtyOfProduct(id);
+            badge.hidden = n === 0; badge.textContent = n;
+        });
+        $('cartCount').textContent = cart.reduce(function (s, l) { return s + l.qty; }, 0);
+        $('grandTotal').textContent = rupiah(grandTotal());
+        $('custReq').hidden = !needCustomer();
+        save();
+        recalc();
+    }
+
+    /* ---------- Pembayaran ---------- */
+    function paidValue() {
+        var d = $('paidInput').value.replace(/\D/g, '');
+        return d === '' ? null : parseInt(d, 10);
+    }
+    function recalc() {
+        var total = grandTotal(), paid = paidValue(), ok = cart.length > 0;
+        var label = $('resultLabel'), value = $('resultValue');
+        value.className = 'num'; $('payError').hidden = true;
+
+        if (status === 'lunas') {
+            $('paidLabel').textContent = 'Uang diterima';
+            var eff = paid === null ? total : paid;
+            if (eff >= total) { label.textContent = 'Kembalian'; value.textContent = rupiah(eff - total); }
+            else { label.textContent = 'Kurang'; value.textContent = rupiah(total - eff); value.classList.add('text-danger'); ok = false; }
+        } else {
+            $('paidLabel').textContent = 'Uang muka (DP)';
+            label.textContent = 'Sisa kasbon';
+            value.textContent = rupiah(Math.max(0, total - (paid || 0)));
+            if (total > 0) value.classList.add('text-danger');
+        }
+        $('btnCheckout').disabled = !ok;
+    }
+    function setSeg(box, value, cb) {
+        box.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.v === value ? 'true' : 'false'); });
+        cb(value);
+    }
+    $('segMethod').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        setSeg(this, b.dataset.v, function (v) { method = v; $('noteField').hidden = v !== 'transfer'; });
     });
-}
-
-function closeSuccessModal() {
-    document.getElementById('checkoutSuccessModal').classList.remove('active');
-}
-
-// ==================== INISIALISASI ====================
-// Filter produk realtime
-document.getElementById('productSearch').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('.product-card').forEach(card => {
-        card.style.display = card.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+    $('segStatus').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        setSeg(this, b.dataset.v, function (v) { status = v; });
+        $('custReq').hidden = !needCustomer();
+        recalc();
     });
-});
+    $('paidInput').addEventListener('input', function () {
+        var d = this.value.replace(/\D/g, '');
+        this.value = d === '' ? '' : parseInt(d, 10).toLocaleString('id-ID');
+        recalc();
+    });
+    $('quickCash').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        var v = b.dataset.cash === 'exact' ? grandTotal() : parseInt(b.dataset.cash, 10);
+        $('paidInput').value = v ? v.toLocaleString('id-ID') : '';
+        recalc();
+    });
 
-// Load cart jika sebelumnya ada di storage
-loadCartFromStorage();
+    /* ---------- Event produk & keranjang ---------- */
+    $('productGrid').addEventListener('click', function (e) {
+        var card = e.target.closest('.product-card');
+        if (card && !card.disabled) addProduct(card.dataset.id);
+    });
+    $('cartItems').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-act]'); if (!b || b.tagName === 'SELECT') return;
+        var i = parseInt(b.dataset.idx, 10);
+        if (b.dataset.act === 'inc') changeQty(i, 1);
+        if (b.dataset.act === 'dec') changeQty(i, -1);
+        if (b.dataset.act === 'del') removeLine(i);
+    });
+    $('cartItems').addEventListener('change', function (e) {
+        if (e.target.dataset.act === 'type') changeType(parseInt(e.target.dataset.idx, 10), e.target.value);
+    });
+    $('btnClear').addEventListener('click', function () {
+        if (cart.length && confirm('Kosongkan keranjang?')) { cart = []; render(); }
+    });
+    $('productSearch').addEventListener('input', function () {
+        var q = this.value.trim().toLowerCase(), shown = 0;
+        Object.keys(products).forEach(function (id) {
+            var p = products[id], hit = !q || p.name.toLowerCase().indexOf(q) > -1 || p.sku.toLowerCase().indexOf(q) > -1;
+            p.el.hidden = !hit; if (hit) shown++;
+        });
+        $('noProductMatch').hidden = shown > 0;
+    });
+
+    /* ---------- Pelanggan (combobox) ---------- */
+    var timer = null, results = [], focusIdx = -1;
+    function showCustomer(c) {
+        customer = c;
+        $('custInput').hidden = !!c; $('custChip').hidden = !c;
+        if (c) {
+            $('custChipName').textContent = c.name + (c.phone ? ' · ' + c.phone : '');
+            $('custList').hidden = true;
+            $('custDebt').hidden = !(c.debt > 0);
+            $('custDebt').textContent = c.debt > 0 ? 'Pelanggan ini masih punya kasbon belum lunas ' + rupiah(c.debt) + '.' : '';
+        } else {
+            $('custInput').value = ''; $('custDebt').hidden = true;
+        }
+        $('payError').hidden = true;
+    }
+    function drawList() {
+        var list = $('custList');
+        if (!results.length) { list.innerHTML = '<div class="combo-empty">Pelanggan tidak ditemukan.</div>'; list.hidden = false; return; }
+        list.innerHTML = results.map(function (c, i) {
+            return '<button type="button" class="combo-option' + (i === focusIdx ? ' focus' : '') + '" data-i="' + i + '">' +
+                '<strong>' + esc(c.name) + '</strong>' + (c.phone ? ' <span class="muted">· ' + esc(c.phone) + '</span>' : '') +
+                (c.debt > 0 ? ' <span class="text-danger text-sm">· kasbon ' + rupiah(c.debt) + '</span>' : '') + '</button>';
+        }).join('');
+        list.hidden = false;
+    }
+    function search(q) {
+        fetch(URLS.search + '?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (rows) { results = rows; focusIdx = rows.length ? 0 : -1; drawList(); })
+            .catch(function () { $('custList').hidden = true; });
+    }
+    $('custInput').addEventListener('focus', function () { search(this.value.trim()); });
+    $('custInput').addEventListener('input', function () {
+        var q = this.value.trim(); clearTimeout(timer);
+        timer = setTimeout(function () { search(q); }, 200);
+    });
+    $('custInput').addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (!results.length) return;
+            focusIdx = (focusIdx + (e.key === 'ArrowDown' ? 1 : -1) + results.length) % results.length; drawList();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (results[focusIdx]) showCustomer(results[focusIdx]);
+        } else if (e.key === 'Escape') { $('custList').hidden = true; }
+    });
+    $('custList').addEventListener('click', function (e) {
+        var b = e.target.closest('.combo-option'); if (b) showCustomer(results[parseInt(b.dataset.i, 10)]);
+    });
+    $('custClear').addEventListener('click', function () { showCustomer(null); $('custInput').focus(); });
+    document.addEventListener('click', function (e) { if (!e.target.closest('#custCombo')) $('custList').hidden = true; });
+
+    /* ---------- Pelanggan baru ---------- */
+    $('btnSaveCustomer').addEventListener('click', function () {
+        var btn = this, err = $('ncError'), name = $('ncName').value.trim();
+        err.hidden = true;
+        if (!name) { err.textContent = 'Nama pelanggan wajib diisi.'; err.hidden = false; return; }
+        btn.disabled = true;
+        postJSON(URLS.newCustomer, {
+            name: name, phone: $('ncPhone').value.trim(), nik: $('ncNik').value.trim(), customer_type: $('ncType').value
+        }).then(function (res) {
+            showCustomer(res.customer);
+            ['ncName', 'ncPhone', 'ncNik'].forEach(function (id) { $(id).value = ''; });
+            closeModal('addCustomerModal');
+        }).catch(function (e) { err.textContent = errorText(e); err.hidden = false; })
+          .then(function () { btn.disabled = false; });
+    });
+
+    /* ---------- Checkout ---------- */
+    $('btnCheckout').addEventListener('click', function () {
+        var btn = this, txt = $('btnCheckoutText'), err = $('payError');
+        if (!cart.length) return;
+        if (needCustomer() && !customer) {
+            err.textContent = 'Pilih pelanggan dulu — wajib untuk pinjam tabung atau kasbon.'; err.hidden = false;
+            $('custInput').focus(); return;
+        }
+        var label = txt.textContent;
+        btn.disabled = true; txt.textContent = 'Memproses…';
+
+        postJSON(URLS.store, {
+            items: cart.map(function (l) { return { product_id: l.id, transaction_type: l.type, qty: l.qty }; }),
+            customer_id: customer ? customer.id : null,
+            payment_method: method, payment_status: status,
+            paid_amount: paidValue(),
+            payment_note: method === 'transfer' ? $('payNote').value.trim() : null
+        }).then(function (res) {
+            $('successInvoice').textContent = res.invoice_number;
+            $('successTotal').textContent = rupiah(res.total_amount);
+            $('successPaid').textContent = rupiah(res.paid_amount);
+            $('successChange').textContent = rupiah(res.change_amount);
+            $('successChangeRow').hidden = !(res.change_amount > 0);
+            $('successDebt').textContent = rupiah(res.remaining_debt);
+            $('successDebtRow').hidden = !(res.remaining_debt > 0);
+            $('btnReceipt').href = res.receipt_url;
+            cart = []; save();
+            openModal('successModal');
+        }).catch(function (e) {
+            err.textContent = errorText(e); err.hidden = false;
+            toast(errorText(e).split('\n')[0], 'error');
+            btn.disabled = false;
+        }).then(function () { txt.textContent = label; });
+    });
+
+    // Setelah modal sukses ditutup (tombol / Esc / klik luar), muat ulang agar stok di kartu produk akurat.
+    new MutationObserver(function () {
+        if (!$('successModal').classList.contains('active')) location.reload();
+    }).observe($('successModal'), { attributes: true, attributeFilter: ['class'] });
+
+    restore();
+    render();
+})();
 </script>
 @endpush
-@endsection

@@ -1,59 +1,54 @@
 @extends('layouts.app')
-@section('title', 'Manajemen Pengguna')
-@section('page-title', 'Manajemen Akun Pengguna')
+@section('title', 'Akun Pengguna')
+@section('page-title', 'Akun Pengguna')
+@section('page-sub', 'Kelola siapa yang bisa masuk ke sistem')
 
 @section('topbar-actions')
-<button onclick="document.getElementById('addUserModal').classList.add('active')" class="btn-topbar-action">
-    <i class="fa-solid fa-user-plus"></i> Tambah Pengguna
-</button>
+    <button type="button" class="btn btn-primary" data-modal-open="addUserModal">
+        <x-icon name="user-plus" /> Tambah Pengguna
+    </button>
 @endsection
 
 @section('content')
+@php $reopen = old('_modal'); @endphp
+
 <div class="card">
-    <div class="card-header">
-        <span class="card-title"><i class="fa-solid fa-user-gear" style="color:var(--primary-light);margin-right:6px;"></i> Daftar Akun</span>
-    </div>
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr><th>Nama</th><th>Email</th><th>Role</th><th>Bergabung</th><th>Aksi</th></tr>
-            </thead>
+    <div class="table-wrap">
+        <table class="table">
+            <thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Bergabung</th><th></th></tr></thead>
             <tbody>
                 @foreach($users as $user)
                 <tr>
                     <td>
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <div style="width:36px;height:36px;background:{{ $user->role==='owner' ? 'var(--accent)' : 'var(--primary-light)' }};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">
-                                {{ strtoupper(substr($user->name, 0, 1)) }}
-                            </div>
+                        <div class="row">
+                            <div class="avatar" style="width:34px;height:34px;">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                             <div>
-                                <div style="font-weight:700;">{{ $user->name }}</div>
-                                @if($user->id === auth()->id())
-                                <span style="font-size:10px;background:#dbeafe;color:#1e40af;padding:1px 7px;border-radius:10px;">Anda</span>
-                                @endif
+                                <div class="cell-title">{{ $user->name }}</div>
+                                @if($user->id === auth()->id())<span class="badge badge-info" style="height:18px;font-size:11px;">Anda</span>@endif
                             </div>
                         </div>
                     </td>
                     <td>{{ $user->email }}</td>
                     <td>
                         @if($user->role === 'owner')
-                            <span class="badge badge-orange">Pemilik</span>
+                            <span class="badge badge-warning">Pemilik</span>
                         @else
                             <span class="badge badge-info">Kasir</span>
                         @endif
                     </td>
-                    <td style="font-size:12px;color:var(--text-muted);">{{ $user->created_at->isoFormat('D MMM Y') }}</td>
+                    <td class="muted">{{ $user->created_at->isoFormat('D MMM Y') }}</td>
                     <td>
-                        <div style="display:flex;gap:4px;">
-                            <button onclick='openEditUser(@json($user))' class="btn btn-outline btn-xs">
-                                <i class="fa-solid fa-pen"></i> Edit
+                        <div class="actions">
+                            <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Edit pengguna" aria-label="Edit pengguna"
+                                    data-modal-open="editUserModal"
+                                    data-action="{{ route('users.update', $user) }}"
+                                    data-name="{{ $user->name }}" data-email="{{ $user->email }}" data-role="{{ $user->role }}">
+                                <x-icon name="pencil" size="15" />
                             </button>
                             @if($user->id !== auth()->id())
-                            <form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirm('Hapus akun {{ $user->name }}?')">
+                            <form method="POST" action="{{ route('users.destroy', $user) }}" data-confirm="Hapus akun {{ $user->name }}?">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-xs">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
+                                <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus akun" aria-label="Hapus akun"><x-icon name="trash" size="15" /></button>
                             </form>
                             @endif
                         </div>
@@ -65,93 +60,80 @@
     </div>
 </div>
 
-{{-- Add User Modal --}}
-<div class="modal-overlay" id="addUserModal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title"><i class="fa-solid fa-user-plus"></i> Tambah Pengguna</div>
-            <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-times"></i></button>
+{{-- Tambah pengguna --}}
+<div class="modal-overlay {{ $reopen === 'addUserModal' ? 'active' : '' }}" id="addUserModal">
+    <div class="modal sm">
+        <div class="modal-head">
+            <div class="modal-title">Tambah pengguna</div>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
-        <form method="POST" action="{{ route('users.store') }}">
+        <form method="POST" action="{{ route('users.store') }}" class="modal-body">
             @csrf
-            <div class="form-group">
-                <label class="form-label">Nama Lengkap *</label>
-                <input type="text" name="name" class="form-control" required>
+            <input type="hidden" name="_modal" value="addUserModal">
+            <div class="field">
+                <label class="label">Nama lengkap <span class="req">*</span></label>
+                <input type="text" name="name" class="input" value="{{ $reopen === 'addUserModal' ? old('name') : '' }}" required>
             </div>
-            <div class="form-group">
-                <label class="form-label">Email *</label>
-                <input type="email" name="email" class="form-control" required>
+            <div class="field">
+                <label class="label">Email <span class="req">*</span></label>
+                <input type="email" name="email" class="input" value="{{ $reopen === 'addUserModal' ? old('email') : '' }}" required>
             </div>
-            <div class="form-group">
-                <label class="form-label">Role *</label>
-                <select name="role" class="form-control">
+            <div class="field">
+                <label class="label">Peran</label>
+                <select name="role" class="select">
                     <option value="kasir">Kasir</option>
-                    <option value="owner">Pemilik</option>
+                    <option value="owner" {{ $reopen === 'addUserModal' && old('role') === 'owner' ? 'selected' : '' }}>Pemilik</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label class="form-label">Password *</label>
-                <input type="password" name="password" class="form-control" minlength="6" required>
+            <div class="field">
+                <label class="label">Password <span class="req">*</span></label>
+                <input type="password" name="password" class="input" minlength="6" autocomplete="new-password" required>
             </div>
-            <div class="form-group">
-                <label class="form-label">Konfirmasi Password *</label>
-                <input type="password" name="password_confirmation" class="form-control" required>
+            <div class="field">
+                <label class="label">Ulangi password <span class="req">*</span></label>
+                <input type="password" name="password_confirmation" class="input" autocomplete="new-password" required>
             </div>
-            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-                <i class="fa-solid fa-save"></i> Simpan
-            </button>
+            <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan</button>
         </form>
     </div>
 </div>
 
-{{-- Edit User Modal --}}
+{{-- Edit pengguna --}}
 <div class="modal-overlay" id="editUserModal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title"><i class="fa-solid fa-pen"></i> Edit Pengguna</div>
-            <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-times"></i></button>
+    <div class="modal sm">
+        <div class="modal-head">
+            <div class="modal-title">Edit pengguna</div>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
-        <form id="editUserForm" method="POST">
+        <form method="POST" action="" class="modal-body">
             @csrf @method('PUT')
-            <div class="form-group">
-                <label class="form-label">Nama Lengkap *</label>
-                <input type="text" name="name" id="editUserName" class="form-control" required>
+            <input type="hidden" name="_modal" value="editUserModal">
+            <div class="field">
+                <label class="label">Nama lengkap <span class="req">*</span></label>
+                <input type="text" name="name" class="input" required>
             </div>
-            <div class="form-group">
-                <label class="form-label">Email *</label>
-                <input type="email" name="email" id="editUserEmail" class="form-control" required>
+            <div class="field">
+                <label class="label">Email <span class="req">*</span></label>
+                <input type="email" name="email" class="input" required>
             </div>
-            <div class="form-group">
-                <label class="form-label">Role *</label>
-                <select name="role" id="editUserRole" class="form-control">
+            <div class="field">
+                <label class="label">Peran</label>
+                <select name="role" class="select">
                     <option value="kasir">Kasir</option>
                     <option value="owner">Pemilik</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label class="form-label">Password Baru (kosongkan jika tidak diubah)</label>
-                <input type="password" name="password" class="form-control" minlength="6">
+            <div class="field">
+                <label class="label">Password baru</label>
+                <input type="password" name="password" class="input" minlength="6" autocomplete="new-password">
+                <div class="hint">Kosongkan jika tidak ingin mengubah password.</div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" class="form-control">
+            <div class="field">
+                <label class="label">Ulangi password baru</label>
+                <input type="password" name="password_confirmation" class="input" autocomplete="new-password">
             </div>
-            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-                <i class="fa-solid fa-save"></i> Simpan Perubahan
-            </button>
+            <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan perubahan</button>
         </form>
     </div>
 </div>
-
-@push('scripts')
-<script>
-function openEditUser(user) {
-    document.getElementById('editUserForm').action = '/users/' + user.id;
-    document.getElementById('editUserName').value  = user.name;
-    document.getElementById('editUserEmail').value = user.email;
-    document.getElementById('editUserRole').value  = user.role;
-    document.getElementById('editUserModal').classList.add('active');
-}
-</script>
-@endpush
 @endsection

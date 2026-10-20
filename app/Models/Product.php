@@ -9,6 +9,9 @@ class Product extends Model
 {
     use HasFactory;
 
+    /** Batas stok isi yang dianggap menipis. */
+    public const LOW_STOCK = 5;
+
     protected $fillable = [
         'name', 'sku', 'price_buy', 'price_sell', 'price_tube',
         'stock_filled', 'stock_empty', 'stock_borrowed', 'is_active',

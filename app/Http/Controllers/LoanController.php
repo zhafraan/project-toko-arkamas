@@ -44,10 +44,10 @@ class LoanController extends Controller
             $loan->product->increment('stock_empty', $qty);
         });
 
-        if ($request->expectsJson() || $request->ajax()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => "Pengembalian {$qty} tabung berhasil dicatat via AJAX.",
+                'message' => "Pengembalian {$qty} tabung berhasil dicatat.",
                 'loan'    => $loan->fresh(['customer', 'product']),
             ]);
         }

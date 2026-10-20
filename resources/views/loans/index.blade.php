@@ -1,157 +1,118 @@
 @extends('layouts.app')
 @section('title', 'Pinjaman Tabung')
-@section('page-title', 'Manajemen Pinjaman Tabung')
+@section('page-title', 'Pinjaman Tabung')
+@section('page-sub', 'Tabung yang dibawa pelanggan dan belum dikembalikan')
 
 @section('content')
-
-<div class="card" style="margin-bottom:18px;">
-    <div class="card-body" style="padding:14px;">
-        <form method="GET" style="display:flex;gap:10px;">
-            <input type="text" name="search" class="form-control" value="{{ request('search') }}"
-                   placeholder="🔍 Nama Pelanggan..." style="max-width:300px;">
-            <button type="submit" class="btn btn-primary">Cari</button>
-            <a href="{{ route('loans.index') }}" class="btn btn-outline">Reset</a>
-        </form>
-    </div>
-</div>
-
 <div class="card">
-    <div class="card-header">
-        <span class="card-title">
-            <i class="fa-solid fa-box" style="color:var(--accent);margin-right:6px;"></i>
-            Daftar Pinjaman Aktif
-        </span>
-        <span class="badge badge-danger">{{ $loans->total() }} aktif</span>
-    </div>
-    <div class="table-wrapper">
-        <table>
+    <form method="GET" class="toolbar">
+        <div class="search">
+            <x-icon name="search" size="17" />
+            <input type="search" name="search" class="input" value="{{ request('search') }}" placeholder="Cari nama pelanggan…">
+        </div>
+        <button type="submit" class="btn btn-outline">Cari</button>
+        @if(request('search'))
+            <a href="{{ route('loans.index') }}" class="btn btn-ghost">Reset</a>
+        @endif
+        <span class="badge badge-warning" style="margin-left:auto;">{{ $loans->total() }} pinjaman aktif</span>
+    </form>
+
+    <div class="table-wrap">
+        <table class="table">
             <thead>
                 <tr>
-                    <th>Pelanggan</th><th>Produk</th><th>Dipinjam</th><th>Dikembalikan</th>
-                    <th>Sisa</th><th>Deposit</th><th>Status</th><th>Tgl Pinjam</th><th>Aksi</th>
+                    <th>Pelanggan</th><th>Produk</th>
+                    <th class="num">Dipinjam</th><th class="num">Kembali</th><th class="num">Belum kembali</th>
+                    <th>Status</th><th>Tgl pinjam</th><th></th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($loans as $loan)
                 <tr>
                     <td>
-                        <a href="{{ route('customers.show', $loan->customer) }}" style="font-weight:700;color:var(--primary-light);text-decoration:none;">
-                            {{ $loan->customer->name }}
-                        </a>
-                        <div style="font-size:11px;color:var(--text-muted);">{{ $loan->customer->phone ?? '-' }}</div>
+                        <a href="{{ route('customers.show', $loan->customer) }}" class="cell-title">{{ $loan->customer->name }}</a>
+                        <div class="cell-sub">{{ $loan->customer->phone ?? '-' }}</div>
                     </td>
-                    <td style="font-weight:600;">{{ $loan->product->name }}</td>
-                    <td style="text-align:center;font-weight:700;">{{ $loan->qty_borrowed }}</td>
-                    <td style="text-align:center;color:var(--success);font-weight:700;">{{ $loan->qty_returned }}</td>
-                    <td style="text-align:center;">
-                        <span style="background:{{ $loan->remaining_qty > 0 ? '#fee2e2' : '#d1fae5' }};color:{{ $loan->remaining_qty > 0 ? '#991b1b' : '#065f46' }};padding:3px 10px;border-radius:20px;font-weight:700;">
-                            {{ $loan->remaining_qty }}
-                        </span>
-                    </td>
-                    <td>Rp {{ number_format($loan->deposit_amount, 0, ',', '.') }}</td>
+                    <td>{{ $loan->product->name }}</td>
+                    <td class="num">{{ $loan->qty_borrowed }}</td>
+                    <td class="num text-success">{{ $loan->qty_returned }}</td>
+                    <td class="num"><span class="qty-pill qty-borrowed">{{ $loan->remaining_qty }}</span></td>
                     <td>
                         @if($loan->status === 'dipinjam')
-                            <span class="badge badge-danger"><i class="fa-solid fa-circle"></i> Dipinjam</span>
+                            <span class="badge badge-danger badge-dot">Dipinjam</span>
                         @else
-                            <span class="badge badge-warning"><i class="fa-solid fa-circle-half-stroke"></i> Sebagian</span>
+                            <span class="badge badge-warning badge-dot">Sebagian kembali</span>
                         @endif
                     </td>
-                    <td style="font-size:12px;">{{ $loan->borrow_date->isoFormat('D MMM Y') }}</td>
+                    <td class="muted">{{ $loan->borrow_date->isoFormat('D MMM Y') }}</td>
                     <td>
-                        <button onclick='openReturnModal({{ $loan->id }}, "{{ $loan->customer->name }}", "{{ $loan->product->name }}", {{ $loan->remaining_qty }})' 
-                                class="btn btn-success btn-sm">
-                            <i class="fa-solid fa-rotate-left"></i> Kembalikan
-                        </button>
+                        <div class="actions">
+                            <button type="button" class="btn btn-success btn-sm"
+                                    data-modal-open="returnModal"
+                                    data-action="{{ route('loans.return', $loan) }}"
+                                    data-subject="{{ $loan->customer->name }} — {{ $loan->product->name }}"
+                                    data-remaining="{{ $loan->remaining_qty }}"
+                                    data-qty-return="{{ $loan->remaining_qty }}">
+                                <x-icon name="undo" size="15" /> Kembalikan
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 @empty
-                <tr>
-                    <td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">
-                        <i class="fa-solid fa-box-open" style="font-size:32px;opacity:.2;display:block;margin-bottom:8px;"></i>
-                        Tidak ada pinjaman tabung aktif
-                    </td>
-                </tr>
+                <tr><td colspan="8">
+                    <div class="empty">
+                        <div class="empty-icon"><x-icon name="package" size="24" /></div>
+                        <div class="empty-title">{{ request('search') ? 'Tidak ditemukan' : 'Tidak ada pinjaman aktif' }}</div>
+                        <div>{{ request('search') ? 'Coba nama pelanggan lain.' : 'Semua tabung pinjaman sudah kembali.' }}</div>
+                    </div>
+                </td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div style="padding:0 16px;">{{ $loans->links('vendor.pagination.simple') }}</div>
+    {{ $loans->links('vendor.pagination.simple') }}
 </div>
 
-{{-- Return Modal --}}
+{{-- Modal pengembalian --}}
 <div class="modal-overlay" id="returnModal">
-    <div class="modal" style="max-width:400px;">
-        <div class="modal-header">
-            <div class="modal-title"><i class="fa-solid fa-rotate-left"></i> Pengembalian Tabung</div>
-            <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-times"></i></button>
+    <div class="modal sm">
+        <div class="modal-head">
+            <div class="modal-title">Pengembalian tabung</div>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
-        <div id="returnInfo" style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;"></div>
-        <form id="returnForm" method="POST" onsubmit="handleReturnSubmit(event)">
+        <form method="POST" action="" id="returnForm" class="modal-body">
             @csrf
-            <div class="form-group">
-                <label class="form-label">Jumlah Tabung Dikembalikan</label>
-                <input type="number" name="qty_return" id="returnQty" class="form-control" min="1" required>
+            <div class="modal-note"><strong data-modal-subject></strong><div class="muted" id="returnInfo" style="margin-top:2px;"></div></div>
+            <div class="field">
+                <label class="label" for="returnQty">Jumlah tabung dikembalikan</label>
+                <input type="number" name="qty_return" id="returnQty" class="input" min="1" step="1" required>
+                <div class="hint">Tabung yang kembali masuk ke stok tabung kosong.</div>
             </div>
-            <button type="submit" id="btnConfirmReturn" class="btn btn-success" style="width:100%;justify-content:center;">
-                <i class="fa-solid fa-check"></i> Konfirmasi Pengembalian
-            </button>
+            <div class="field-error" id="returnError" hidden style="margin-bottom:12px;"></div>
+            <button type="submit" class="btn btn-success btn-block" id="btnReturn"><x-icon name="check" /> Konfirmasi pengembalian</button>
         </form>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-let currentLoanId = null;
+document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-modal-open="returnModal"]');
+    if (!b) return;
+    var qty = document.getElementById('returnQty');
+    qty.max = b.dataset.remaining;
+    document.getElementById('returnInfo').textContent = 'Belum kembali: ' + b.dataset.remaining + ' tabung';
+    document.getElementById('returnError').hidden = true;
+});
 
-function openReturnModal(loanId, custName, productName, remaining) {
-    currentLoanId = loanId;
-    document.getElementById('returnForm').action = '/loans/' + loanId + '/return';
-    document.getElementById('returnQty').max     = remaining;
-    document.getElementById('returnQty').value   = remaining;
-    document.getElementById('returnInfo').innerHTML = `
-        <strong>${custName}</strong> — ${productName}<br>
-        Tabung belum kembali: <strong style="color:#ef4444;">${remaining}</strong>
-    `;
-    document.getElementById('returnModal').classList.add('active');
-}
-
-function handleReturnSubmit(e) {
+document.getElementById('returnForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    const form = e.target;
-    const btn = document.getElementById('btnConfirmReturn');
-    const origText = btn.innerHTML;
-    const qty = document.getElementById('returnQty').value;
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
-
-    fetch(form.action, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ qty_return: qty })
-    })
-    .then(r => r.json())
-    .then(res => {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        if (res.success) {
-            alert(res.message);
-            document.getElementById('returnModal').classList.remove('active');
-            window.location.reload();
-        } else {
-            alert(res.message || 'Gagal memproses pengembalian.');
-        }
-    })
-    .catch(err => {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        alert('Terjadi kesalahan saat memproses pengembalian tabung.');
-    });
-}
+    var form = this, btn = document.getElementById('btnReturn'), err = document.getElementById('returnError');
+    err.hidden = true; btn.disabled = true;
+    postJSON(form.action, { qty_return: document.getElementById('returnQty').value })
+        .then(function (res) { toastAfterReload(res.message, 'success'); location.reload(); })
+        .catch(function (ex) { err.textContent = errorText(ex); err.hidden = false; btn.disabled = false; });
+});
 </script>
 @endpush
-@endsection

@@ -31,7 +31,7 @@ class DebtController extends Controller
     public function pay(Request $request, Transaction $transaction)
     {
         $request->validate([
-            'amount_paid'    => 'required|numeric|min:1|max:' . $transaction->remaining_debt,
+            'amount_paid'    => 'required|numeric|min:1|max:' . (float) $transaction->remaining_debt,
             'payment_method' => 'required|in:cash,transfer',
             'notes'          => 'nullable|string|max:255',
         ]);
@@ -59,10 +59,10 @@ class DebtController extends Controller
             ]);
         });
 
-        if ($request->expectsJson() || $request->ajax()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'success'        => true,
-                'message'        => 'Pembayaran cicilan piutang berhasil dicatat via AJAX.',
+                'message'        => 'Pembayaran piutang berhasil dicatat.',
                 'transaction'    => $transaction->fresh(['customer', 'user']),
                 'remaining_debt' => $transaction->fresh()->remaining_debt,
             ]);

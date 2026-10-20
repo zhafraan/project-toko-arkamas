@@ -65,7 +65,7 @@ class CustomerController extends Controller
     public function show(Customer $customer)
     {
         $customer->load([
-            'transactions.details.product',
+            'transactions' => fn ($q) => $q->latest('transaction_date'),
             'tubeLoans.product',
         ]);
         $totalDebt = $customer->transactions->where('payment_status', 'belum_lunas')->sum('remaining_debt');
@@ -73,13 +73,31 @@ class CustomerController extends Controller
         return view('customers.show', compact('customer', 'totalDebt', 'activeLoanCount'));
     }
 
+    /** Pencarian cepat untuk kasir. Tanpa kata kunci -> 8 pelanggan pertama. */
     public function search(Request $request)
     {
-        $search = $request->q;
-        $customers = Customer::where('name', 'like', "%{$search}%")
-            ->orWhere('phone', 'like', "%{$search}%")
-            ->orWhere('nik', 'like', "%{$search}%")
-            ->limit(10)->get(['id', 'name', 'phone', 'customer_type']);
+        $search = trim((string) $request->q);
+
+        $customers = Customer::query()
+            ->withSum(['transactions as debt' => fn ($q) => $q->where('payment_status', 'belum_lunas')], 'remaining_debt')
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($w) use ($search) {
+                    $w->where('name', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get(['id', 'name', 'phone', 'customer_type'])
+            ->map(fn ($c) => [
+                'id'            => $c->id,
+                'name'          => $c->name,
+                'phone'         => $c->phone,
+                'customer_type' => $c->customer_type,
+                'debt'          => (float) ($c->debt ?? 0),
+            ]);
+
         return response()->json($customers);
     }
 }

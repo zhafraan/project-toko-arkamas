@@ -32,14 +32,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            // Simpan metadata sesi kasir/owner
             $user = Auth::user();
-            session([
-                'shift_started_at' => now()->format('d M Y, H:i'),
-                'cashier_role'     => $user->role,
-                'cashier_name'     => $user->name,
-                'session_tx_count' => 0,
-            ]);
 
             $response = redirect()->intended(route('dashboard'))
                 ->with('success', "Selamat datang kembali, {$user->name}!");

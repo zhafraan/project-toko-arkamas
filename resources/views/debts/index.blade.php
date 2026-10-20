@@ -1,188 +1,145 @@
 @extends('layouts.app')
 @section('title', 'Piutang / Kasbon')
-@section('page-title', 'Manajemen Piutang & Kasbon')
+@section('page-title', 'Piutang / Kasbon')
+@section('page-sub', 'Nota yang belum dibayar lunas')
 
 @section('content')
-
-<div class="stat-grid" style="margin-bottom:20px;">
-    <div class="stat-card red" style="grid-column:span 2;">
-        <div class="stat-icon red"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-        <div class="stat-info">
-            <div class="stat-value">Rp {{ number_format($totalPiutang, 0, ',', '.') }}</div>
-            <div class="stat-label">Total Piutang Belum Lunas</div>
-        </div>
-    </div>
-</div>
-
-<div class="card" style="margin-bottom:18px;">
-    <div class="card-body" style="padding:14px;">
-        <form method="GET" style="display:flex;gap:10px;">
-            <input type="text" name="search" class="form-control" value="{{ request('search') }}"
-                   placeholder="🔍 No. Invoice / Nama Pelanggan..." style="max-width:350px;">
-            <button type="submit" class="btn btn-primary">Cari</button>
-            <a href="{{ route('debts.index') }}" class="btn btn-outline">Reset</a>
-        </form>
+<div class="summary mb-2">
+    <div class="summary-item">
+        <div class="summary-label"><x-icon name="wallet" size="16" /> Total piutang</div>
+        <div class="summary-value {{ $totalPiutang > 0 ? 'text-danger' : 'text-success' }}">@rupiah($totalPiutang)</div>
+        <div class="summary-note">{{ $transactions->total() }} nota belum lunas</div>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-header">
-        <span class="card-title">
-            <i class="fa-solid fa-money-bill-wave" style="color:var(--danger);margin-right:6px;"></i>
-            Nota Belum Lunas
-        </span>
-        <span class="badge badge-danger">{{ $transactions->total() }} nota</span>
-    </div>
-    <div class="table-wrapper">
-        <table>
+    <form method="GET" class="toolbar">
+        <div class="search">
+            <x-icon name="search" size="17" />
+            <input type="search" name="search" class="input" value="{{ request('search') }}" placeholder="Cari no. invoice atau nama pelanggan…">
+        </div>
+        <button type="submit" class="btn btn-outline">Cari</button>
+        @if(request('search'))
+            <a href="{{ route('debts.index') }}" class="btn btn-ghost">Reset</a>
+        @endif
+    </form>
+
+    <div class="table-wrap">
+        <table class="table">
             <thead>
                 <tr>
-                    <th>Invoice</th><th>Pelanggan</th><th>Kasir</th>
-                    <th>Total Tagihan</th><th>Sudah Bayar</th><th>Sisa</th>
-                    <th>Metode</th><th>Tgl Transaksi</th><th>Aksi</th>
+                    <th>Invoice</th><th>Pelanggan</th><th>Tanggal</th>
+                    <th class="num">Total</th><th class="num">Sudah dibayar</th><th class="num">Sisa</th><th></th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($transactions as $trx)
                 <tr>
-                    <td style="font-size:12px;font-weight:700;color:var(--primary-light);">{{ $trx->invoice_number }}</td>
+                    <td>
+                        <div class="cell-title nowrap">{{ $trx->invoice_number }}</div>
+                        <div class="cell-sub">Kasir: {{ $trx->user->name }}</div>
+                    </td>
                     <td>
                         @if($trx->customer)
-                        <a href="{{ route('customers.show', $trx->customer) }}" style="font-weight:700;text-decoration:none;color:var(--text);">
-                            {{ $trx->customer->name }}
-                        </a>
-                        @else <em style="color:var(--text-muted);">Umum</em> @endif
-                    </td>
-                    <td style="font-size:12px;">{{ $trx->user->name }}</td>
-                    <td style="font-weight:700;">Rp {{ number_format($trx->total_amount,0,',','.') }}</td>
-                    <td style="color:var(--success);font-weight:600;">Rp {{ number_format($trx->paid_amount,0,',','.') }}</td>
-                    <td style="color:var(--danger);font-weight:800;font-size:15px;">Rp {{ number_format($trx->remaining_debt,0,',','.') }}</td>
-                    <td>
-                        @if($trx->payment_method === 'cash')
-                            <span class="badge badge-info">Cash</span>
+                            <a href="{{ route('customers.show', $trx->customer) }}" class="cell-title">{{ $trx->customer->name }}</a>
                         @else
-                            <span class="badge badge-gray">Transfer</span>
+                            <span class="muted">Umum</span>
                         @endif
                     </td>
-                    <td style="font-size:12px;color:var(--text-muted);">{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
+                    <td class="muted">{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
+                    <td class="num">@rupiah($trx->total_amount)</td>
+                    <td class="num text-success">@rupiah($trx->paid_amount)</td>
+                    <td class="num text-danger fw">@rupiah($trx->remaining_debt)</td>
                     <td>
-                        <div style="display:flex;gap:4px;">
-                            <button onclick='openPayModal({{ $trx->id }}, "{{ $trx->invoice_number }}", {{ $trx->remaining_debt }})'
-                                    class="btn btn-success btn-sm">
-                                <i class="fa-solid fa-money-bill"></i> Bayar
+                        <div class="actions">
+                            <button type="button" class="btn btn-success btn-sm"
+                                    data-modal-open="payModal"
+                                    data-action="{{ route('debts.pay', $trx) }}"
+                                    data-subject="{{ $trx->invoice_number }}"
+                                    data-remaining="{{ (float) $trx->remaining_debt }}">
+                                <x-icon name="banknote" size="15" /> Bayar
                             </button>
-                            <a href="{{ route('pos.receipt', $trx) }}" class="btn btn-outline btn-sm" target="_blank">
-                                <i class="fa-solid fa-receipt"></i>
-                            </a>
+                            <a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Lihat nota" aria-label="Lihat nota"><x-icon name="receipt" size="16" /></a>
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr>
-                    <td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">
-                        <i class="fa-solid fa-check-circle" style="font-size:32px;color:var(--success);opacity:.4;display:block;margin-bottom:8px;"></i>
-                        Semua nota sudah lunas! 🎉
-                    </td>
-                </tr>
+                <tr><td colspan="7">
+                    <div class="empty">
+                        <div class="empty-icon" style="background:var(--success-soft);color:var(--success-ink);"><x-icon name="check" size="24" /></div>
+                        <div class="empty-title">{{ request('search') ? 'Tidak ditemukan' : 'Semua nota sudah lunas' }}</div>
+                        <div>{{ request('search') ? 'Coba kata kunci lain.' : 'Tidak ada piutang yang perlu ditagih.' }}</div>
+                    </div>
+                </td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div style="padding:0 16px;">{{ $transactions->links('vendor.pagination.simple') }}</div>
+    {{ $transactions->links('vendor.pagination.simple') }}
 </div>
 
-{{-- Pay Modal --}}
+{{-- Modal pembayaran --}}
 <div class="modal-overlay" id="payModal">
-    <div class="modal" style="max-width:420px;">
-        <div class="modal-header">
-            <div class="modal-title"><i class="fa-solid fa-money-bill"></i> Catat Pembayaran</div>
-            <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-times"></i></button>
+    <div class="modal sm">
+        <div class="modal-head">
+            <div class="modal-title">Catat pembayaran</div>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
-        <div id="payInfo" style="background:#fef3c7;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;border-left:4px solid var(--warning);"></div>
-        <form id="payForm" method="POST" onsubmit="handlePaySubmit(event)">
+        <form method="POST" action="" id="payForm" class="modal-body">
             @csrf
-            <div class="form-group">
-                <label class="form-label">Jumlah Dibayar (Rp) *</label>
-                <input type="number" name="amount_paid" id="payAmount" class="form-control" min="1" step="1000" required>
+            <div class="modal-note">Nota <strong data-modal-subject></strong><div class="muted" id="payInfo" style="margin-top:2px;"></div></div>
+            <div class="field">
+                <label class="label" for="payAmount">Jumlah dibayar <span class="req">*</span></label>
+                <div class="input-affix">
+                    <span class="affix">Rp</span>
+                    <input type="number" name="amount_paid" id="payAmount" class="input num" min="1" step="any" required>
+                </div>
+                <div class="hint"><button type="button" class="btn btn-ghost btn-xs" id="btnPayFull" style="margin-left:-8px;">Isi sisa tagihan (lunasi)</button></div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Metode Pembayaran</label>
-                <select name="payment_method" id="payMethod" class="form-control">
-                    <option value="cash">💵 Cash</option>
-                    <option value="transfer">📱 Transfer</option>
+            <div class="field">
+                <label class="label" for="payMethod">Metode</label>
+                <select name="payment_method" id="payMethod" class="select">
+                    <option value="cash">Tunai</option>
+                    <option value="transfer">Transfer</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label class="form-label">Catatan (opsional)</label>
-                <input type="text" name="notes" id="payNotes" class="form-control" placeholder="No. referensi / keterangan">
+            <div class="field">
+                <label class="label" for="payNotes">Catatan (opsional)</label>
+                <input type="text" name="notes" id="payNotes" class="input" maxlength="255" placeholder="No. referensi / keterangan">
             </div>
-            <button type="submit" id="btnConfirmPay" class="btn btn-success" style="width:100%;justify-content:center;">
-                <i class="fa-solid fa-check"></i> Simpan Pembayaran
-            </button>
+            <div class="field-error" id="payError" hidden style="margin-bottom:12px;"></div>
+            <button type="submit" class="btn btn-success btn-block" id="btnPay"><x-icon name="check" /> Simpan pembayaran</button>
         </form>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-function openPayModal(trxId, invoiceNum, remaining) {
-    document.getElementById('payForm').action = '/debts/' + trxId + '/pay';
-    document.getElementById('payAmount').max   = remaining;
-    document.getElementById('payAmount').value = remaining;
-    document.getElementById('payInfo').innerHTML = `
-        Nota: <strong>${invoiceNum}</strong><br>
-        Sisa tagihan: <strong style="color:#ef4444;">Rp ${remaining.toLocaleString('id-ID')}</strong>
-    `;
-    document.getElementById('payModal').classList.add('active');
-}
+var payRemaining = 0;
+document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-modal-open="payModal"]');
+    if (!b) return;
+    payRemaining = parseFloat(b.dataset.remaining) || 0;
+    var amount = document.getElementById('payAmount');
+    amount.max = payRemaining; amount.value = payRemaining;
+    document.getElementById('payInfo').textContent = 'Sisa tagihan: ' + rupiah(payRemaining);
+    document.getElementById('payError').hidden = true;
+});
+document.getElementById('btnPayFull').addEventListener('click', function () {
+    document.getElementById('payAmount').value = payRemaining;
+});
 
-function handlePaySubmit(e) {
+document.getElementById('payForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    const form = e.target;
-    const btn = document.getElementById('btnConfirmPay');
-    const origText = btn.innerHTML;
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
-
-    const data = {
+    var form = this, btn = document.getElementById('btnPay'), err = document.getElementById('payError');
+    err.hidden = true; btn.disabled = true;
+    postJSON(form.action, {
         amount_paid: document.getElementById('payAmount').value,
         payment_method: document.getElementById('payMethod').value,
-        notes: document.getElementById('payNotes').value,
-    };
-
-    fetch(form.action, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(r => {
-        if (!r.ok) return r.json().then(e => { throw e; });
-        return r.json();
-    })
-    .then(res => {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        if (res.success) {
-            alert(res.message);
-            document.getElementById('payModal').classList.remove('active');
-            window.location.reload();
-        }
-    })
-    .catch(err => {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        if (err && err.errors) {
-            alert(Object.values(err.errors).flat().join('\n'));
-        } else {
-            alert(err.message || 'Terjadi kesalahan saat memproses pembayaran piutang.');
-        }
-    });
-}
+        notes: document.getElementById('payNotes').value
+    }).then(function (res) { toastAfterReload(res.message, 'success'); location.reload(); })
+      .catch(function (ex) { err.textContent = errorText(ex); err.hidden = false; btn.disabled = false; });
+});
 </script>
 @endpush
-@endsection

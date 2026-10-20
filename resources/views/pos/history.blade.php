@@ -1,82 +1,85 @@
 @extends('layouts.app')
 @section('title', 'Riwayat Transaksi')
 @section('page-title', 'Riwayat Transaksi')
+@section('page-sub', $onlyToday ? 'Transaksi hari ini' : 'Semua transaksi penjualan')
 
 @section('content')
+@if($onlyToday)
+<div class="alert alert-info" role="status">
+    <x-icon name="info" />
+    <div class="alert-body">Sebagai kasir, Anda hanya melihat transaksi hari ini. Riwayat lengkap tersedia untuk pemilik.</div>
+</div>
+@endif
+
 <div class="card">
-    <div class="card-header">
-        <span class="card-title"><i class="fa-solid fa-receipt" style="color:var(--primary-light);margin-right:6px;"></i> Riwayat Penjualan</span>
-    </div>
-    <div class="card-body" style="padding:14px;">
-        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
-            <div style="flex:2;min-width:200px;">
-                <input type="text" name="search" class="form-control" value="{{ request('search') }}" placeholder="🔍 No. Invoice / Nama Pelanggan">
-            </div>
-            <div>
-                <select name="payment_status" class="form-control">
-                    <option value="">Semua Status</option>
-                    <option value="lunas" {{ request('payment_status')=='lunas'?'selected':'' }}>Lunas</option>
-                    <option value="belum_lunas" {{ request('payment_status')=='belum_lunas'?'selected':'' }}>Belum Lunas</option>
-                </select>
-            </div>
-            <div>
-                <select name="payment_method" class="form-control">
-                    <option value="">Semua Metode</option>
-                    <option value="cash" {{ request('payment_method')=='cash'?'selected':'' }}>Cash</option>
-                    <option value="transfer" {{ request('payment_method')=='transfer'?'selected':'' }}>Transfer</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Cari</button>
-            <a href="{{ route('pos.history') }}" class="btn btn-outline">Reset</a>
-        </form>
-    </div>
-    <div class="table-wrapper">
-        <table>
+    <form method="GET" class="toolbar">
+        <div class="search">
+            <x-icon name="search" size="17" />
+            <input type="search" name="search" class="input" value="{{ request('search') }}" placeholder="Cari no. invoice atau nama pelanggan…">
+        </div>
+        <select name="payment_status" class="select" onchange="this.form.submit()" aria-label="Status pembayaran">
+            <option value="">Semua status</option>
+            <option value="lunas" {{ request('payment_status') === 'lunas' ? 'selected' : '' }}>Lunas</option>
+            <option value="belum_lunas" {{ request('payment_status') === 'belum_lunas' ? 'selected' : '' }}>Kasbon</option>
+        </select>
+        <select name="payment_method" class="select" onchange="this.form.submit()" aria-label="Metode pembayaran">
+            <option value="">Semua metode</option>
+            <option value="cash" {{ request('payment_method') === 'cash' ? 'selected' : '' }}>Tunai</option>
+            <option value="transfer" {{ request('payment_method') === 'transfer' ? 'selected' : '' }}>Transfer</option>
+        </select>
+        <button type="submit" class="btn btn-outline">Cari</button>
+        @if(request('search') || request('payment_status') || request('payment_method'))
+            <a href="{{ route('pos.history') }}" class="btn btn-ghost">Reset</a>
+        @endif
+    </form>
+
+    <div class="table-wrap">
+        <table class="table">
             <thead>
                 <tr>
-                    <th>Invoice</th><th>Pelanggan</th><th>Kasir</th>
-                    <th>Total</th><th>Dibayar</th><th>Sisa</th>
-                    <th>Metode</th><th>Status</th><th>Tanggal</th><th>Aksi</th>
+                    <th>Invoice</th><th>Pelanggan</th><th>Tanggal</th>
+                    <th class="num">Total</th><th class="num">Sisa</th><th>Metode</th><th>Status</th><th></th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($transactions as $trx)
                 <tr>
-                    <td><strong style="font-size:12px;color:var(--primary-light);">{{ $trx->invoice_number }}</strong></td>
-                    <td>{{ $trx->customer?->name ?: '-' }}</td>
-                    <td style="font-size:12px;">{{ $trx->user->name }}</td>
-                    <td style="font-weight:700;">Rp {{ number_format($trx->total_amount,0,',','.') }}</td>
-                    <td>Rp {{ number_format($trx->paid_amount,0,',','.') }}</td>
-                    <td style="{{ $trx->remaining_debt > 0 ? 'color:var(--danger);font-weight:700;' : 'color:var(--text-muted);' }}">
-                        Rp {{ number_format($trx->remaining_debt,0,',','.') }}
+                    <td>
+                        <div class="cell-title nowrap">{{ $trx->invoice_number }}</div>
+                        <div class="cell-sub">Kasir: {{ $trx->user->name }}</div>
                     </td>
+                    <td>{{ $trx->customer?->name ?? 'Umum' }}</td>
+                    <td class="muted nowrap">{{ $trx->transaction_date->format('d/m/y H:i') }}</td>
+                    <td class="num fw">@rupiah($trx->total_amount)</td>
+                    <td class="num {{ $trx->remaining_debt > 0 ? 'text-danger fw' : 'muted' }}">@rupiah($trx->remaining_debt)</td>
                     <td>
                         @if($trx->payment_method === 'cash')
-                            <span class="badge badge-info">Cash</span>
+                            <span class="badge">Tunai</span>
                         @else
-                            <span class="badge badge-gray">Transfer</span>
+                            <span class="badge badge-info">Transfer</span>
                         @endif
                     </td>
                     <td>
                         @if($trx->payment_status === 'lunas')
-                            <span class="badge badge-success">✓ Lunas</span>
+                            <span class="badge badge-success badge-dot">Lunas</span>
                         @else
-                            <span class="badge badge-danger">Kasbon</span>
+                            <span class="badge badge-danger badge-dot">Kasbon</span>
                         @endif
                     </td>
-                    <td style="font-size:12px;color:var(--text-muted);">{{ $trx->transaction_date->format('d/m/y H:i') }}</td>
-                    <td>
-                        <a href="{{ route('pos.receipt', $trx) }}" class="btn btn-outline btn-xs" target="_blank">
-                            <i class="fa-solid fa-receipt"></i> Nota
-                        </a>
-                    </td>
+                    <td><div class="actions"><a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-outline btn-xs"><x-icon name="receipt" size="14" /> Nota</a></div></td>
                 </tr>
                 @empty
-                <tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada transaksi ditemukan</td></tr>
+                <tr><td colspan="8">
+                    <div class="empty">
+                        <div class="empty-icon"><x-icon name="receipt" size="24" /></div>
+                        <div class="empty-title">Tidak ada transaksi</div>
+                        <div>Coba ubah kata kunci atau filter.</div>
+                    </div>
+                </td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div style="padding:0 16px;">{{ $transactions->links('vendor.pagination.simple') }}</div>
+    {{ $transactions->links('vendor.pagination.simple') }}
 </div>
 @endsection
