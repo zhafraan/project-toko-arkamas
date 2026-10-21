@@ -592,10 +592,10 @@ a.stat-card:hover {
 .stockbar .s-filled { background: var(--filled); } .stockbar .s-empty { background: var(--empty); } .stockbar .s-borrowed { background: var(--borrowed); }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--text-2); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
-.qty-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 24px; padding: 0 9px; border-radius: 99px; font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.qty-filled { background: var(--success-soft); color: var(--success-ink); }
-.qty-empty { background: var(--warning-soft); color: var(--warning-ink); }
-.qty-borrowed { background: var(--danger-soft); color: var(--danger-ink); }
+.qty-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 24px; padding: 0 9px; border-radius: 99px; font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; color: #fff; }
+.qty-filled { background: var(--filled); }
+.qty-empty { background: var(--empty); }
+.qty-borrowed { background: var(--borrowed); }
 
 /* ---------- Dashboard ---------- */
 .bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; height: 190px; align-items: end; }
