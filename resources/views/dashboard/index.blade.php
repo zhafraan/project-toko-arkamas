@@ -13,7 +13,12 @@
 
 
 {{-- Ringkasan statistik --}}
-<div class="stat-grid {{ $monthRevenue !== null ? 'stat-grid-5' : 'stat-grid-4' }}">
+@php
+    $isOwner = auth()->user()->isOwner();
+    $statCount = ($monthRevenue !== null ? 5 : 4) - ($isOwner ? 0 : 1);
+@endphp
+<div class="stat-grid {{ $statCount === 5 ? 'stat-grid-5' : 'stat-grid-4' }}">
+    @if($isOwner)
     <div class="stat-card">
         <div class="stat-card-head">
             <span class="stat-card-title">Omzet hari ini</span>
@@ -24,6 +29,7 @@
         <div class="stat-card-value {{ $todayRevenue > 0 ? 'highlight' : '' }}">@rupiah($todayRevenue)</div>
         <div class="stat-card-note">{{ $todayCount }} transaksi</div>
     </div>
+    @endif
 
     <div class="stat-card">
         <div class="stat-card-head">
