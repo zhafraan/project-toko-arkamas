@@ -306,7 +306,15 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     .stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 640px) {
-    .stat-grid { grid-template-columns: 1fr; gap: 12px; }
+    .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .stat-card { padding: 12px 12px 11px; border-radius: 12px; }
+    .stat-card-title { font-size: 10.5px; }
+    .stat-card-icon { width: 30px; height: 30px; border-radius: 8px; }
+    .stat-card-value { font-size: 17px; margin: 8px 0 4px; white-space: normal; }
+    .stat-card-note { font-size: 11px; }
+}
+@media (max-width: 380px) {
+    .stat-grid { grid-template-columns: 1fr; }
 }
 
 .stat-card {
@@ -479,7 +487,7 @@ a.stat-card:hover {
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus-ring); }
 .input.is-invalid { border-color: var(--danger); }
 .input-sm, .select-sm { height: 32px; font-size: 13px; padding-left: 10px; }
-.hint { font-size: 12px; color: var(--text-3); margin-top: 5px; text-align: justify; text-justify: inter-word; }
+.hint { font-size: 12px; color: var(--text-3); margin-top: 5px; line-height: 1.5; text-align: justify; text-justify: inter-word; hyphens: auto; }
 .field-error { font-size: 12px; color: var(--danger-ink); margin-top: 5px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
 @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
@@ -695,6 +703,14 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
     .pager { flex-direction: column; align-items: stretch; gap: 8px; }
     .pager-nav { justify-content: space-between; }
     .legend { flex-wrap: wrap; row-gap: 6px; }
+    /* Dashboard compact di HP: kurangi tinggi grafik & rapatkan daftar */
+    .bars { height: 132px; gap: 5px; }
+    .bar-val { font-size: 10px; }
+    .bar-day { font-size: 10px; }
+    .trx-item { padding: 10px 12px; gap: 10px; }
+    .trx-amount { font-size: 13px; }
+    .stock-item { padding: 11px 12px; }
+    .layout-side, .layout-side.side-left { gap: 12px; }
 }
 
 /* HP sangat kecil (<=380): satu kolom penuh */

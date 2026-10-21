@@ -25,7 +25,7 @@
     </form>
 
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead>
                 <tr>
                     <th>Invoice</th><th>Pelanggan</th><th>Tanggal</th>
@@ -35,22 +35,22 @@
             <tbody>
                 @forelse($transactions as $trx)
                 <tr>
-                    <td>
+                    <td data-label="Invoice">
                         <div class="cell-title nowrap">{{ $trx->invoice_number }}</div>
                         <div class="cell-sub">Kasir: {{ $trx->user->name }}</div>
                     </td>
-                    <td>
+                    <td data-label="Pelanggan">
                         @if($trx->customer)
                             <a href="{{ route('customers.show', $trx->customer) }}" class="cell-title">{{ $trx->customer->name }}</a>
                         @else
                             <span class="muted">Umum</span>
                         @endif
                     </td>
-                    <td class="muted">{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
-                    <td class="num">@rupiah($trx->total_amount)</td>
-                    <td class="num text-success">@rupiah($trx->paid_amount)</td>
-                    <td class="num text-danger fw">@rupiah($trx->remaining_debt)</td>
-                    <td>
+                    <td class="muted" data-label="Tanggal">{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
+                    <td class="num" data-label="Total">@rupiah($trx->total_amount)</td>
+                    <td class="num text-success" data-label="Dibayar">@rupiah($trx->paid_amount)</td>
+                    <td class="num text-danger fw" data-label="Sisa">@rupiah($trx->remaining_debt)</td>
+                    <td data-label="Aksi">
                         <div class="actions">
                             <button type="button" class="btn btn-success btn-sm"
                                     data-modal-open="payModal"

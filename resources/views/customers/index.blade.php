@@ -25,7 +25,7 @@
     </form>
 
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead>
                 <tr>
                     <th>Nama</th><th>Nomor telepon</th><th>Tipe</th><th>Alamat</th>
@@ -35,12 +35,12 @@
             <tbody>
                 @forelse($customers as $customer)
                 <tr>
-                    <td>
+                    <td data-label="Nama">
                         <a href="{{ route('customers.show', $customer) }}" class="cell-title">{{ $customer->name }}</a>
                         @if($customer->nik)<div class="cell-sub mono">{{ $customer->nik }}</div>@endif
                     </td>
-                    <td>{{ $customer->phone ?? '-' }}</td>
-                    <td>
+                    <td data-label="Telepon">{{ $customer->phone ?? '-' }}</td>
+                    <td data-label="Tipe">
                         @if($customer->customer_type === 'umkm')
                             <span class="badge badge-warning">UMKM</span>
                         @elseif($customer->customer_type === 'pengecer')
@@ -49,10 +49,10 @@
                             <span class="badge">Rumah tangga</span>
                         @endif
                     </td>
-                    <td class="truncate" style="max-width:220px;" title="{{ $customer->address }}">{{ $customer->address ?? '-' }}</td>
-                    <td class="num">{{ $customer->transactions_count }}</td>
-                    <td class="num {{ ($customer->total_debt ?? 0) > 0 ? 'text-danger fw' : 'muted' }}">@rupiah($customer->total_debt ?? 0)</td>
-                    <td>
+                    <td class="truncate cell-address" style="max-width:220px;" title="{{ $customer->address }}" data-label="Alamat">{{ $customer->address ?? '-' }}</td>
+                    <td class="num" data-label="Transaksi">{{ $customer->transactions_count }}</td>
+                    <td class="num {{ ($customer->total_debt ?? 0) > 0 ? 'text-danger fw' : 'muted' }}" data-label="Piutang">@rupiah($customer->total_debt ?? 0)</td>
+                    <td data-label="Aksi">
                         <div class="actions">
                             @if(auth()->user()->isOwner())
                             <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}? Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.">

@@ -29,19 +29,19 @@
     </form>
 
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead>
                 <tr><th>Waktu</th><th>Produk</th><th>Perubahan</th><th>Alasan</th><th>Petugas</th></tr>
             </thead>
             <tbody>
                 @forelse($adjustments as $adj)
                 <tr>
-                    <td class="muted nowrap">{{ $adj->created_at->format('d/m/y H:i') }}</td>
-                    <td>
+                    <td class="muted nowrap" data-label="Waktu">{{ $adj->created_at->format('d/m/y H:i') }}</td>
+                    <td data-label="Produk">
                         <div class="cell-title">{{ $adj->product?->name ?? '-' }}</div>
                         <div class="cell-sub">SKU {{ $adj->product?->sku ?? '-' }}</div>
                     </td>
-                    <td>
+                    <td data-label="Perubahan">
                         <div class="cell-title">{{ $adj->diff_label }}</div>
                         <div class="cell-sub">
                             isi {{ $adj->filled_before }}&#8594;{{ $adj->filled_after }} ·
@@ -49,8 +49,8 @@
                             dipinjam {{ $adj->borrowed_before }}&#8594;{{ $adj->borrowed_after }}
                         </div>
                     </td>
-                    <td>{{ $adj->reason }}</td>
-                    <td>{{ $adj->user?->name ?? '-' }}</td>
+                    <td data-label="Alasan">{{ $adj->reason }}</td>
+                    <td data-label="Petugas">{{ $adj->user?->name ?? '-' }}</td>
                 </tr>
                 @empty
                 <tr><td colspan="5">
@@ -88,15 +88,15 @@
     </form>
 
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead>
                 <tr><th>Waktu</th><th>Jenis</th><th>Data</th><th>Dihapus oleh</th></tr>
             </thead>
             <tbody>
                 @forelse($logs as $log)
                 <tr>
-                    <td class="muted nowrap">{{ $log->created_at->format('d/m/y H:i') }}</td>
-                    <td>
+                    <td class="muted nowrap" data-label="Waktu">{{ $log->created_at->format('d/m/y H:i') }}</td>
+                    <td data-label="Jenis">
                         @if($log->deletable_type === 'Transaction')
                             <span class="badge badge-danger">Nota</span>
                         @elseif($log->deletable_type === 'AgentDelivery')
@@ -109,7 +109,7 @@
                             <span class="badge badge-info">Pelanggan</span>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Data">
                         <div class="cell-title">{{ $log->summary }}</div>
                         @if(!empty($log->data['items']))
                         <div class="cell-sub">

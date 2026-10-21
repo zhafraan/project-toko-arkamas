@@ -77,30 +77,30 @@
     <div class="card">
         <div class="card-head"><span class="card-title"><x-icon name="history" /> Riwayat penerimaan</span></div>
         <div class="table-wrap">
-            <table class="table">
+            <table class="table table-stack">
                 <thead>
                     <tr><th>Tanggal</th><th>Produk</th><th class="num">Jumlah</th><th class="num">Harga beli</th><th class="num">Total biaya</th><th class="num">Admin kirim</th><th>Pencatat</th><th></th></tr>
                 </thead>
                 <tbody>
                     @forelse($deliveries as $delivery)
                     <tr>
-                        <td class="nowrap">{{ $delivery->delivery_date->isoFormat('D MMM Y') }}</td>
-                        <td>
+                        <td class="nowrap" data-label="Tanggal">{{ $delivery->delivery_date->isoFormat('D MMM Y') }}</td>
+                        <td data-label="Produk">
                             <div class="cell-title">{{ $delivery->product->name }}</div>
                             @if($delivery->notes)<div class="cell-sub">{{ $delivery->notes }}</div>@endif
                         </td>
-                        <td class="num"><span class="qty-pill qty-filled">{{ $delivery->qty_received }}</span></td>
-                        <td class="num">@rupiah($delivery->buy_price_per_unit)</td>
-                        <td class="num fw">@rupiah($delivery->total_cost)</td>
-                        <td class="num">
+                        <td class="num" data-label="Jumlah"><span class="qty-pill qty-filled">{{ $delivery->qty_received }}</span></td>
+                        <td class="num" data-label="Harga beli">@rupiah($delivery->buy_price_per_unit)</td>
+                        <td class="num fw" data-label="Total biaya">@rupiah($delivery->total_cost)</td>
+                        <td class="num" data-label="Admin kirim">
                             @if($delivery->admin_fee > 0)
                                 @rupiah($delivery->admin_fee)
                             @else
                                 <span class="muted">—</span>
                             @endif
                         </td>
-                        <td class="muted">{{ $delivery->user->name }}</td>
-                        <td>
+                        <td class="muted" data-label="Pencatat">{{ $delivery->user->name }}</td>
+                        <td data-label="Aksi">
                             <div class="actions">
                                 @if(auth()->user()->isOwner())
                                 <form method="POST" action="{{ route('inventory.destroyDelivery', $delivery) }}" data-confirm="Hapus penerimaan {{ $delivery->product->name }} tanggal {{ $delivery->delivery_date->isoFormat('D MMM Y') }}? Stok akan dikembalikan dan penghapusan tercatat di riwayat penghapusan.">

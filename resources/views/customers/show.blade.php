@@ -61,15 +61,15 @@
         <div class="card">
             <div class="card-head"><span class="card-title"><x-icon name="package" /> Riwayat pinjaman tabung</span></div>
             <div class="table-wrap">
-                <table class="table">
+                <table class="table table-stack">
                     <thead><tr><th>Produk</th><th class="num">Pinjam</th><th class="num">Kembali</th><th>Status</th><th>Tgl pinjam</th></tr></thead>
                     <tbody>
                         @foreach($customer->tubeLoans as $loan)
                         <tr>
-                            <td class="cell-title">{{ $loan->product->name }}</td>
-                            <td class="num">{{ $loan->qty_borrowed }}</td>
-                            <td class="num">{{ $loan->qty_returned }}</td>
-                            <td>
+                            <td class="cell-title" data-label="Produk">{{ $loan->product->name }}</td>
+                            <td class="num" data-label="Pinjam">{{ $loan->qty_borrowed }}</td>
+                            <td class="num" data-label="Kembali">{{ $loan->qty_returned }}</td>
+                            <td data-label="Status">
                                 @if($loan->status === 'dikembalikan')
                                     <span class="badge badge-success">Dikembalikan</span>
                                 @elseif($loan->status === 'sebagian_kembali')
@@ -78,7 +78,7 @@
                                     <span class="badge badge-danger">Dipinjam</span>
                                 @endif
                             </td>
-                            <td class="muted">{{ $loan->borrow_date->isoFormat('D MMM Y') }}</td>
+                            <td class="muted" data-label="Tgl pinjam">{{ $loan->borrow_date->isoFormat('D MMM Y') }}</td>
                         </tr>
                         @endforeach
                     </tbody>

@@ -18,7 +18,7 @@
     </form>
 
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead>
                 <tr>
                     <th>Pelanggan</th><th>Produk</th>
@@ -29,23 +29,23 @@
             <tbody>
                 @forelse($loans as $loan)
                 <tr>
-                    <td>
+                    <td data-label="Pelanggan">
                         <a href="{{ route('customers.show', $loan->customer) }}" class="cell-title">{{ $loan->customer->name }}</a>
                         <div class="cell-sub">{{ $loan->customer->phone ?? '-' }}</div>
                     </td>
-                    <td>{{ $loan->product->name }}</td>
-                    <td class="num">{{ $loan->qty_borrowed }}</td>
-                    <td class="num text-success">{{ $loan->qty_returned }}</td>
-                    <td class="num"><span class="qty-pill qty-borrowed">{{ $loan->remaining_qty }}</span></td>
-                    <td>
+                    <td data-label="Produk">{{ $loan->product->name }}</td>
+                    <td class="num" data-label="Dipinjam">{{ $loan->qty_borrowed }}</td>
+                    <td class="num text-success" data-label="Kembali">{{ $loan->qty_returned }}</td>
+                    <td class="num" data-label="Belum kembali"><span class="qty-pill qty-borrowed">{{ $loan->remaining_qty }}</span></td>
+                    <td data-label="Status">
                         @if($loan->status === 'dipinjam')
                             <span class="badge badge-danger badge-dot">Dipinjam</span>
                         @else
                             <span class="badge badge-warning badge-dot">Sebagian kembali</span>
                         @endif
                     </td>
-                    <td class="muted">{{ $loan->borrow_date->isoFormat('D MMM Y') }}</td>
-                    <td>
+                    <td class="muted" data-label="Tgl pinjam">{{ $loan->borrow_date->isoFormat('D MMM Y') }}</td>
+                    <td data-label="Aksi">
                         <div class="actions">
                             <button type="button" class="btn btn-success btn-sm"
                                     data-modal-open="returnModal"

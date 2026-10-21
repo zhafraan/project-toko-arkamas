@@ -14,12 +14,12 @@
 
 <div class="card">
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Bergabung</th><th></th></tr></thead>
             <tbody>
                 @foreach($users as $user)
                 <tr>
-                    <td>
+                    <td data-label="Nama">
                         <div class="row">
                             <div class="avatar" style="width:34px;height:34px;">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                             <div>
@@ -28,16 +28,16 @@
                             </div>
                         </div>
                     </td>
-                    <td>{{ $user->email }}</td>
-                    <td>
+                    <td data-label="Email">{{ $user->email }}</td>
+                    <td data-label="Peran">
                         @if($user->role === 'owner')
                             <span class="badge badge-warning">Pemilik</span>
                         @else
                             <span class="badge badge-info">Kasir</span>
                         @endif
                     </td>
-                    <td class="muted">{{ $user->created_at->isoFormat('D MMM Y') }}</td>
-                    <td>
+                    <td class="muted" data-label="Bergabung">{{ $user->created_at->isoFormat('D MMM Y') }}</td>
+                    <td data-label="Aksi">
                         <div class="actions">
                             <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Edit pengguna" aria-label="Edit pengguna"
                                     data-modal-open="editUserModal"

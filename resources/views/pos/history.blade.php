@@ -34,7 +34,7 @@
     </form>
 
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead>
                 <tr>
                     <th>Invoice</th><th>Pelanggan</th><th>Tanggal</th>
@@ -44,29 +44,29 @@
             <tbody>
                 @forelse($transactions as $trx)
                 <tr>
-                    <td>
+                    <td data-label="Invoice">
                         <div class="cell-title nowrap">{{ $trx->invoice_number }}</div>
                         <div class="cell-sub">Kasir: {{ $trx->user->name }}</div>
                     </td>
-                    <td>{{ $trx->customer?->name ?? 'Umum' }}</td>
-                    <td class="muted nowrap">{{ $trx->transaction_date->format('d/m/y H:i') }}</td>
-                    <td class="num fw">@rupiah($trx->total_amount)</td>
-                    <td class="num {{ $trx->remaining_debt > 0 ? 'text-danger fw' : 'muted' }}">@rupiah($trx->remaining_debt)</td>
-                    <td>
+                    <td data-label="Pelanggan">{{ $trx->customer?->name ?? 'Umum' }}</td>
+                    <td class="muted nowrap" data-label="Tanggal">{{ $trx->transaction_date->format('d/m/y H:i') }}</td>
+                    <td class="num fw" data-label="Total">@rupiah($trx->total_amount)</td>
+                    <td class="num {{ $trx->remaining_debt > 0 ? 'text-danger fw' : 'muted' }}" data-label="Sisa">@rupiah($trx->remaining_debt)</td>
+                    <td data-label="Metode">
                         @if($trx->payment_method === 'cash')
                             <span class="badge">Tunai</span>
                         @else
                             <span class="badge badge-info">Transfer</span>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Status">
                         @if($trx->payment_status === 'lunas')
                             <span class="badge badge-success badge-dot">Lunas</span>
                         @else
                             <span class="badge badge-danger badge-dot">Piutang</span>
                         @endif
                     </td>
-                    <td><div class="actions">
+                    <td data-label="Aksi"><div class="actions">
                         <a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-outline btn-xs"><x-icon name="receipt" size="14" /> Nota</a>
                         @if(auth()->user()->isOwner())
                         <form method="POST" action="{{ route('pos.destroy', $trx) }}" data-confirm="Hapus nota {{ $trx->invoice_number }}? Stok akan dikembalikan dan penghapusan tercatat di riwayat penghapusan.">

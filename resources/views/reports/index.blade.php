@@ -84,25 +84,25 @@
     <div class="card">
         <div class="card-head"><span class="card-title"> Detail transaksi</span></div>
         <div class="table-wrap">
-            <table class="table">
+            <table class="table table-stack">
                 <thead>
                     <tr><th>Invoice</th><th>Pelanggan</th><th>Tanggal</th><th class="num">Total</th><th>Metode</th><th>Status</th></tr>
                 </thead>
                 <tbody>
                     @forelse($transactions as $trx)
                     <tr>
-                        <td class="cell-title nowrap">{{ $trx->invoice_number }}</td>
-                        <td>{{ $trx->customer?->name ?? 'Umum' }}</td>
-                        <td class="muted nowrap">{{ $trx->transaction_date->isoFormat('D MMM Y, HH:mm') }}</td>
-                        <td class="num fw">@rupiah($trx->total_amount)</td>
-                        <td>
+                        <td class="cell-title nowrap" data-label="Invoice">{{ $trx->invoice_number }}</td>
+                        <td data-label="Pelanggan">{{ $trx->customer?->name ?? 'Umum' }}</td>
+                        <td class="muted nowrap" data-label="Tanggal">{{ $trx->transaction_date->isoFormat('D MMM Y, HH:mm') }}</td>
+                        <td class="num fw" data-label="Total">@rupiah($trx->total_amount)</td>
+                        <td data-label="Metode">
                             @if($trx->payment_method === 'cash')
                                 <span class="badge">Tunai</span>
                             @else
                                 <span class="badge badge-info">Transfer</span>
                             @endif
                         </td>
-                        <td>
+                        <td data-label="Status">
                             @if($trx->payment_status === 'lunas')
                                 <span class="badge badge-success badge-dot">Lunas</span>
                             @else
