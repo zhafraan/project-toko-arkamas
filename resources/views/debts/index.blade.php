@@ -61,6 +61,25 @@
                             </button>
                             <a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Lihat nota" aria-label="Lihat nota"><x-icon name="receipt" size="16" /></a>
                         </div>
+                        @if($trx->debtPayments->count() > 0)
+                        <div class="pay-history">
+                            <div class="pay-history-label"><x-icon name="history" size="13" /> Riwayat pembayaran</div>
+                            @foreach($trx->debtPayments->sortByDesc('payment_date') as $pm)
+                            <div class="pay-history-row">
+                                <div>
+                                    <span class="fw">@rupiah($pm->amount_paid)</span>
+                                    <span class="cell-sub">· {{ $pm->payment_date->isoFormat('D MMM Y') }} · {{ $pm->payment_method === 'cash' ? 'Tunai' : 'Transfer' }} · {{ $pm->user?->name }}</span>
+                                </div>
+                                @if(auth()->user()->isOwner())
+                                <form method="POST" action="{{ route('debts.pay.destroy', $pm) }}" data-confirm="Batalkan pembayaran @rupiah($pm->amount_paid) untuk nota {{ $trx->invoice_number }}? Saldo piutang akan dikembalikan.">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Batalkan pembayaran" aria-label="Batalkan pembayaran"><x-icon name="undo" size="14" /></button>
+                                </form>
+                                @endif
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
                     </td>
                 </tr>
                 @empty

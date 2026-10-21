@@ -57,6 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('debts')->name('debts.')->group(function () {
         Route::get('/', [DebtController::class, 'index'])->name('index');
         Route::post('/{transaction}/pay', [DebtController::class, 'pay'])->name('pay');
+        Route::delete('/payment/{payment}', [DebtController::class, 'voidPayment'])
+            ->name('pay.destroy')->middleware('role:owner');
     });
 
     // Stok: kasir & pemilik dapat melihat stok dan mencatat penerimaan dari agen.
