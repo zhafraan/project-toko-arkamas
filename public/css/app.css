@@ -488,6 +488,14 @@ a.stat-card:hover {
         border-top: 0;
         padding: 4px 2px 0;
     }
+    /* Toolbar/pencarian & pager di dalam card transparan tetap tampil sebagai bar putih */
+    .card:has(.table-stack) > .toolbar {
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+    .card:has(.table-stack) > .pager { padding: 8px 2px 0; }
 }
 
 /* ---------- Badges (Tone Gambar 2) ---------- */
