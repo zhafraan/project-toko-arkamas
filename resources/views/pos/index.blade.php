@@ -281,7 +281,7 @@
                     '<div style="text-align:right;"><div class="cart-item-price">' + rupiah(unitPrice(l) * l.qty) + '</div>' +
                     '<div class="stepper" style="margin-top:8px;">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="dec" data-idx="' + i + '" aria-label="Kurangi">' + svg('minus') + '</button>' +
-                    '<span class="qty">' + l.qty + '</span>' +
+                    '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + l.qty + '" min="1" max="' + p.stock + '" aria-label="Jumlah">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="inc" data-idx="' + i + '" aria-label="Tambah">' + svg('plus') + '</button>' +
                     '<button type="button" class="btn btn-ghost btn-xs btn-icon" data-act="del" data-idx="' + i + '" title="Hapus" aria-label="Hapus">' + svg('trash') + '</button>' +
                     '</div></div></div>';
@@ -355,7 +355,7 @@
         if (card && !card.disabled) addProduct(card.dataset.id);
     });
     $('cartItems').addEventListener('click', function (e) {
-        var b = e.target.closest('[data-act]'); if (!b || b.tagName === 'SELECT') return;
+        var b = e.target.closest('[data-act]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
         var i = parseInt(b.dataset.idx, 10);
         if (b.dataset.act === 'inc') changeQty(i, 1);
         if (b.dataset.act === 'dec') changeQty(i, -1);
@@ -363,6 +363,15 @@
     });
     $('cartItems').addEventListener('change', function (e) {
         if (e.target.dataset.act === 'type') changeType(parseInt(e.target.dataset.idx, 10), e.target.value);
+        if (e.target.dataset.act === 'qty') {
+            var i = parseInt(e.target.dataset.idx, 10);
+            var l = cart[i], p = products[l.id];
+            var val = parseInt(e.target.value, 10) || 1;
+            if (val > p.stock) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); val = p.stock; }
+            val = Math.max(1, val);
+            l.qty = val;
+            render();
+        }
     });
     $('btnClear').addEventListener('click', function () {
         if (cart.length && confirm('Hapus semua item dari keranjang?')) { cart = []; render(); }

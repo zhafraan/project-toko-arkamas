@@ -11,7 +11,7 @@ class AgentDelivery extends Model
 
     protected $fillable = [
         'user_id', 'product_id', 'delivery_date',
-        'qty_received', 'buy_price_per_unit', 'total_cost', 'notes',
+        'qty_received', 'buy_price_per_unit', 'total_cost', 'admin_fee', 'notes',
     ];
 
     protected $casts = [

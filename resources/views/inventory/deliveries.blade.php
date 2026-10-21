@@ -34,6 +34,14 @@
                 </div>
             </div>
             <div class="field">
+                <label class="label">Uang admin pengiriman</label>
+                <div class="input-affix">
+                    <span class="affix">Rp</span>
+                    <input type="number" name="admin_fee" class="input" min="0" placeholder="0 (kosongkan jika tidak ada)" value="{{ old('admin_fee', 0) }}">
+                </div>
+                <div class="hint">Biaya admin atau ongkos kirim dari agen (di luar harga tabung).</div>
+            </div>
+            <div class="field">
                 <label class="label">Catatan (nomor DO atau nama sopir)</label>
                 <input type="text" name="notes" class="input" maxlength="255" placeholder="Opsional" value="{{ old('notes') }}">
             </div>
@@ -49,7 +57,7 @@
         <div class="table-wrap">
             <table class="table">
                 <thead>
-                    <tr><th>Tanggal</th><th>Produk</th><th class="num">Jumlah</th><th class="num">Harga tebus</th><th class="num">Total biaya</th><th>Pencatat</th></tr>
+                    <tr><th>Tanggal</th><th>Produk</th><th class="num">Jumlah</th><th class="num">Harga tebus</th><th class="num">Total biaya</th><th class="num">Admin kirim</th><th>Pencatat</th></tr>
                 </thead>
                 <tbody>
                     @forelse($deliveries as $delivery)
@@ -62,10 +70,17 @@
                         <td class="num"><span class="qty-pill qty-filled">{{ $delivery->qty_received }}</span></td>
                         <td class="num">@rupiah($delivery->buy_price_per_unit)</td>
                         <td class="num fw">@rupiah($delivery->total_cost)</td>
+                        <td class="num">
+                            @if($delivery->admin_fee > 0)
+                                @rupiah($delivery->admin_fee)
+                            @else
+                                <span class="muted">—</span>
+                            @endif
+                        </td>
                         <td class="muted">{{ $delivery->user->name }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="6">
+                    <tr><td colspan="7">
                         <div class="empty">
                             <div class="empty-icon"><x-icon name="truck" size="24" /></div>
                             <div class="empty-title">Belum ada penerimaan tercatat</div>

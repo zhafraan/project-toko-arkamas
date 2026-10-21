@@ -1,4 +1,4 @@
-@extends('layouts.app')
+        @extends('layouts.app')
 @section('title', 'Dashboard')
 @section('page-title', 'Dashboard')
 @section('page-sub', today()->translatedFormat('l, j F Y'))
@@ -177,6 +177,34 @@
             </div>
             @endforelse
         </div>
+
+        {{-- Peringatan stok menipis (khusus owner) --}}
+        @if(auth()->user()->isOwner() && $lowStock->count() > 0)
+        <div class="card" style="border:1.5px solid var(--warning-soft,#fde68a);">
+            <div class="card-head" style="background:var(--warning-soft,#fffbeb);border-radius:12px 12px 0 0;">
+                <span class="card-title" style="color:var(--warning-ink,#92400e);">
+                    <svg class="icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Peringatan stok
+                </span>
+                <a href="{{ route('inventory.index') }}" class="text-sm fw" style="color:var(--warning-ink,#92400e);">Kelola stok</a>
+            </div>
+            <ul style="margin:0;padding:0;list-style:none;">
+                @foreach($lowStock as $lp)
+                <li style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 18px;border-bottom:1px solid var(--border);">
+                    <div>
+                        <div class="cell-title">{{ $lp->name }}</div>
+                        <div class="cell-sub">Sisa tabung isi: <strong>{{ $lp->stock_filled }}</strong></div>
+                    </div>
+                    @if($lp->stock_filled <= 0)
+                        <span class="badge badge-danger">Habis</span>
+                    @else
+                        <span class="badge badge-warning">Menipis</span>
+                    @endif
+                </li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
     </div>
 </div>
 

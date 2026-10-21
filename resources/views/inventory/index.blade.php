@@ -115,9 +115,9 @@
     </div>
     <div class="card-foot">
         <div class="legend">
-            <span><span class="qty-pill qty-filled">n</span> isi</span>
-            <span><span class="qty-pill qty-empty">n</span> kosong</span>
-            <span><span class="qty-pill qty-borrowed">n</span> dipinjam</span>
+            <span><i class="dot dot-filled"></i> isi</span>
+            <span><i class="dot dot-empty"></i> kosong</span>
+            <span><i class="dot dot-borrowed"></i> dipinjam</span>
         </div>
     </div>
     {{ $products->links('vendor.pagination.simple') }}

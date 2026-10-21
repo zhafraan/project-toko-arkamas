@@ -109,8 +109,10 @@ class InventoryController extends Controller
             'delivery_date'      => 'required|date',
             'qty_received'       => 'required|integer|min:1',
             'buy_price_per_unit' => 'required|numeric|min:0',
+            'admin_fee'          => 'nullable|numeric|min:0',
             'notes'              => 'nullable|string|max:255',
         ]);
+        $data['admin_fee'] = $data['admin_fee'] ?? 0;
 
         DB::transaction(function () use ($data) {
             $product = Product::lockForUpdate()->findOrFail($data['product_id']);
@@ -125,6 +127,7 @@ class InventoryController extends Controller
             AgentDelivery::create($data + [
                 'user_id'    => auth()->id(),
                 'total_cost' => $data['qty_received'] * $data['buy_price_per_unit'],
+                'admin_fee'  => $data['admin_fee'],
             ]);
 
             $product->increment('stock_filled', $data['qty_received']);
