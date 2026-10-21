@@ -49,10 +49,12 @@
                         <span class="affix">Rp</span>
                         <input type="text" name="buy_price_per_unit" id="buyPrice" class="input num" inputmode="numeric" placeholder="Kosongkan untuk 14.500" value="{{ old('buy_price_per_unit') }}" autocomplete="off">
                     </div>
-                    <div class="hint">Kosongkan untuk memakai tarif default <strong>Rp 14.500</strong>. Isi bila ada kenaikan harga dari agen — nilai ini menjadi default berikutnya.</div>
                 </div>
                 @endif
             </div>
+            @if(auth()->user()->isOwner())
+            <div class="hint" style="margin-top:-8px;margin-bottom:14px;">Kosongkan untuk memakai tarif default <strong>Rp 14.500</strong>. Isi bila ada kenaikan harga dari agen — nilai ini menjadi default berikutnya.</div>
+            @endif
             <div class="field">
                 <label class="label">Uang admin pengiriman</label>
                 <div class="input-affix">
