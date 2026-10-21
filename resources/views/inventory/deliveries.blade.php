@@ -32,7 +32,7 @@
                 <input type="date" name="delivery_date" class="input" min="{{ today()->toDateString() }}" value="{{ old('delivery_date', today()->toDateString()) }}" required>
             </div>
             <div class="form-grid">
-                <div class="field">
+                <div class="field {{ auth()->user()->isOwner() ? '' : 'span-all' }}">
                     <label class="label">Jumlah diterima <span class="req">*</span></label>
                     <input type="text" name="qty_received" id="qtyReceived" class="input" inputmode="numeric" placeholder="Ketik jumlah tabung" value="{{ old('qty_received') }}" autocomplete="off" required>
                     @unless(auth()->user()->isOwner())
