@@ -443,8 +443,8 @@ a.stat-card:hover {
     .table-stack thead { display: none; }
     .table-stack tbody { display: block; }
     .table-stack tbody tr {
-        display: block; padding: 14px 16px; margin: 0 0 12px;
-        border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+        display: block; padding: 14px 16px; margin: 0 0 14px;
+        border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface);
         box-shadow: 0 1px 3px rgba(24, 18, 30, .05);
     }
     .table-stack tbody tr:last-child { margin-bottom: 0; }
@@ -465,6 +465,29 @@ a.stat-card:hover {
     .table-stack tbody td .actions { justify-content: flex-end; }
     .table-stack tbody td[colspan] { display: block; }
     .table-stack tbody td[colspan]::before { content: none; }
+
+    /* Card pembungkus tabel-stack jadi transparan di HP: setiap baris tampil
+       sebagai card terpisah, latar halaman terlihat di sela-selanya */
+    .card:has(> .table-wrap .table-stack),
+    .card:has(.table-stack) {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+    .card:has(.table-stack) .card-head {
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+    .card:has(.table-stack) .table-wrap { overflow: visible; }
+    .card:has(.table-stack) .card-foot {
+        background: transparent;
+        border-top: 0;
+        padding: 4px 2px 0;
+    }
 }
 
 /* ---------- Badges (Tone Gambar 2) ---------- */
