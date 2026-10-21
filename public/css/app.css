@@ -294,6 +294,17 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     .stat-grid-5 { grid-template-columns: repeat(5, 1fr); }
     .stat-grid-6 { grid-template-columns: repeat(3, 1fr); }
 }
+@media (min-width: 900px) {
+    .stat-grid-4 { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat-grid-4 .stat-card { padding: 14px 15px 13px; }
+    .stat-grid-4 .stat-card-title { font-size: 10.5px; }
+    .stat-grid-4 .stat-card-icon { width: 32px; height: 32px; border-radius: 9px; }
+    .stat-grid-4 .stat-card-value { font-size: 20px; margin: 10px 0 5px; white-space: normal; }
+    .stat-grid-4 .stat-card-note { font-size: 11px; }
+}
+@media (max-width: 899px) and (min-width: 641px) {
+    .stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 640px) {
     .stat-grid { grid-template-columns: 1fr; gap: 12px; }
 }
