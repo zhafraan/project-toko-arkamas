@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DebtPayment;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\TransactionDetail;
 use App\Models\TubeLoan;
 
 class DashboardController extends Controller
@@ -26,6 +27,12 @@ class DashboardController extends Controller
         $todayQuery   = fn () => Transaction::whereDate('transaction_date', $today);
         $todayRevenue = (float) $todayQuery()->sum('total_amount');
         $todayCount   = $todayQuery()->count();
+
+        // Jumlah tabung isi yang terjual hari ini (semua jenis penjualan gas)
+        $todaySoldQty = (int) TransactionDetail::whereHas(
+            'transaction',
+            fn ($q) => $q->whereDate('transaction_date', $today)
+        )->sum('qty');
 
         // Uang yang benar-benar masuk hari ini (cash-basis): pembayaran awal nota
         // yang terjual hari ini (dikurangi kembalian dan cicilan) ditambah cicilan
@@ -64,49 +71,41 @@ class DashboardController extends Controller
         }
         $recentTransactions = $recent->get();
 
-        // ---- Grafik 7 hari (satu query) ----
+        // ---- Grafik 7 hari: jumlah tabung terjual per hari ----
         $from = $today->copy()->subDays(6)->startOfDay();
-        $rows = Transaction::where('transaction_date', '>=', $from)
-            ->selectRaw('DATE(transaction_date) as d, SUM(total_amount) as revenue, COUNT(*) as cnt')
+        $rows = TransactionDetail::whereHas(
+            'transaction',
+            fn ($q) => $q->where('transaction_date', '>=', $from)
+        )
+            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->selectRaw('DATE(transactions.transaction_date) as d, SUM(transaction_details.qty) as qty, COUNT(DISTINCT transactions.id) as cnt')
             ->groupBy('d')->get()->keyBy('d');
 
         $chartData = [];
-        $maxRevenue = 0;
+        $maxQty = 0;
         for ($i = 6; $i >= 0; $i--) {
-            $dt      = $today->copy()->subDays($i);
-            $revenue = (float) ($rows[$dt->toDateString()]->revenue ?? 0);
-            $maxRevenue = max($maxRevenue, $revenue);
+            $dt  = $today->copy()->subDays($i);
+            $qty = (int) ($rows[$dt->toDateString()]->qty ?? 0);
+            $maxQty = max($maxQty, $qty);
             $chartData[] = [
                 'day'     => $dt->translatedFormat('D'),
                 'date'    => $dt->translatedFormat('d M'),
                 'isToday' => $i === 0,
-                'revenue' => $revenue,
+                'qty'     => $qty,
                 'count'   => (int) ($rows[$dt->toDateString()]->cnt ?? 0),
-                'short'   => $this->shortMoney($revenue),
             ];
         }
         // tinggi batang dalam persen (min 3% agar hari kosong tetap terlihat)
         foreach ($chartData as &$bar) {
-            $bar['height'] = $maxRevenue > 0 ? max(3, round($bar['revenue'] / $maxRevenue * 100)) : 3;
+            $bar['height'] = $maxQty > 0 ? max(3, round($bar['qty'] / $maxQty * 100)) : 3;
         }
         unset($bar);
 
         return view('dashboard.index', compact(
             'stocks', 'totalFilled', 'totalEmpty', 'totalBorrowed', 'lowStock', 'lowStockLimit',
-            'todayRevenue', 'todayCash', 'todayTransfer', 'todayCount',
+            'todayRevenue', 'todayCash', 'todayTransfer', 'todayCount', 'todaySoldQty',
             'totalPiutang', 'countPiutang', 'loanTubes', 'loanCustomers',
             'monthRevenue', 'recentTransactions', 'chartData'
         ));
-    }
-
-    private function shortMoney(float $n): string
-    {
-        if ($n >= 1_000_000) {
-            return number_format($n / 1_000_000, 1, ',', '.') . ' jt';
-        }
-        if ($n >= 1_000) {
-            return number_format($n / 1_000, 0, ',', '.') . ' rb';
-        }
-        return $n > 0 ? number_format($n, 0, ',', '.') : '0';
     }
 }

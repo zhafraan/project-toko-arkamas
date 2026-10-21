@@ -15,9 +15,10 @@
 {{-- Ringkasan statistik --}}
 @php
     $isOwner = auth()->user()->isOwner();
-    $statCount = ($monthRevenue !== null ? 5 : 4) - ($isOwner ? 0 : 1);
+    $statCount = 3 + ($isOwner ? 2 : 0) + ($monthRevenue !== null ? 1 : 0);
+    $statClass = in_array($statCount, [3, 4, 5, 6]) ? 'stat-grid-' . $statCount : '';
 @endphp
-<div class="stat-grid {{ $statCount === 5 ? 'stat-grid-5' : 'stat-grid-4' }}">
+<div class="stat-grid {{ $statClass }}">
     @if($isOwner)
     <div class="stat-card">
         <div class="stat-card-head">
@@ -30,6 +31,17 @@
         <div class="stat-card-note">{{ $todayCount }} transaksi</div>
     </div>
     @endif
+
+    <div class="stat-card">
+        <div class="stat-card-head">
+            <span class="stat-card-title">Tabung terjual hari ini</span>
+            <div class="stat-card-icon stat-icon-green">
+                <x-icon name="package" size="18" />
+            </div>
+        </div>
+        <div class="stat-card-value {{ $todaySoldQty > 0 ? 'highlight' : '' }}">{{ number_format($todaySoldQty) }} tabung</div>
+        <div class="stat-card-note">Isi gas yang terjual hari ini</div>
+    </div>
 
     <div class="stat-card">
         <div class="stat-card-head">
@@ -82,16 +94,16 @@
 
     <div class="stack" style="gap:16px;">
 
-        {{-- Grafik 7 hari --}}
+        {{-- Grafik 7 hari: jumlah tabung terjual --}}
         <div class="card">
             <div class="card-head">
-                <span class="card-title"> Penjualan 7 hari terakhir</span>
+                <span class="card-title">Tabung terjual 7 hari terakhir</span>
             </div>
             <div class="card-body">
                 <div class="bars">
                     @foreach($chartData as $bar)
-                    <div class="bar-col {{ $bar['isToday'] ? 'today' : '' }}" title="{{ $bar['date'] }}: @rupiah($bar['revenue']) ({{ $bar['count'] }} transaksi)">
-                        <div class="bar-val">{{ $bar['short'] }}</div>
+                    <div class="bar-col {{ $bar['isToday'] ? 'today' : '' }}" title="{{ $bar['date'] }}: {{ number_format($bar['qty']) }} tabung ({{ $bar['count'] }} transaksi)">
+                        <div class="bar-val">{{ number_format($bar['qty']) }}</div>
                         <div class="bar-track"><div class="bar {{ $bar['isToday'] ? 'today' : '' }}" style="height: {{ $bar['height'] }}%;"></div></div>
                         <div class="bar-day">{{ $bar['day'] }}</div>
                     </div>
