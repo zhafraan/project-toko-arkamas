@@ -173,9 +173,17 @@ class InventoryController extends Controller
             'notes'              => 'nullable|string|max:255',
         ]);
 
-        // Harga dari agen opsional: kosong = pakai tarif default 14.500 per tabung.
-        $data['buy_price_per_unit'] = $data['buy_price_per_unit'] ?? Product::DEFAULT_BUY_PRICE;
-        $data['admin_fee']          = $data['admin_fee'] ?? 0;
+        // Harga hanya boleh ditentukan pemilik. Kasir memakai tarif terakhir produk
+        // (atau default 14.500) — input harga dari kasir diabaikan.
+        if (auth()->user()->isOwner()) {
+            $data['buy_price_per_unit'] = $data['buy_price_per_unit'] ?? Product::DEFAULT_BUY_PRICE;
+        } else {
+            $lastPrice = AgentDelivery::where('product_id', $data['product_id'])
+                ->orderByDesc('delivery_date')->orderByDesc('id')->value('buy_price_per_unit');
+
+            $data['buy_price_per_unit'] = (float) ($lastPrice ?? Product::DEFAULT_BUY_PRICE);
+        }
+        $data['admin_fee'] = $data['admin_fee'] ?? 0;
 
         DB::transaction(function () use ($data) {
             $product = Product::lockForUpdate()->findOrFail($data['product_id']);

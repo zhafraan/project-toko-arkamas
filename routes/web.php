@@ -59,7 +59,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/{transaction}/pay', [DebtController::class, 'pay'])->name('pay');
     });
 
-    // Stok (kasir boleh melihat) & pengelolaan produk / kiriman agen (pemilik)
+    // Stok: kasir & pemilik dapat melihat stok dan mencatat penerimaan dari agen.
+    // Pengelolaan produk & penghapusan penerimaan tetap khusus pemilik.
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('/', [InventoryController::class, 'index'])->name('index');
 
@@ -70,12 +71,11 @@ Route::middleware('auth')->group(function () {
             Route::post('/{product}/adjust-stock',[InventoryController::class, 'adjustStock'])->name('adjustStock');
         });
 
-        // Kiriman agen: hanya pemilik (menu ini memang disembunyikan dari kasir)
-        Route::middleware('role:owner')->group(function () {
-            Route::get('/deliveries',  [InventoryController::class, 'deliveries'])->name('deliveries');
-            Route::post('/deliveries', [InventoryController::class, 'storeDelivery'])->name('storeDelivery');
-            Route::delete('/deliveries/{delivery}', [InventoryController::class, 'destroyDelivery'])->name('destroyDelivery');
-        });
+        // Kiriman agen: kasir boleh mencatat; penghapusan khusus pemilik
+        Route::get('/deliveries',  [InventoryController::class, 'deliveries'])->name('deliveries');
+        Route::post('/deliveries', [InventoryController::class, 'storeDelivery'])->name('storeDelivery');
+        Route::delete('/deliveries/{delivery}', [InventoryController::class, 'destroyDelivery'])
+            ->name('destroyDelivery')->middleware('role:owner');
     });
 
     // Laporan (Owner only)

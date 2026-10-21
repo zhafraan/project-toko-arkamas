@@ -61,12 +61,12 @@
         <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') ? 'active' : '' }}" title="Stok gas">
             <x-icon name="stock" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok Gas' }}</span>
         </a>
-
-        @if(auth()->user()->isOwner())
-        <div class="nav-group">Manajemen</div>
         <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen">
             <x-icon name="truck" /><span class="label">Penerimaan dari Agen</span>
         </a>
+
+        @if(auth()->user()->isOwner())
+        <div class="nav-group">Manajemen</div>
         <a href="{{ route('deletion-logs.index') }}" class="nav-link {{ request()->routeIs('deletion-logs.*') ? 'active' : '' }}" title="Riwayat audit: penghapusan & penyesuaian stok">
             <x-icon name="trash" /><span class="label">Riwayat Audit</span>
         </a>

@@ -36,6 +36,7 @@
                     <label class="label">Jumlah diterima <span class="req">*</span></label>
                     <input type="text" name="qty_received" id="qtyReceived" class="input" inputmode="numeric" placeholder="Ketik jumlah tabung" value="{{ old('qty_received') }}" autocomplete="off" required>
                 </div>
+                @if(auth()->user()->isOwner())
                 <div class="field">
                     <label class="label">Harga dari agen</label>
                     <div class="input-affix">
@@ -44,6 +45,13 @@
                     </div>
                     <div class="hint">Kosongkan untuk memakai tarif default <strong>Rp 14.500</strong>. Isi bila ada kenaikan harga dari agen — nilai ini menjadi default berikutnya.</div>
                 </div>
+                @else
+                <div class="field">
+                    <label class="label">Harga dari agen</label>
+                    <input type="text" class="input" value="{{ number_format(\App\Models\Product::DEFAULT_BUY_PRICE, 0, ',', '.') }} (otomatis)" disabled>
+                    <div class="hint">Harga ditentukan pemilik. Penerimaan dicatat memakai harga agen terakhir produk ini.</div>
+                </div>
+                @endif
             </div>
             <div class="field">
                 <label class="label">Uang admin pengiriman</label>
@@ -94,10 +102,14 @@
                         <td class="muted">{{ $delivery->user->name }}</td>
                         <td>
                             <div class="actions">
+                                @if(auth()->user()->isOwner())
                                 <form method="POST" action="{{ route('inventory.destroyDelivery', $delivery) }}" data-confirm="Hapus penerimaan {{ $delivery->product->name }} tanggal {{ $delivery->delivery_date->isoFormat('D MMM Y') }}? Stok akan dikembalikan dan penghapusan tercatat di riwayat penghapusan.">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus penerimaan" aria-label="Hapus penerimaan"><x-icon name="trash" size="15" /></button>
                                 </form>
+                                @else
+                                <span class="spacer"></span>
+                                @endif
                             </div>
                         </td>
                     </tr>

@@ -52,10 +52,25 @@ class PagesSmokeTest extends TestCase
     {
         $kasir = User::create(['name' => 'Kasir', 'email' => 'kasir@test.local', 'password' => 'secret123', 'role' => 'kasir']);
 
-        foreach ([route('reports.index'), route('users.index'), route('inventory.deliveries')] as $url) {
+        // Halaman khusus pemilik
+        foreach ([route('reports.index'), route('users.index')] as $url) {
             $this->actingAs($kasir)->get($url)->assertForbidden();
         }
-        $this->actingAs($kasir)->postJson(route('inventory.storeDelivery'), [])->assertForbidden();
+
+        // Kasir boleh mencatat penerimaan dari agen
+        $p = Product::create([
+            'name' => 'LPG 3 Kg', 'sku' => 'LPG-03', 'price_buy' => 14500, 'price_sell' => 18000, 'price_tube' => 150000,
+            'stock_filled' => 0, 'stock_empty' => 50, 'stock_borrowed' => 0, 'is_active' => true,
+        ]);
+        $this->actingAs($kasir)->get(route('inventory.deliveries'))->assertOk();
+        $this->actingAs($kasir)->post(route('inventory.storeDelivery'), [
+            'product_id' => $p->id, 'delivery_date' => today()->toDateString(),
+            'qty_received' => 5, 'admin_fee' => 0,
+        ])->assertSessionHasNoErrors();
+
+        // ...tetapi tidak boleh menghapusnya (khusus pemilik)
+        $delivery = \App\Models\AgentDelivery::sole();
+        $this->actingAs($kasir)->delete(route('inventory.destroyDelivery', $delivery))->assertForbidden();
 
         foreach ([route('dashboard'), route('pos.index'), route('inventory.index'), route('debts.index')] as $url) {
             $this->actingAs($kasir)->get($url)->assertOk();
