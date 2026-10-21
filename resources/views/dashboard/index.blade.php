@@ -15,7 +15,7 @@
 {{-- Ringkasan statistik --}}
 @php
     $isOwner = auth()->user()->isOwner();
-    $statCount = 3 + ($isOwner ? 2 : 0) + ($monthRevenue !== null ? 1 : 0);
+    $statCount = 4 + ($isOwner ? 1 : 0) + ($monthRevenue !== null ? 1 : 0);
     $statClass = in_array($statCount, [3, 4, 5, 6]) ? 'stat-grid-' . $statCount : '';
 @endphp
 <div class="stat-grid {{ $statClass }}">
