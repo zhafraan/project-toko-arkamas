@@ -68,6 +68,16 @@ class InventoryController extends Controller
         return back()->with('success', 'Produk "' . $product->name . '" berhasil diperbarui.');
     }
 
+    /** Aktif/nonaktifkan produk langsung dari daftar (khusus pemilik). */
+    public function toggleActive(Product $product)
+    {
+        $product->update(['is_active' => ! $product->is_active]);
+
+        return back()->with('success', $product->is_active
+            ? 'Produk "' . $product->name . '" diaktifkan kembali.'
+            : 'Produk "' . $product->name . '" dinonaktifkan. Produk tidak tampil di kasir.');
+    }
+
     /** Hanya produk yang belum pernah dipakai transaksi yang boleh dihapus; selain itu cukup dinonaktifkan. */
     public function destroy(Product $product)
     {

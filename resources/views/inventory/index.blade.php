@@ -89,6 +89,15 @@
                                     data-stock-filled="{{ $product->stock_filled }}" data-stock-empty="{{ $product->stock_empty }}" data-stock-borrowed="{{ $product->stock_borrowed }}">
                                 <x-icon name="sliders" size="15" />
                             </button>
+                            <form method="POST" action="{{ route('inventory.toggleActive', $product) }}"
+                                  data-confirm="{{ $product->is_active ? 'Nonaktifkan produk ' . $product->name . '? Produk tidak akan tampil di kasir.' : 'Aktifkan kembali produk ' . $product->name . '?' }}">
+                                @csrf @method('PATCH')
+                                <button type="submit" class="btn btn-ghost btn-xs btn-icon {{ $product->is_active ? 'text-warning' : 'text-success' }}"
+                                        title="{{ $product->is_active ? 'Nonaktifkan produk' : 'Aktifkan produk' }}"
+                                        aria-label="{{ $product->is_active ? 'Nonaktifkan produk' : 'Aktifkan produk' }}">
+                                    <x-icon :name="$product->is_active ? 'eye-off' : 'eye'" size="15" />
+                                </button>
+                            </form>
                             @if($product->transaction_details_count === 0)
                             <form method="POST" action="{{ route('inventory.destroy', $product) }}" data-confirm="Hapus produk {{ $product->name }}? Tindakan ini tidak dapat dibatalkan.">
                                 @csrf @method('DELETE')

@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
         Route::middleware('role:owner')->group(function () {
             Route::post('/',                      [InventoryController::class, 'store'])->name('store');
             Route::put('/{product}',              [InventoryController::class, 'update'])->name('update');
+            Route::patch('/{product}/toggle-active', [InventoryController::class, 'toggleActive'])->name('toggleActive');
             Route::delete('/{product}',           [InventoryController::class, 'destroy'])->name('destroy');
             Route::post('/{product}/adjust-stock',[InventoryController::class, 'adjustStock'])->name('adjustStock');
         });

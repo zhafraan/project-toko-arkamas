@@ -138,4 +138,28 @@ class StockAdjustmentTest extends TestCase
             ->assertSee('Hasil stok opname mingguan')
             ->assertSee('Penyesuaian Stok');
     }
+
+    public function test_owner_dapat_menonaktifkan_dan_mengaktifkan_produk(): void
+    {
+        $p     = $this->product();
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->patch(route('inventory.toggleActive', $p))
+            ->assertSessionHasNoErrors();
+        $this->assertFalse((bool) $p->fresh()->is_active);
+
+        $this->actingAs($owner)->patch(route('inventory.toggleActive', $p))
+            ->assertSessionHasNoErrors();
+        $this->assertTrue((bool) $p->fresh()->is_active);
+    }
+
+    public function test_kasir_tidak_bisa_menonaktifkan_produk(): void
+    {
+        $p = $this->product();
+
+        $this->actingAs($this->kasir())->patch(route('inventory.toggleActive', $p))
+            ->assertForbidden();
+
+        $this->assertTrue((bool) $p->fresh()->is_active);
+    }
 }
