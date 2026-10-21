@@ -6,6 +6,9 @@
 @push('styles')
 <style>
     .layout-side.side-left { grid-template-columns: 355px minmax(0, 1fr); }
+    @media (max-width: 1100px) {
+        .layout-side.side-left { grid-template-columns: 1fr; }
+    }
 </style>
 @endpush
 
