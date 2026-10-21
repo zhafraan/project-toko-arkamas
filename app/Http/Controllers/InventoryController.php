@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgentDelivery;
+use App\Models\DeletionLog;
 use App\Models\Product;
+use App\Models\StockAdjustment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -75,6 +77,22 @@ class InventoryController extends Controller
 
         $name = $product->name;
         DB::transaction(function () use ($product) {
+            DeletionLog::record(
+                $product,
+                "Produk {$product->name} (SKU {$product->sku})",
+                [
+                    'name'           => $product->name,
+                    'sku'            => $product->sku,
+                    'price_buy'      => (float) $product->price_buy,
+                    'price_sell'     => (float) $product->price_sell,
+                    'price_tube'     => (float) $product->price_tube,
+                    'stock_filled'   => (int) $product->stock_filled,
+                    'stock_empty'    => (int) $product->stock_empty,
+                    'stock_borrowed' => (int) $product->stock_borrowed,
+                    'delivery_count' => $product->agentDeliveries()->count(),
+                ]
+            );
+
             $product->agentDeliveries()->delete();
             $product->delete();
         });
@@ -82,16 +100,49 @@ class InventoryController extends Controller
         return back()->with('success', 'Produk "' . $name . '" berhasil dihapus.');
     }
 
-    // Penyesuaian stok
+    // Penyesuaian stok — setiap perubahan wajib beralasan dan tercatat di riwayat audit
     public function adjustStock(Request $request, Product $product)
     {
         $data = $request->validate([
             'stock_filled'   => 'required|integer|min:0',
             'stock_empty'    => 'required|integer|min:0',
             'stock_borrowed' => 'required|integer|min:0',
+            'reason'         => 'required|string|max:255',
         ]);
-        $product->update($data);
-        return back()->with('success', 'Stok "' . $product->name . '" berhasil disesuaikan.');
+
+        $before = [
+            'filled'   => (int) $product->stock_filled,
+            'empty'    => (int) $product->stock_empty,
+            'borrowed' => (int) $product->stock_borrowed,
+        ];
+
+        if ($before['filled'] === $data['stock_filled']
+            && $before['empty'] === $data['stock_empty']
+            && $before['borrowed'] === $data['stock_borrowed']) {
+            return back()->with('info', 'Tidak ada perubahan angka stok, penyesuaian tidak disimpan.');
+        }
+
+        DB::transaction(function () use ($product, $data, $before) {
+            $product->update([
+                'stock_filled'   => $data['stock_filled'],
+                'stock_empty'    => $data['stock_empty'],
+                'stock_borrowed' => $data['stock_borrowed'],
+            ]);
+
+            StockAdjustment::create([
+                'product_id'      => $product->id,
+                'user_id'         => auth()->id(),
+                'filled_before'   => $before['filled'],
+                'filled_after'    => $data['stock_filled'],
+                'empty_before'    => $before['empty'],
+                'empty_after'     => $data['stock_empty'],
+                'borrowed_before' => $before['borrowed'],
+                'borrowed_after'  => $data['stock_borrowed'],
+                'reason'          => $data['reason'],
+            ]);
+        });
+
+        return back()->with('success', 'Stok "' . $product->name . '" berhasil disesuaikan. Perubahan tercatat di riwayat penyesuaian stok.');
     }
 
     // Kiriman agen
@@ -99,20 +150,32 @@ class InventoryController extends Controller
     {
         $products   = Product::where('is_active', true)->orderBy('name')->get();
         $deliveries = AgentDelivery::with(['product', 'user'])->latest('delivery_date')->latest('id')->paginate(20);
-        return view('inventory.deliveries', compact('products', 'deliveries'));
+
+        // Harga agen terakhir per produk dipakai sebagai nilai default di form
+        // (pemilik bisa menggantinya bila ada kenaikan harga dari agen).
+        $lastPrices = AgentDelivery::whereIn('product_id', $products->pluck('id'))
+            ->orderBy('delivery_date')->orderBy('id')
+            ->get(['product_id', 'buy_price_per_unit'])
+            ->groupBy('product_id')
+            ->map(fn ($rows) => (float) $rows->last()->buy_price_per_unit);
+
+        return view('inventory.deliveries', compact('products', 'deliveries', 'lastPrices'));
     }
 
     public function storeDelivery(Request $request)
     {
         $data = $request->validate([
             'product_id'         => 'required|exists:products,id',
-            'delivery_date'      => 'required|date',
+            'delivery_date'      => 'required|date|after_or_equal:today',
             'qty_received'       => 'required|integer|min:1',
-            'buy_price_per_unit' => 'required|numeric|min:0',
+            'buy_price_per_unit' => 'nullable|numeric|min:0',
             'admin_fee'          => 'nullable|numeric|min:0',
             'notes'              => 'nullable|string|max:255',
         ]);
-        $data['admin_fee'] = $data['admin_fee'] ?? 0;
+
+        // Harga dari agen opsional: kosong = pakai tarif default 14.500 per tabung.
+        $data['buy_price_per_unit'] = $data['buy_price_per_unit'] ?? Product::DEFAULT_BUY_PRICE;
+        $data['admin_fee']          = $data['admin_fee'] ?? 0;
 
         DB::transaction(function () use ($data) {
             $product = Product::lockForUpdate()->findOrFail($data['product_id']);
@@ -135,5 +198,40 @@ class InventoryController extends Controller
         });
 
         return back()->with('success', 'Penerimaan dari agen berhasil dicatat.');
+    }
+
+    /** Hapus penerimaan dari agen (khusus owner) — stok dibalik & penghapusan dicatat di riwayat penghapusan. */
+    public function destroyDelivery(AgentDelivery $delivery)
+    {
+        DB::transaction(function () use ($delivery) {
+            $delivery->load(['product', 'user']);
+            $product = Product::lockForUpdate()->findOrFail($delivery->product_id);
+
+            DeletionLog::record(
+                $delivery,
+                "Penerimaan {$delivery->product->name} × {$delivery->qty_received} tabung — Rp " . number_format((float) $delivery->total_cost, 0, ',', '.'),
+                [
+                    'delivery_date'      => $delivery->delivery_date->toDateString(),
+                    'product'            => $delivery->product->name,
+                    'qty_received'       => $delivery->qty_received,
+                    'buy_price_per_unit' => (float) $delivery->buy_price_per_unit,
+                    'total_cost'         => (float) $delivery->total_cost,
+                    'admin_fee'          => (float) $delivery->admin_fee,
+                    'notes'              => $delivery->notes,
+                    'recorded_by'        => $delivery->user?->name,
+                ]
+            );
+
+            // Balik stok persis seperti waktu pencatatan (isi -take, kosong +take),
+            // dibatasi stok isi yang tersisa agar jumlah total tabung tidak pernah berubah
+            $take = min($product->stock_filled, $delivery->qty_received);
+            $product->stock_filled -= $take;
+            $product->stock_empty += $take;
+            $product->save();
+
+            $delivery->delete();
+        });
+
+        return back()->with('success', 'Penerimaan dari agen berhasil dihapus dan stok telah dikembalikan. Penghapusan tercatat di riwayat penghapusan.');
     }
 }

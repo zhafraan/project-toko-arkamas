@@ -12,6 +12,9 @@ class Product extends Model
     /** Batas stok isi yang dianggap menipis. */
     public const LOW_STOCK = 5;
 
+    /** Tarif default harga beli dari agen per tabung (bila pemilik tidak mengisi). */
+    public const DEFAULT_BUY_PRICE = 14500;
+
     protected $fillable = [
         'name', 'sku', 'price_buy', 'price_sell', 'price_tube',
         'stock_filled', 'stock_empty', 'stock_borrowed', 'is_active',

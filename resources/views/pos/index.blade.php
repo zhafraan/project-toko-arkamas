@@ -203,6 +203,17 @@
         return '<svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[name] + '</svg>';
     }
 
+    // Interpretasi angka aman: "25.000" = 25000, "25000.50" = 25000.5,
+    // "1.23.4" = tidak valid. Mencegah nilai jadi 100× salah karena titik dibuang.
+    function parseAmount(raw) {
+        var s = String(raw || '').replace(/\s+/g, '');
+        if (s === '') return { ok: true, value: null };
+        var m = s.match(/^(\d{1,3}(?:[.,]\d{3})+|\d+)([.,]\d{1,2})?$/);
+        if (!m) return { ok: false };
+        var dec = m[2] ? m[2].replace(',', '.') : '';
+        return { ok: true, value: parseFloat(m[1].replace(/[.,]/g, '') + dec) };
+    }
+
     /* ---------- State ---------- */
     var products = {};              // id -> {id,name,sku,price,tube,stock}
     var cart = [];                  // {id,type,qty}
@@ -221,6 +232,22 @@
     function grandTotal() { return cart.reduce(function (s, l) { return s + unitPrice(l) * l.qty; }, 0); }
     function qtyOfProduct(id) { return cart.reduce(function (s, l) { return l.id === id ? s + l.qty : s; }, 0); }
     function needCustomer() { return status === 'belum_lunas' || cart.some(function (l) { return l.type === 'pinjam_tabung'; }); }
+
+    // Kunci keamanan UI: total qty per produk di keranjang tidak boleh melebihi
+    // stok — tombol "Selesaikan Transaksi" dinonaktifkan sampai jumlah dikurangi.
+    // (Server tetap memeriksa ulang dengan kunci baris; ini mencegah percobaan sia-sia.)
+    function stockShortage() {
+        var found = null;
+        Object.keys(products).forEach(function (id) {
+            if (found) return;
+            var p = products[id], n = qtyOfProduct(id);
+            if (n > p.stock) found = { p: p, n: n };
+        });
+        return found;
+    }
+    function stockMsg(s) {
+        return 'Stok ' + s.p.name + ' tidak cukup — di keranjang ' + s.n + ', tersisa ' + s.p.stock + '. Kurangi jumlah sebelum menyelesaikan transaksi.';
+    }
 
     function save() {
         try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) {}
@@ -271,6 +298,9 @@
         } else {
             box.innerHTML = cart.map(function (l, i) {
                 var p = products[l.id];
+                // Batas qty = sisa stok produk ini untuk baris ini
+                // (stok sudah dipakai baris lain dengan produk sama dihitung juga)
+                var room = Math.max(1, p.stock - (qtyOfProduct(l.id) - l.qty));
                 var opts = Object.keys(TYPES).map(function (t) {
                     var label = TYPES[t] + (t === 'plus_tabung' && p.tube > 0 ? ' (+' + rupiah(p.tube) + ')' : '');
                     return '<option value="' + t + '"' + (t === l.type ? ' selected' : '') + '>' + esc(label) + '</option>';
@@ -281,7 +311,7 @@
                     '<div style="text-align:right;"><div class="cart-item-price">' + rupiah(unitPrice(l) * l.qty) + '</div>' +
                     '<div class="stepper" style="margin-top:8px;">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="dec" data-idx="' + i + '" aria-label="Kurangi">' + svg('minus') + '</button>' +
-                    '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + l.qty + '" min="1" max="' + p.stock + '" aria-label="Jumlah">' +
+                    '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + l.qty + '" min="1" max="' + room + '" aria-label="Jumlah">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="inc" data-idx="' + i + '" aria-label="Tambah">' + svg('plus') + '</button>' +
                     '<button type="button" class="btn btn-ghost btn-xs btn-icon" data-act="del" data-idx="' + i + '" title="Hapus" aria-label="Hapus">' + svg('trash') + '</button>' +
                     '</div></div></div>';
@@ -321,6 +351,14 @@
             value.textContent = rupiah(Math.max(0, total - (paid || 0)));
             if (total > 0) value.classList.add('text-danger');
         }
+
+        // Stok kurang dari isi keranjang -> transaksi tidak bisa diselesaikan
+        var short = stockShortage();
+        if (short) {
+            $('payError').textContent = stockMsg(short);
+            $('payError').hidden = false;
+            ok = false;
+        }
         $('btnCheckout').disabled = !ok;
     }
     function setSeg(box, value, cb) {
@@ -338,8 +376,12 @@
         recalc();
     });
     $('paidInput').addEventListener('input', function () {
-        var d = this.value.replace(/\D/g, '');
-        this.value = d === '' ? '' : parseInt(d, 10).toLocaleString('id-ID');
+        var s = this.value.replace(/[^\d.,]/g, '');
+        var r = parseAmount(s);
+        // Angka ribuan yang valid dipakai apa adanya; input aneh (mis. "1.23.4")
+        // tidak boleh dikalikan — buang pemisahnya dan pakai angka murninya.
+        var n = r.ok && r.value !== null ? Math.floor(r.value) : parseInt(s.replace(/\D/g, ''), 10);
+        this.value = isNaN(n) || n < 0 ? '' : n.toLocaleString('id-ID');
         recalc();
     });
     $('quickCash').addEventListener('click', function (e) {
@@ -359,7 +401,7 @@
         var i = parseInt(b.dataset.idx, 10);
         if (b.dataset.act === 'inc') changeQty(i, 1);
         if (b.dataset.act === 'dec') changeQty(i, -1);
-        if (b.dataset.act === 'del') removeLine(i);
+        if (b.dataset.act === 'del') { if (confirm('Hapus item ini dari keranjang?')) removeLine(i); }
     });
     $('cartItems').addEventListener('change', function (e) {
         if (e.target.dataset.act === 'type') changeType(parseInt(e.target.dataset.idx, 10), e.target.value);
@@ -367,7 +409,9 @@
             var i = parseInt(e.target.dataset.idx, 10);
             var l = cart[i], p = products[l.id];
             var val = parseInt(e.target.value, 10) || 1;
-            if (val > p.stock) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); val = p.stock; }
+            // Batas per PRODUK (digabung semua baris), sama seperti aturan server
+            var max = p.stock - (qtyOfProduct(l.id) - l.qty);
+            if (val > max) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); val = Math.max(1, max); }
             val = Math.max(1, val);
             l.qty = val;
             render();
@@ -460,6 +504,12 @@
         if (needCustomer() && !customer) {
             err.textContent = 'Pilih pelanggan terlebih dahulu. Pelanggan wajib diisi untuk pinjaman tabung atau piutang.'; err.hidden = false;
             $('custInput').focus(); return;
+        }
+        var short = stockShortage();
+        if (short) {
+            err.textContent = stockMsg(short); err.hidden = false;
+            toast('Stok ' + short.p.name + ' tidak cukup', 'error');
+            return;
         }
         var label = txt.textContent;
         btn.disabled = true; txt.textContent = 'Memproses…';

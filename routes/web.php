@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DebtController;
+use App\Http\Controllers\DeletionLogController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\PosController;
@@ -31,6 +32,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/',           [PosController::class, 'index'])->name('index');
         Route::post('/',          [PosController::class, 'store'])->name('store');
         Route::get('/history',    [PosController::class, 'history'])->name('history');
+        Route::delete('/history/{transaction}', [PosController::class, 'destroy'])->name('destroy')->middleware('role:owner');
         Route::get('/receipt/{transaction}', [PosController::class, 'receipt'])->name('receipt');
         Route::post('/customer',  [PosController::class, 'storeCustomer'])->name('storeCustomer');
     });
@@ -42,7 +44,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/search',        [CustomerController::class, 'search'])->name('search');
         Route::get('/{customer}',    [CustomerController::class, 'show'])->name('show');
         Route::put('/{customer}',    [CustomerController::class, 'update'])->name('update');
-        Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
+        Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy')->middleware('role:owner');
     });
 
     // Peminjaman Tabung
@@ -72,6 +74,7 @@ Route::middleware('auth')->group(function () {
         Route::middleware('role:owner')->group(function () {
             Route::get('/deliveries',  [InventoryController::class, 'deliveries'])->name('deliveries');
             Route::post('/deliveries', [InventoryController::class, 'storeDelivery'])->name('storeDelivery');
+            Route::delete('/deliveries/{delivery}', [InventoryController::class, 'destroyDelivery'])->name('destroyDelivery');
         });
     });
 
@@ -88,5 +91,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/',        [UserController::class, 'store'])->name('store');
         Route::put('/{user}',   [UserController::class, 'update'])->name('update');
         Route::delete('/{user}',[UserController::class, 'destroy'])->name('destroy');
+    });
+
+    // Riwayat audit data (Owner only) — penghapusan & penyesuaian stok
+    Route::middleware('role:owner')->prefix('deletion-logs')->name('deletion-logs.')->group(function () {
+        Route::get('/',            [DeletionLogController::class, 'index'])->name('index');
+        Route::get('/penyesuaian', [DeletionLogController::class, 'adjustments'])->name('adjustments');
     });
 });

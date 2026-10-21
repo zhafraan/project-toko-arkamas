@@ -138,7 +138,7 @@
         <div class="card">
             <div class="card-head">
                 <span class="card-title"><x-icon name="stock" /> Stok tabung</span>
-                <a href="{{ route('inventory.index') }}" class="text-sm fw">Kelola stok</a>
+                <a href="{{ route('inventory.index') }}" class="text-sm fw">{{ auth()->user()->isOwner() ? 'Kelola stok' : 'Stok Gas' }}</a>
             </div>
             <div class="card-body" style="border-bottom:1px solid var(--border);padding:14px 18px;">
                 <div class="legend">

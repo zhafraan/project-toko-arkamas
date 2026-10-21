@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DebtPayment;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TubeLoan;
@@ -26,13 +27,20 @@ class DashboardController extends Controller
         $todayRevenue = (float) $todayQuery()->sum('total_amount');
         $todayCount   = $todayQuery()->count();
 
-        // Uang yang benar-benar masuk = dibayar dikurangi kembalian, dipisah per metode
-        $received = $todayQuery()
-            ->selectRaw('payment_method, SUM(paid_amount - change_amount) as received')
+        // Uang yang benar-benar masuk hari ini (cash-basis): pembayaran awal nota
+        // yang terjual hari ini (dikurangi kembalian dan cicilan) ditambah cicilan
+        // piutang yang jatuh tempo dibayar hari ini — dipisah per metode.
+        $saleReceived = $todayQuery()->with('debtPayments')->get()
             ->groupBy('payment_method')
-            ->pluck('received', 'payment_method');
-        $todayCash     = (float) ($received['cash'] ?? 0);
-        $todayTransfer = (float) ($received['transfer'] ?? 0);
+            ->map(fn ($ts) => $ts->sum(
+                fn ($t) => (float) $t->paid_amount - (float) $t->change_amount - (float) $t->debtPayments->sum('amount_paid')
+            ));
+        $installmentsToday = DebtPayment::whereDate('payment_date', $today)->get()
+            ->groupBy('payment_method')
+            ->map->sum('amount_paid');
+
+        $todayCash     = (float) (($saleReceived['cash'] ?? 0) + ($installmentsToday['cash'] ?? 0));
+        $todayTransfer = (float) (($saleReceived['transfer'] ?? 0) + ($installmentsToday['transfer'] ?? 0));
 
         // ---- Piutang & pinjaman ----
         $totalPiutang = (float) Transaction::where('payment_status', 'belum_lunas')->sum('remaining_debt');

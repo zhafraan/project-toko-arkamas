@@ -5,8 +5,8 @@
 
 @section('topbar-actions')
     <a href="{{ route('customers.index') }}" class="btn btn-ghost"><x-icon name="arrow-left" /> Semua pelanggan</a>
-    @if($customer->transactions->count() === 0)
-    <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}?">
+    @if(auth()->user()->isOwner())
+    <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}? Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.">
         @csrf @method('DELETE')
         <button type="submit" class="btn btn-danger-soft"><x-icon name="trash" /> Hapus</button>
     </form>

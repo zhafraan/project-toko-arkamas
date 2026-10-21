@@ -43,4 +43,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(DebtPayment::class);
     }
+
+    /** Catatan riwayat penghapusan yang dibuat oleh pengguna ini (jejak audit). */
+    public function deletionLogs()
+    {
+        return $this->hasMany(DeletionLog::class);
+    }
+
+    /** Catatan penyesuaian stok yang dibuat oleh pengguna ini (jejak audit). */
+    public function stockAdjustments()
+    {
+        return $this->hasMany(StockAdjustment::class);
+    }
 }

@@ -79,7 +79,7 @@
                                     data-action="{{ route('inventory.update', $product) }}"
                                     data-name="{{ $product->name }}" data-sku="{{ $product->sku }}"
                                     data-is-active="{{ $product->is_active ? 1 : 0 }}"
-                                    data-price-buy="{{ (int) $product->price_buy }}" data-price-sell="{{ (int) $product->price_sell }}" data-price-tube="{{ (int) $product->price_tube }}">
+                                    data-price-buy="{{ $product->price_buy + 0 }}" data-price-sell="{{ $product->price_sell + 0 }}" data-price-tube="{{ $product->price_tube + 0 }}">
                                 <x-icon name="pencil" size="15" />
                             </button>
                             <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Penyesuaian stok" aria-label="Penyesuaian stok"
@@ -145,15 +145,15 @@
                 </div>
                 <div class="field">
                     <label class="label">Harga beli (modal)</label>
-                    <input type="number" name="price_buy" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('price_buy') : '0' }}">
+                    <input type="number" name="price_buy" class="input" min="0" step="any" value="{{ $reopen === 'addProductModal' ? old('price_buy') : '0' }}">
                 </div>
                 <div class="field">
                     <label class="label">Harga jual isi ulang <span class="req">*</span></label>
-                    <input type="number" name="price_sell" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('price_sell') : '' }}" required>
+                    <input type="number" name="price_sell" class="input" min="0" step="any" value="{{ $reopen === 'addProductModal' ? old('price_sell') : '' }}" required>
                 </div>
                 <div class="field">
                     <label class="label">Harga tabung fisik</label>
-                    <input type="number" name="price_tube" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('price_tube') : '0' }}">
+                    <input type="number" name="price_tube" class="input" min="0" step="any" value="{{ $reopen === 'addProductModal' ? old('price_tube') : '0' }}">
                 </div>
                 <div class="field">
                     <label class="label">Stok isi awal</label>
@@ -201,15 +201,15 @@
                 </div>
                 <div class="field">
                     <label class="label">Harga beli (modal)</label>
-                    <input type="number" name="price_buy" class="input" min="0">
+                    <input type="number" name="price_buy" class="input" min="0" step="any">
                 </div>
                 <div class="field">
                     <label class="label">Harga jual isi ulang <span class="req">*</span></label>
-                    <input type="number" name="price_sell" class="input" min="0" required>
+                    <input type="number" name="price_sell" class="input" min="0" step="any" required>
                 </div>
                 <div class="field span-all">
                     <label class="label">Harga tabung fisik</label>
-                    <input type="number" name="price_tube" class="input" min="0">
+                    <input type="number" name="price_tube" class="input" min="0" step="any">
                     <div class="hint">Jumlah stok diubah melalui tombol Penyesuaian stok pada daftar produk.</div>
                 </div>
             </div>
@@ -219,7 +219,7 @@
 </div>
 
 {{-- Penyesuaian stok --}}
-<div class="modal-overlay" id="adjustStockModal">
+<div class="modal-overlay {{ $reopen === 'adjustStockModal' ? 'active' : '' }}" id="adjustStockModal">
     <div class="modal sm">
         <div class="modal-head">
             <div class="modal-title">Penyesuaian stok</div>
@@ -227,18 +227,24 @@
         </div>
         <form method="POST" action="" class="modal-body">
             @csrf
-            <div class="modal-note"><strong data-modal-subject></strong><div class="muted">Masukkan jumlah hasil penghitungan fisik di gudang.</div></div>
+            <input type="hidden" name="_modal" value="adjustStockModal">
+            <div class="modal-note"><strong data-modal-subject></strong><div class="muted">Masukkan jumlah hasil penghitungan fisik di gudang. Setiap penyesuaian wajib beralasan dan tercatat di riwayat audit.</div></div>
             <div class="field">
                 <label class="label"><i class="dot dot-filled"></i> Tabung isi</label>
-                <input type="number" name="stock_filled" class="input" min="0" required>
+                <input type="number" name="stock_filled" class="input" min="0" required value="{{ $reopen === 'adjustStockModal' ? old('stock_filled') : '' }}">
             </div>
             <div class="field">
                 <label class="label"><i class="dot dot-empty"></i> Tabung kosong</label>
-                <input type="number" name="stock_empty" class="input" min="0" required>
+                <input type="number" name="stock_empty" class="input" min="0" required value="{{ $reopen === 'adjustStockModal' ? old('stock_empty') : '' }}">
             </div>
             <div class="field">
                 <label class="label"><i class="dot dot-borrowed"></i> Tabung dipinjam</label>
-                <input type="number" name="stock_borrowed" class="input" min="0" required>
+                <input type="number" name="stock_borrowed" class="input" min="0" required value="{{ $reopen === 'adjustStockModal' ? old('stock_borrowed') : '' }}">
+            </div>
+            <div class="field">
+                <label class="label">Alasan penyesuaian <span class="req">*</span></label>
+                <input type="text" name="reason" class="input" maxlength="255" placeholder="Contoh: hasil stok opname mingguan" required value="{{ $reopen === 'adjustStockModal' ? old('reason') : '' }}">
+                <div class="hint">Alasan disimpan bersama perubahan angka stok Anda.</div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan penyesuaian</button>
         </form>

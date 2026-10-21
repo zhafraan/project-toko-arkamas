@@ -226,6 +226,7 @@ html[data-sidebar="collapsed"] .sidebar-user { flex-direction: column; padding: 
     .main { margin-left: 0; }
     .topbar { padding: 0 14px; gap: 8px; }
     .topbar-actions { flex-shrink: 0; }
+    .topbar-actions .btn { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; }
     .page { padding: 16px 14px; }
 }
 
@@ -584,6 +585,10 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
     .bars { gap: 6px; }
     .bar-val { display: none; }
     .bar-col.today .bar-val { display: block; }
+    /* POS di HP: keranjang tampil penuh; baris pembayaran tak ikut menggulir jauh */
+    .cart-items { min-height: 0; }
+    .cart-pay { position: sticky; bottom: 0; box-shadow: 0 -6px 16px rgba(24, 18, 30, .06); }
+    #btnCheckout { position: sticky; bottom: 10px; }
 }
 
 /* ---------- Login ---------- */
@@ -597,6 +602,70 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
 .auth-card { width: 100%; max-width: 400px; }
 .auth-card h1 { font-family: var(--font-display); font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
 @media (max-width: 860px) { .auth { grid-template-columns: 1fr; } .auth-aside { display: none; } }
+
+/* ---------- Responsif: HP & tablet ---------- */
+/* Tablet sedang (768–1024): grid dua kolom turun jadi satu, konten tetap lega */
+@media (max-width: 1024px) {
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+    .page { max-width: 100%; }
+}
+
+/* HP besar / tablet kecil */
+@media (max-width: 768px) {
+    .page { padding: 14px 12px; }
+    .card-head { padding: 12px 14px; flex-wrap: wrap; row-gap: 8px; }
+    .card-body { padding: 14px; }
+    .summary-item { padding: 14px; }
+    .summary-value { font-size: 18px; }
+    .stat-card { padding: 16px; }
+    .toolbar { padding: 12px; gap: 8px; }
+    .search { max-width: none; min-width: 100%; }
+    .toolbar .search { order: -1; }
+    /* Tabel lebar: beri ruang gulir yang nyaman di sentuhan */
+    .table-wrap { -webkit-overflow-scrolling: touch; }
+    .table th, .table td { padding: 10px 12px; }
+    /* Kolom kanan/aksi menempel saat menggulir tabel panjang */
+    .modal { max-width: 100%; }
+    .pay-row { grid-template-columns: 1fr; }
+    .cart-item { padding: 12px 14px; }
+    .cart-pay { padding: 14px; }
+    .topbar { padding: 0 12px; }
+    .toast-wrap { right: 10px; left: 10px; bottom: 10px; }
+}
+
+/* HP (<=640): perkecil target & rapatkan menu */
+@media (max-width: 640px) {
+    .page { padding: 12px 10px; }
+    .topbar { gap: 6px; }
+    .page-title { font-size: 15px; }
+    /* Tombol di topbar dan aksi tabel tetap dapat disentuh dengan nyaman */
+    .btn { height: 40px; padding: 0 14px; }
+    .btn-sm { height: 36px; padding: 0 12px; }
+    .btn-xs { height: 32px; padding: 0 10px; }
+    .btn-icon { width: 40px; }
+    .btn-sm.btn-icon { width: 36px; }
+    .btn-xs.btn-icon { width: 32px; }
+    .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .summary { grid-template-columns: 1fr 1fr; }
+    .summary-value { white-space: normal; word-break: break-word; }
+    .alert { padding: 10px 12px; font-size: 13px; }
+    .pager { flex-direction: column; align-items: stretch; gap: 8px; }
+    .pager-nav { justify-content: space-between; }
+    .legend { flex-wrap: wrap; row-gap: 6px; }
+}
+
+/* HP sangat kecil (<=380): satu kolom penuh */
+@media (max-width: 380px) {
+    .product-grid { grid-template-columns: 1fr; }
+    .summary { grid-template-columns: 1fr; }
+    .pay-total strong { font-size: 19px; }
+}
+
+/* Layar sentuh: hilangkan efek hover yang "nyangkut" */
+@media (hover: none) {
+    .product-card:hover:not(:disabled) { border-color: var(--border); box-shadow: var(--shadow-sm); }
+    a.stat-card:hover { transform: none; }
+}
 
 /* ---------- Print (halaman dengan layout) ---------- */
 @media print {

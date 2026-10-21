@@ -59,29 +59,30 @@
         <div class="summary-note">{{ $metrics['transactionCount'] }} transaksi</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">Estimasi laba kotor</div>
+        <div class="summary-label">Estimasi Laba</div>
         <div class="summary-value text-success">@rupiah($metrics['totalProfit'])</div>
-        <div class="summary-note">harga jual − harga beli</div>
+        <div class="summary-note">estimasi keuntungan kotor</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">Penerimaan tunai</div>
+        <div class="summary-label">Penerimaan Tunai</div>
         <div class="summary-value">@rupiah($metrics['totalCash'])</div>
-        <div class="summary-note">sudah dikurangi kembalian</div>
+        <div class="summary-note">tunai yang diterima pada periode ini</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">Penerimaan transfer</div>
+        <div class="summary-label">Penerimaan Transfer</div>
         <div class="summary-value">@rupiah($metrics['totalTransfer'])</div>
+        <div class="summary-note">transfer yang diterima pada periode ini</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">Piutang periode ini</div>
+        <div class="summary-label">Piutang Periode Ini</div>
         <div class="summary-value {{ $metrics['totalPiutang'] > 0 ? 'text-danger' : '' }}">@rupiah($metrics['totalPiutang'])</div>
-        <div class="summary-note">belum terbayar</div>
+        <div class="summary-note">belum terbayar oleh customer</div>
     </div>
 </div>
 
 <div class="layout-side">
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="receipt" /> Detail transaksi</span></div>
+        <div class="card-head"><span class="card-title"> Detail transaksi</span></div>
         <div class="table-wrap">
             <table class="table">
                 <thead>
@@ -118,7 +119,7 @@
     </div>
 
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="stock" /> Penjualan per produk</span></div>
+        <div class="card-head"><span class="card-title">Penjualan per produk</span></div>
         @forelse($metrics['productSummary'] as $item)
         <div class="stock-item">
             <div class="cell-title" style="margin-bottom:6px;">{{ $item['product_name'] }}</div>

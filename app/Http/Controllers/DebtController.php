@@ -37,10 +37,20 @@ class DebtController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $transaction) {
-            $amount = (float) $request->amount_paid;
+            // Kunci baris saat pembayaran agar dua kasir tidak bisa membayar dua kali
+            // bersamaan (sisa piutang bisa menjadi minus).
+            $fresh   = Transaction::lockForUpdate()->findOrFail($transaction->id);
+            $amount  = (float) $request->amount_paid;
+            $balance = (float) $fresh->remaining_debt;
+
+            if ($amount > $balance) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'amount_paid' => 'Jumlah pembayaran melebihi sisa piutang (Rp ' . number_format($balance, 0, ',', '.') . ').',
+                ]);
+            }
 
             DebtPayment::create([
-                'transaction_id' => $transaction->id,
+                'transaction_id' => $fresh->id,
                 'user_id'        => auth()->id(),
                 'payment_date'   => now(),
                 'amount_paid'    => $amount,
@@ -48,10 +58,10 @@ class DebtController extends Controller
                 'notes'          => $request->notes,
             ]);
 
-            $newRemaining = $transaction->remaining_debt - $amount;
-            $newPaid      = $transaction->paid_amount + $amount;
+            $newRemaining = $balance - $amount;
+            $newPaid      = (float) $fresh->paid_amount + $amount;
 
-            $transaction->update([
+            $fresh->update([
                 'paid_amount'    => $newPaid,
                 'remaining_debt' => $newRemaining,
                 'payment_status' => $newRemaining <= 0 ? 'lunas' : 'belum_lunas',

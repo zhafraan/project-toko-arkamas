@@ -20,12 +20,20 @@ class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles, Wi
         return 'Laporan ' . ucfirst($this->data['type']);
     }
 
+    /** Header laporan (rata kiri) di atas judul kolom. */
     public function headings(): array
     {
         return [
-            'No. Invoice', 'Tanggal', 'Pelanggan',
-            'Total (Rp)', 'Dibayar (Rp)', 'Sisa (Rp)',
-            'Status', 'Metode',
+            ['Toko Arkamas'],
+            [$this->data['periodTitle'] ?? ucfirst($this->data['type'])],
+            ['Periode: ' . ($this->data['periodRange'] ?? '')],
+            ['Dicetak: ' . now()->isoFormat('D MMMM Y, HH:mm')],
+            [],
+            [
+                'No. Invoice', 'Tanggal', 'Pelanggan',
+                'Total (Rp)', 'Dibayar (Rp)', 'Sisa (Rp)',
+                'Status', 'Metode',
+            ],
         ];
     }
 
@@ -53,12 +61,15 @@ class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles, Wi
         ];
     }
 
+    /** Hitam putih: judul kolom latar hitam teks putih, baris header tebal. */
     public function styles(Worksheet $sheet): array
     {
         return [
-            1 => [
+            1 => ['font' => ['bold' => true, 'size' => 14]],
+            2 => ['font' => ['bold' => true, 'size' => 11]],
+            6 => [
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF3F6B4F']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF000000']],
             ],
         ];
     }

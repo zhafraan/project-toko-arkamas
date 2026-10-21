@@ -54,6 +54,12 @@
                     <td class="num {{ ($customer->total_debt ?? 0) > 0 ? 'text-danger fw' : 'muted' }}">@rupiah($customer->total_debt ?? 0)</td>
                     <td>
                         <div class="actions">
+                            @if(auth()->user()->isOwner())
+                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}? Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus pelanggan" aria-label="Hapus pelanggan"><x-icon name="trash" size="15" /></button>
+                            </form>
+                            @endif
                             <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Edit pelanggan" aria-label="Edit pelanggan"
                                     data-modal-open="editCustomerModal"
                                     data-action="{{ route('customers.update', $customer) }}"

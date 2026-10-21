@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\DeletionLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -55,11 +57,37 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
-        if ($customer->transactions()->exists()) {
-            return back()->with('error', 'Pelanggan tidak dapat dihapus karena memiliki riwayat transaksi.');
+        $activeLoans = $customer->tubeLoans()->whereIn('status', ['dipinjam', 'sebagian_kembali'])->count();
+        if ($activeLoans > 0) {
+            return back()->with('error', "Pelanggan tidak dapat dihapus karena masih memiliki {$activeLoans} pinjaman tabung yang belum dikembalikan.");
         }
-        $customer->delete();
-        return back()->with('success', 'Pelanggan berhasil dihapus.');
+
+        $unpaidDebt = (float) $customer->transactions()->where('payment_status', 'belum_lunas')->sum('remaining_debt');
+        if ($unpaidDebt > 0) {
+            return back()->with('error', 'Pelanggan tidak dapat dihapus karena masih memiliki piutang Rp ' . number_format($unpaidDebt, 0, ',', '.') . '. Lunasi piutang terlebih dahulu.');
+        }
+
+        DB::transaction(function () use ($customer) {
+            DeletionLog::record(
+                $customer,
+                "Pelanggan {$customer->name}",
+                [
+                    'name'             => $customer->name,
+                    'phone'            => $customer->phone,
+                    'nik'              => $customer->nik,
+                    'customer_type'    => $customer->customer_type,
+                    'address'          => $customer->address,
+                    'transaction_count'=> $customer->transactions()->count(),
+                    'total_spent'      => (float) $customer->transactions()->sum('total_amount'),
+                ]
+            );
+
+            // Riwayat pembelian TIDAK dihapus — transaksi lepas dari pelanggan (customer_id -> null)
+            $customer->tubeLoans()->update(['customer_id' => null]);
+            $customer->delete();
+        });
+
+        return back()->with('success', 'Pelanggan berhasil dihapus. Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.');
     }
 
     public function show(Customer $customer)

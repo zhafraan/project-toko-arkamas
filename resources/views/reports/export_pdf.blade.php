@@ -2,36 +2,37 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>{{ $label }}</title>
+    <title>{{ $periodTitle }} - Toko Arkamas</title>
     <style>
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 10.5px; color: #18121E; margin: 0; }
-        .header { background: #3F6B4F; color: #fff; padding: 18px 24px; }
-        .header h1 { font-size: 17px; margin: 0 0 4px; }
-        .header p { font-size: 10.5px; margin: 0; opacity: .85; }
-        .content { padding: 18px 24px; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 10.5px; color: #000; margin: 0; }
+        .header { margin: 0 0 14px; }
+        .header h1 { font-size: 17px; margin: 0 0 3px; color: #000; }
+        .header p { font-size: 10.5px; margin: 0 0 1px; color: #000; }
+        .content { padding: 24px; }
         table { width: 100%; border-collapse: collapse; }
         .metrics td { width: 33.33%; padding: 0 6px 10px 0; vertical-align: top; }
-        .metric-box { background: #F5F0EB; border: 1px solid #D7CEC7; padding: 9px 11px; }
-        .metric-label { font-size: 9.5px; color: #987654; }
-        .metric-value { font-size: 14px; font-weight: bold; color: #2E5239; margin-top: 3px; }
+        .metric-box { border: 1px solid #000; padding: 9px 11px; background: #fff; }
+        .metric-label { font-size: 9.5px; color: #000; }
+        .metric-value { font-size: 14px; font-weight: bold; color: #000; margin-top: 3px; }
         .data { margin-top: 8px; }
-        .data th { background: #3F6B4F; color: #fff; padding: 7px 8px; text-align: left; font-size: 9.5px; }
-        .data td { padding: 7px 8px; border-bottom: 1px solid #D7CEC7; font-size: 10px; }
-        .data tr.even td { background: #F0EAE4; }
+        .data th { background: #000; color: #fff; padding: 7px 8px; text-align: left; font-size: 9.5px; }
+        .data td { padding: 7px 8px; border-bottom: 1px solid #999; font-size: 10px; color: #000; }
+        .data tr.even td { background: #eee; }
         .right { text-align: right; }
-        .ok { color: #1B5C44; font-weight: bold; }
-        .bad { color: #C0392B; font-weight: bold; }
-        .footer { text-align: center; padding: 10px; font-size: 9.5px; color: #987654; margin-top: 14px; }
+        .ok { color: #000; font-weight: bold; }
+        .bad { color: #000; font-weight: bold; font-style: italic; }
+        .footer { text-align: left; padding: 10px 0 0; font-size: 9.5px; color: #000; margin-top: 14px; border-top: 1px solid #000; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Arkamas Gas — Laporan Penjualan</h1>
-        <p>{{ $label }}</p>
-        <p>Dicetak: {{ now()->isoFormat('D MMMM Y, HH:mm') }}</p>
-    </div>
-
     <div class="content">
+        <div class="header">
+            <h1>Toko Arkamas</h1>
+            <p><strong>{{ $periodTitle }}</strong></p>
+            <p>Periode: {{ $periodRange }}</p>
+            <p>Dicetak: {{ now()->isoFormat('D MMMM Y, HH:mm') }}</p>
+        </div>
+
         <table class="metrics">
             <tr>
                 <td><div class="metric-box"><div class="metric-label">Omzet</div><div class="metric-value">@rupiah($metrics['totalRevenue'])</div></div></td>
@@ -65,12 +66,12 @@
                     <td>{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="8" style="text-align:center;padding:18px;color:#8f94b3;">Tidak ada data pada periode ini</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:18px;color:#555;">Tidak ada data pada periode ini</td></tr>
                 @endforelse
             </tbody>
         </table>
 
-        <div class="footer">Arkamas Gas — laporan ini dibuat otomatis oleh sistem</div>
+        <div class="footer">Laporan ini dibuat otomatis oleh sistem Toko Arkamas</div>
     </div>
 </body>
 </html>

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\DeletionLog;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\TubeLoan;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -46,7 +48,7 @@ class PosController extends Controller
             ]);
         }
 
-        $transaction = DB::transaction(function () use ($data, $lines, $customerId) {
+        $sale = function () use ($data, $lines, $customerId) {
             // Kunci baris produk agar dua kasir tidak menjual stok yang sama
             $products = Product::whereIn('id', $lines->pluck('product_id')->unique())
                 ->lockForUpdate()->get()->keyBy('id');
@@ -149,7 +151,23 @@ class PosController extends Controller
             }
 
             return $transaction;
-        });
+        };
+
+        // Dua kasir bisa menyimpan nota pada detik yang sama (nomor urut bentrok).
+        // Bila terjadi, seluruh transaksi diulang sampai nomor nota berhasil.
+        $attempts = 0;
+        while (true) {
+            try {
+                $transaction = DB::transaction($sale);
+                break;
+            } catch (QueryException $e) {
+                $bentrok = ($e->errorInfo[0] ?? null) === '23000'
+                    && str_contains($e->getMessage(), 'invoice_number');
+                if (!$bentrok || ++$attempts >= 3) {
+                    throw $e;
+                }
+            }
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -197,6 +215,106 @@ class PosController extends Controller
 
         $transactions = $query->paginate(20)->withQueryString();
         return view('pos.history', compact('transactions', 'onlyToday'));
+    }
+
+    /** Hapus nota (khusus owner) — stok dikembalikan & penghapusan dicatat di riwayat penghapusan. */
+    public function destroy(Transaction $transaction)
+    {
+        if ($transaction->debtPayments()->exists()) {
+            return back()->with('error', 'Nota ' . $transaction->invoice_number . ' tidak dapat dihapus karena sudah ada pembayaran piutang tercatat.');
+        }
+
+        DB::transaction(function () use ($transaction) {
+            $transaction->load(['details.product', 'tubeLoans.product', 'customer', 'user']);
+
+            $productIds = $transaction->details->pluck('product_id')
+                ->concat($transaction->tubeLoans->pluck('product_id'))->unique();
+            $products = Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id');
+
+            // Hitung pembalikan stok per produk:
+            //  refill        : isi +qty, kosong -qty
+            //  plus_tabung   : isi +qty
+            //  pinjam_tabung : isi +qty, dipinjam -(sisa pinjaman), kosong -yang sudah kembali
+            $giveFilled   = [];
+            $needEmpty    = [];
+            $needBorrowed = [];
+
+            foreach ($transaction->details as $detail) {
+                $giveFilled[$detail->product_id] = ($giveFilled[$detail->product_id] ?? 0) + $detail->qty;
+                if ($detail->transaction_type === 'refill') {
+                    $needEmpty[$detail->product_id] = ($needEmpty[$detail->product_id] ?? 0) + $detail->qty;
+                }
+            }
+            foreach ($transaction->tubeLoans as $loan) {
+                $outstanding = $loan->qty_borrowed - $loan->qty_returned;
+                $needBorrowed[$loan->product_id] = ($needBorrowed[$loan->product_id] ?? 0) + $outstanding;
+                if ($loan->qty_returned > 0) {
+                    $needEmpty[$loan->product_id] = ($needEmpty[$loan->product_id] ?? 0) + $loan->qty_returned;
+                }
+            }
+
+            foreach ($needEmpty as $productId => $qty) {
+                $product = $products[$productId];
+                if ($product->stock_empty < $qty) {
+                    throw ValidationException::withMessages([
+                        'transactions' => "Stok tabung kosong {$product->name} hanya {$product->stock_empty}, tidak mencukupi untuk membalik penghapusan nota ini (butuh {$qty}). Sesuaikan stok terlebih dahulu.",
+                    ]);
+                }
+            }
+            foreach ($needBorrowed as $productId => $qty) {
+                $product = $products[$productId];
+                if ($product->stock_borrowed < $qty) {
+                    throw ValidationException::withMessages([
+                        'transactions' => "Stok tabung dipinjam {$product->name} hanya {$product->stock_borrowed}, tidak mencukupi untuk membalik penghapusan nota ini (butuh {$qty}).",
+                    ]);
+                }
+            }
+
+            foreach ($giveFilled as $productId => $qty) {
+                $products[$productId]->increment('stock_filled', $qty);
+            }
+            foreach ($needEmpty as $productId => $qty) {
+                $products[$productId]->decrement('stock_empty', $qty);
+            }
+            foreach ($needBorrowed as $productId => $qty) {
+                $products[$productId]->decrement('stock_borrowed', $qty);
+            }
+
+            // Snapshot untuk riwayat penghapusan
+            DeletionLog::record(
+                $transaction,
+                "Nota {$transaction->invoice_number} — Rp " . number_format((float) $transaction->total_amount, 0, ',', '.'),
+                [
+                    'invoice_number'   => $transaction->invoice_number,
+                    'transaction_date' => $transaction->transaction_date->toDateTimeString(),
+                    'customer'         => $transaction->customer?->name ?? 'Umum',
+                    'total_amount'     => (float) $transaction->total_amount,
+                    'paid_amount'      => (float) $transaction->paid_amount,
+                    'remaining_debt'   => (float) $transaction->remaining_debt,
+                    'payment_status'   => $transaction->payment_status,
+                    'payment_method'   => $transaction->payment_method,
+                    'kasir'            => $transaction->user?->name,
+                    'items'            => $transaction->details->map(fn ($d) => [
+                        'product' => $d->product->name,
+                        'type'    => $d->transaction_type,
+                        'qty'     => $d->qty,
+                        'price'   => (float) $d->price,
+                        'subtotal'=> (float) $d->subtotal,
+                    ])->all(),
+                    'loans'            => $transaction->tubeLoans->map(fn ($l) => [
+                        'product'      => $l->product->name,
+                        'qty_borrowed' => $l->qty_borrowed,
+                        'qty_returned' => $l->qty_returned,
+                        'status'       => $l->status,
+                    ])->all(),
+                ]
+            );
+
+            $transaction->tubeLoans()->delete();
+            $transaction->delete(); // details ikut terhapus (cascade)
+        });
+
+        return back()->with('success', 'Nota berhasil dihapus dan stok telah dikembalikan. Penghapusan tercatat di riwayat penghapusan.');
     }
 
     public function storeCustomer(Request $request)

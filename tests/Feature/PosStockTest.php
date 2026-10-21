@@ -111,6 +111,37 @@ class PosStockTest extends TestCase
         $this->assertSame(0, Transaction::count());
     }
 
+    /** Batas atas: jumlah beli persis sama dengan stok masih boleh; satu unit lagi tidak. */
+    public function test_stok_pas_dengan_jumlah_beli_dapat_diselesaikan(): void
+    {
+        $p = $this->product(['stock_filled' => 3]);
+
+        $this->checkout($this->kasir(), [
+            'items' => [$this->item($p, 'refill', 3)],
+            'payment_method' => 'cash', 'payment_status' => 'lunas',
+        ])->assertOk();
+
+        $this->assertSame(0, (int) $p->fresh()->stock_filled);
+        $this->assertSame(1, Transaction::count());
+    }
+
+    /** Dua baris keranjang produk & jenis sama digabung — totalnya yang dihitung server, bukan per baris. */
+    public function test_gabungan_dua_baris_satu_produk_dihitung_bersama(): void
+    {
+        $p = $this->product(['stock_filled' => 3]);
+
+        $this->checkout($this->kasir(), [
+            'items' => [
+                ['product_id' => $p->id, 'transaction_type' => 'refill', 'qty' => 2],
+                ['product_id' => $p->id, 'transaction_type' => 'refill', 'qty' => 2],
+            ],
+            'payment_method' => 'cash', 'payment_status' => 'lunas',
+        ])->assertStatus(422)->assertJsonValidationErrors(['items']);
+
+        $this->assertSame(3, (int) $p->fresh()->stock_filled);
+        $this->assertSame(0, Transaction::count());
+    }
+
     public function test_kasbon_dan_pinjam_tabung_wajib_pelanggan(): void
     {
         $p = $this->product();

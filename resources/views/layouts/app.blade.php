@@ -67,6 +67,9 @@
         <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen">
             <x-icon name="truck" /><span class="label">Penerimaan dari Agen</span>
         </a>
+        <a href="{{ route('deletion-logs.index') }}" class="nav-link {{ request()->routeIs('deletion-logs.*') ? 'active' : '' }}" title="Riwayat audit: penghapusan & penyesuaian stok">
+            <x-icon name="trash" /><span class="label">Riwayat Audit</span>
+        </a>
         <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" title="Laporan">
             <x-icon name="report" /><span class="label">Laporan</span>
         </a>
