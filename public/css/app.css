@@ -422,6 +422,36 @@ a.stat-card:hover {
 .cell-title { font-weight: 700; color: var(--text); }
 .cell-sub { font-size: 12px; color: var(--text-3); }
 
+/* ---------- Responsive stacked table (tampil sebagai kartu di mobile) ---------- */
+@media (max-width: 720px) {
+    .table-stack { display: block; }
+    .table-stack thead { display: none; }
+    .table-stack tbody { display: block; }
+    .table-stack tbody tr {
+        display: block; padding: 14px 16px; margin: 0 0 12px;
+        border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+        box-shadow: 0 1px 3px rgba(24, 18, 30, .05);
+    }
+    .table-stack tbody tr:last-child { margin-bottom: 0; }
+    .table-stack tbody tr:hover { background: var(--surface); }
+    .table-stack tbody td {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 7px 0; border-bottom: 1px dashed var(--border); text-align: right;
+    }
+    .table-stack tbody td:last-child { border-bottom: 0; padding-bottom: 0; }
+    .table-stack tbody td:first-child { border-bottom: 1px solid var(--border); padding-top: 0; }
+    .table-stack tbody td::before {
+        content: attr(data-label); flex: 0 0 auto; font-size: 11.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .04em; color: var(--text-3); text-align: left;
+    }
+    .table-stack tbody td:first-child::before { content: none; }
+    .table-stack tbody td:first-child { display: block; text-align: left; padding-bottom: 10px; }
+    .table-stack tbody td .row { justify-content: flex-end; }
+    .table-stack tbody td .actions { justify-content: flex-end; }
+    .table-stack tbody td[colspan] { display: block; }
+    .table-stack tbody td[colspan]::before { content: none; }
+}
+
 /* ---------- Badges (Tone Gambar 2) ---------- */
 .badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 99px; font-size: 12px; font-weight: 600; white-space: nowrap; background: var(--surface-3); color: var(--text-2); border: 1px solid transparent; }
 .badge-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }

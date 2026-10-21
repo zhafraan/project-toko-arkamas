@@ -34,27 +34,27 @@
 
 <div class="card">
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table-stack">
             <thead>
                 <tr>
                     <th>Produk</th>
                     @if(auth()->user()->isOwner())<th class="num">Harga beli</th>@endif
                     <th class="num">Harga jual</th><th class="num">Harga tabung</th>
-                    <th style="min-width:190px;">Stok</th><th>Status</th>
+                    <th>Stok</th><th>Status</th>
                     @if(auth()->user()->isOwner())<th></th>@endif
                 </tr>
             </thead>
             <tbody>
                 @forelse($products as $product)
                 <tr>
-                    <td>
+                    <td data-label="Produk">
                         <div class="cell-title">{{ $product->name }}</div>
                         <div class="cell-sub">SKU {{ $product->sku }}</div>
                     </td>
-                    @if(auth()->user()->isOwner())<td class="num">@rupiah($product->price_buy)</td>@endif
-                    <td class="num fw">@rupiah($product->price_sell)</td>
-                    <td class="num">@rupiah($product->price_tube)</td>
-                    <td>
+                    @if(auth()->user()->isOwner())<td class="num" data-label="Harga beli">@rupiah($product->price_buy)</td>@endif
+                    <td class="num fw" data-label="Harga jual">@rupiah($product->price_sell)</td>
+                    <td class="num" data-label="Harga tabung">@rupiah($product->price_tube)</td>
+                    <td data-label="Stok">
                         <div class="row" style="gap:6px;">
                             <span class="qty-pill qty-filled" title="Isi">{{ $product->stock_filled }}</span>
                             <span class="qty-pill qty-empty" title="Kosong">{{ $product->stock_empty }}</span>
@@ -64,7 +64,7 @@
                             @endif
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Status">
                         @if($product->is_active)
                             <span class="badge badge-success badge-dot">Aktif</span>
                         @else
@@ -72,7 +72,7 @@
                         @endif
                     </td>
                     @if(auth()->user()->isOwner())
-                    <td>
+                    <td data-label="Aksi">
                         <div class="actions">
                             <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Edit produk" aria-label="Edit produk"
                                     data-modal-open="editProductModal"
