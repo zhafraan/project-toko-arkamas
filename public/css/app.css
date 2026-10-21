@@ -312,9 +312,16 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     .stat-card-icon { width: 30px; height: 30px; border-radius: 8px; }
     .stat-card-value { font-size: 17px; margin: 8px 0 4px; white-space: normal; }
     .stat-card-note { font-size: 11px; }
+    /* Ringkasan: pembatas tegas antar sel, hilangkan garis bayangan yang menyambung */
+    .summary { gap: 0; background: var(--surface); }
+    .summary-item { box-shadow: none; border-bottom: 1px solid var(--border); }
+    .summary-item:nth-child(2n) { border-left: 1px solid var(--border); }
+    .summary-item:last-child, .summary-item:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
 }
 @media (max-width: 380px) {
     .stat-grid { grid-template-columns: 1fr; }
+    .summary { grid-template-columns: 1fr; }
+    .summary-item { border-left: 0 !important; }
 }
 
 .stat-card {
@@ -697,12 +704,14 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
     .btn-sm.btn-icon { width: 36px; }
     .btn-xs.btn-icon { width: 32px; }
     .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .summary { grid-template-columns: 1fr 1fr; }
     .summary-value { white-space: normal; word-break: break-word; }
     .alert { padding: 10px 12px; font-size: 13px; }
     .pager { flex-direction: column; align-items: stretch; gap: 8px; }
     .pager-nav { justify-content: space-between; }
     .legend { flex-wrap: wrap; row-gap: 6px; }
+    /* Card di HP: garis lebih tegas & jarak jelas antar card agar tidak menyambung */
+    .card { border-color: var(--border-strong); border-radius: 14px; }
+    .stack { gap: 14px; }
     /* Dashboard compact di HP: kurangi tinggi grafik & rapatkan daftar */
     .bars { height: 132px; gap: 5px; }
     .bar-val { font-size: 10px; }
@@ -710,7 +719,7 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
     .trx-item { padding: 10px 12px; gap: 10px; }
     .trx-amount { font-size: 13px; }
     .stock-item { padding: 11px 12px; }
-    .layout-side, .layout-side.side-left { gap: 12px; }
+    .layout-side, .layout-side.side-left { gap: 14px; }
 }
 
 /* HP sangat kecil (<=380): satu kolom penuh */
