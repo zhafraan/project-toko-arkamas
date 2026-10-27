@@ -1,143 +1,374 @@
-# Toko Arkamas
+<p align="center">
+  <h1 align="center">🏪 Toko Arkamas</h1>
+  <p align="center">
+    <strong>Sistem Point of Sale & Manajemen Inventori untuk Distributor Gas LPG</strong>
+  </p>
+  <p align="center">
+    <img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 13">
+    <img src="https://img.shields.io/badge/PHP-8.3+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.3+">
+    <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4">
+    <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 8">
+    <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" alt="License">
+  </p>
+</p>
 
-Sistem Point of Sale (POS) dan Manajemen Stok untuk Toko Gas/LPG. Aplikasi ini dibangun dengan Laravel 11.
+---
 
-## Fitur Utama
+## 📋 Daftar Isi
 
-### Kasir (POS)
-- Penjualan refill/tabung isi, pinjam tabung, plus tabung
-- Dukungan pelanggan (opsional untuk umum, wajib untuk piutang/pinjam tabung)
-- Metode pembayaran tunai/transfer, lunas/piutang
-- Pencetakan struk/receipt
-- Riwayat transaksi harian
+- [Tentang Proyek](#-tentang-proyek)
+- [Fitur Utama](#-fitur-utama)
+- [Tech Stack](#-tech-stack)
+- [Arsitektur Sistem](#-arsitektur-sistem)
+- [Prasyarat](#-prasyarat)
+- [Instalasi](#-instalasi)
+- [Akun Default](#-akun-default)
+- [Role & Hak Akses](#-role--hak-akses)
+- [Struktur Database](#-struktur-database)
+- [Struktur Proyek](#-struktur-proyek)
+- [Lisensi](#-lisensi)
 
-### Manajemen Produk & Stok
-- Katalog produk (isi/kosong/dipinjam)
-- Toggle aktif/nonaktif produk
-- Penyesuaian stok dengan alasan (audit log)
-- Penerimaan dari agen (tukar tabung kosong → isi)
-- Pengarsipan produk dengan mekanisme soft delete
+---
 
-### Pelanggan & Piutang
-- Manajemen data pelanggan (Rumah Tangga/UMKM/Pengecer)
-- Pelacakan piutang per pelanggan
-- Pembayaran piutang (lunas/sebagian)
-- Pembatalan pembayaran piutang (khusus owner)
-- Pelanggan diarsipkan dengan soft delete (riwayat transaksi tetap aman)
+## 📖 Tentang Proyek
 
-### Peminjaman Tabung
-- Pencatatan peminjaman tabung
-- Pengembalian tabung
-- Pelacakan status pinjaman
+**Toko Arkamas** adalah aplikasi web Point of Sale (POS) yang dirancang khusus untuk kebutuhan operasional distributor dan toko gas LPG. Aplikasi ini mencakup seluruh siklus bisnis mulai dari penerimaan stok dari agen, pencatatan penjualan, manajemen pelanggan, pelacakan piutang, hingga peminjaman tabung — semuanya dalam satu platform terintegrasi dengan sistem audit trail yang komprehensif.
 
-### Manajemen Pengguna
-- Role-based access (Owner/Kasir)
-- Proteksi akun sendiri
-- Pengarsipan pengguna dengan soft delete
-- Validasi password kuat
+### Mengapa Toko Arkamas?
 
-### Laporan & Audit
-- Laporan penjualan
-- Export PDF/Excel
-- Riwayat penghapusan/arsip
-- Riwayat penyesuaian stok
+| Masalah | Solusi |
+|---------|--------|
+| Pencatatan manual rawan kesalahan | Sistem POS digital dengan validasi otomatis |
+| Piutang sulit dilacak | Pelacakan piutang per pelanggan dengan riwayat pembayaran |
+| Stok tabung membingungkan (isi/kosong/dipinjam) | Manajemen stok multi-status dengan penyesuaian terekam |
+| Tidak ada jejak audit | Soft delete + deletion log untuk semua data kritis |
 
-## Teknologi
+---
 
-- **Framework**: Laravel 11
-- **Frontend**: Blade + Vite + Tailwind CSS (berdasarkan struktur assets)
-- **Database**: SQLite/MySQL
-- **Export**: DomPDF, Maatwebsite Excel
+## ✨ Fitur Utama
 
-## Instalasi
+### 💳 Point of Sale (Kasir)
+- Transaksi penjualan refill, tabung isi, pinjam tabung, dan plus tabung
+- Dukungan pelanggan opsional (wajib untuk piutang & pinjam tabung)
+- Metode pembayaran tunai / transfer dengan status lunas / piutang
+- Cetak struk / receipt per transaksi
+- Riwayat transaksi harian dengan filter
 
-### Persyaratan
-- PHP >= 8.2
-- Composer
-- Node.js & NPM
-- Database (SQLite/MySQL)
+### 📦 Manajemen Produk & Stok
+- Katalog produk dengan status stok: **Isi (filled)**, **Kosong (empty)**, **Dipinjam (borrowed)**
+- Toggle aktif / nonaktif produk
+- Penyesuaian stok manual dengan pencatatan alasan (audit log)
+- Penerimaan dari agen (tukar tabung kosong → isi) dengan admin fee
+- Pengarsipan produk via soft delete
 
-### Langkah Instalasi
+### 👥 Pelanggan & Piutang
+- Manajemen data pelanggan berdasarkan tipe: **Rumah Tangga**, **UMKM**, **Pengecer**
+- Pelacakan piutang per pelanggan secara real-time
+- Pembayaran piutang (lunas / sebagian)
+- Pembatalan pembayaran piutang (khusus Owner)
+- Pengarsipan pelanggan tanpa menghapus riwayat transaksi
+
+### 🔄 Peminjaman Tabung
+- Pencatatan peminjaman tabung ke pelanggan
+- Pengembalian tabung dengan update stok otomatis
+- Pelacakan status pinjaman aktif
+
+### 📊 Laporan & Export
+- Laporan penjualan dengan filter periode
+- Export ke **PDF** (via DomPDF)
+- Export ke **Excel** (via Maatwebsite Excel)
+
+### 🛡️ Keamanan & Audit
+- Autentikasi dengan rate limiting (throttle)
+- Role-based access control: **Owner**, **Admin**, **Kasir**
+- Soft delete pada data kritis (produk, pelanggan, pengguna, penerimaan agen)
+- Riwayat penghapusan & penyesuaian stok tercatat lengkap
+- Proteksi akun sendiri agar tidak terhapus
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Teknologi | Versi |
+|-------|-----------|-------|
+| **Backend** | Laravel | 13.x |
+| **Runtime** | PHP | ≥ 8.3 |
+| **Frontend** | Blade Templates + Tailwind CSS | 4.x |
+| **Build Tool** | Vite | 8.x |
+| **Database** | SQLite / MySQL | — |
+| **PDF Export** | barryvdh/laravel-dompdf | 3.x |
+| **Excel Export** | maatwebsite/excel | 4.x |
+| **Linting** | Laravel Pint | 1.x |
+| **Testing** | PHPUnit | 12.x |
+
+---
+
+## 🏗️ Arsitektur Sistem
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      Browser                            │
+└──────────────────────┬──────────────────────────────────┘
+                       │ HTTP
+┌──────────────────────▼──────────────────────────────────┐
+│                  Laravel Router                         │
+│              (routes/web.php)                           │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  Middleware: auth, guest, role:owner, throttle  │    │
+│  └─────────────────────────────────────────────────┘    │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────────┐
+│                  Controllers                            │
+│  ┌──────────┐ ┌───────────┐ ┌────────────┐             │
+│  │   POS    │ │ Inventory │ │  Customer  │   ...       │
+│  └─────┬────┘ └─────┬─────┘ └──────┬─────┘             │
+└────────┼────────────┼──────────────┼────────────────────┘
+         │            │              │
+┌────────▼────────────▼──────────────▼────────────────────┐
+│                   Eloquent Models                       │
+│  Transaction │ Product │ Customer │ TubeLoan │ ...      │
+│  (Soft Deletes, Relationships, Scopes)                  │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────────┐
+│               SQLite / MySQL Database                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📋 Prasyarat
+
+Pastikan sistem Anda telah terinstall:
+
+| Software | Versi Minimum | Cek Versi |
+|----------|--------------|-----------|
+| PHP | 8.3+ | `php -v` |
+| Composer | 2.x | `composer -V` |
+| Node.js | 18+ | `node -v` |
+| NPM | 9+ | `npm -v` |
+
+---
+
+## 🚀 Instalasi
+
+### 1. Clone Repository
 
 ```bash
-# Clone repository
-git clone https://github.com/[username]/toko-arkamas.git
-cd toko-arkamas
+git clone https://github.com/zhafraan/project-toko-arkamas.git
+cd project-toko-arkamas
+```
 
-# Install dependencies
+### 2. Install Dependencies
+
+```bash
 composer install
 npm install
+```
 
-# Setup environment
+### 3. Konfigurasi Environment
+
+```bash
 cp .env.example .env
 php artisan key:generate
+```
 
-# Setup database
-# Untuk SQLite, buat file database/database.sqlite
-touch database/database.sqlite
+Edit file `.env` sesuai kebutuhan, khususnya konfigurasi database:
 
-# Migrasi dan seeder
+```env
+# Untuk SQLite (default)
+DB_CONNECTION=sqlite
+
+# Untuk MySQL
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=toko_arkamas
+# DB_USERNAME=root
+# DB_PASSWORD=
+```
+
+### 4. Setup Database
+
+```bash
+# Untuk SQLite, pastikan file database tersedia
+# (biasanya sudah otomatis dibuat oleh Laravel)
+
+# Jalankan migrasi dan seeder
 php artisan migrate --seed
+```
 
-# Build assets
-npm run build
-# atau untuk development
+### 5. Build Assets & Jalankan
+
+```bash
+# Development (dengan hot reload)
 npm run dev
 
-# Jalankan aplikasi
+# Jalankan server
 php artisan serve
 ```
 
-## Akun Default (dari Seeder)
+Aplikasi akan tersedia di **http://localhost:8000**
 
-Lihat `database/seeders/UserSeeder.php` untuk kredensial default.
+### ⚡ Quick Setup (Alternatif)
 
-## Mekanisme Soft Delete
+```bash
+composer setup
+php artisan serve
+```
 
-Sejak update ini, penghapusan data penting menggunakan **Soft Deletes** untuk menjaga integritas audit:
+Script `composer setup` akan otomatis menjalankan seluruh langkah instalasi (install dependencies, generate key, migrasi, dan build assets).
 
-- **Produk** - Diarsipkan, bisa dipulihkan jika diperlukan
-- **Pelanggan** - Diarsipkan, riwayat transaksi dan piutang tetap utuh
-- **Pengguna** - Diarsipkan dengan validasi ketat
-- **Penerimaan Agen** - Diarsipkan dengan pembalikan stok otomatis
+---
 
-Semua aksi penghapusan/arsip tetap tercatat di **Riwayat Penghapusan** untuk audit trail.
+## 🔑 Akun Default
 
-## Role & Permission
+Setelah menjalankan seeder, tersedia 3 akun bawaan:
 
-| Fitur | Owner | Kasir |
-|---|---|---|
-| Dashboard | ✓ | ✓ |
-| POS/Kasir | ✓ | ✓ |
-| Riwayat Transaksi | ✓ | ✓ (hanya hari ini) |
-| Pelanggan | ✓ | ✓ |
-| Peminjaman Tabung | ✓ | ✓ |
-| Piutang | ✓ | ✓ |
-| Stok/Inventori | ✓ | ✓ |
-| Kelola Produk | ✓ | - |
-| Penerimaan Agen | ✓ | ✓ (catat) |
-| Hapus Nota/Penerimaan | ✓ | - |
-| Laporan | ✓ | - |
-| Manajemen Pengguna | ✓ | - |
-| Riwayat Audit | ✓ | - |
+| Role | Email | Password |
+|------|-------|----------|
+| **Owner** | `owner@arkamas.com` | `owner001` |
+| **Admin** | `admin@arkamas.com` | `admin001` |
+| **Kasir** | `kasir@arkamas.com` | `kasir001` |
 
-## Struktur Database Penting
+> ⚠️ **Penting:** Segera ubah password default setelah instalasi pada environment produksi.
 
-- `products` - Data produk dengan stok (filled/empty/borrowed)
-- `customers` - Data pelanggan
-- `transactions` - Nota transaksi
-- `transaction_details` - Detail item transaksi
-- `tube_loans` - Peminjaman tabung
-- `debt_payments` - Pembayaran piutang
-- `agent_deliveries` - Penerimaan dari agen
-- `stock_adjustments` - Riwayat penyesuaian stok
-- `deletion_logs` - Audit log penghapusan/arsip
-- `users` - Pengguna sistem
+---
 
-## Kontribusi
+## 🔐 Role & Hak Akses
 
-Project ini dikembangkan untuk Toko Arkamas. Untuk perubahan besar, silakan buat branch terpisah.
+Sistem menggunakan tiga level role dengan hak akses bertingkat:
 
-## Lisensi
+| Modul | Owner | Admin | Kasir |
+|-------|:-----:|:-----:|:-----:|
+| Dashboard | ✅ | ✅ | ✅ |
+| POS / Kasir | ✅ | ✅ | ✅ |
+| Riwayat Transaksi | ✅ Semua | ✅ Semua | ⚡ Hari ini |
+| Data Pelanggan | ✅ | ✅ | ✅ |
+| Peminjaman Tabung | ✅ | ✅ | ✅ |
+| Piutang & Pembayaran | ✅ | ✅ | ✅ |
+| Lihat Stok | ✅ | ✅ | ✅ |
+| Catat Penerimaan Agen | ✅ | ✅ | ✅ |
+| Kelola Produk | ✅ | — | — |
+| Penyesuaian Stok | ✅ | — | — |
+| Hapus Nota / Penerimaan | ✅ | — | — |
+| Batalkan Pembayaran Piutang | ✅ | — | — |
+| Laporan & Export | ✅ | — | — |
+| Manajemen Pengguna | ✅ | — | — |
+| Riwayat Audit | ✅ | — | — |
 
-Proprietary - Toko Arkamas
+---
+
+## 🗄️ Struktur Database
+
+```
+┌──────────────────┐       ┌───────────────────────┐
+│      users       │       │       products         │
+│──────────────────│       │───────────────────────│
+│ id               │       │ id                    │
+│ name             │       │ name                  │
+│ email            │       │ type                  │
+│ password         │       │ stock_filled          │
+│ role             │       │ stock_empty           │
+│ deleted_at       │       │ stock_borrowed        │
+└──────────────────┘       │ price                 │
+                           │ is_active             │
+┌──────────────────┐       │ deleted_at            │
+│    customers     │       └───────────┬───────────┘
+│──────────────────│                   │
+│ id               │       ┌───────────▼───────────┐
+│ name             │       │  agent_deliveries     │
+│ phone            │       │───────────────────────│
+│ address          │       │ product_id            │
+│ type             │       │ qty_filled            │
+│ deleted_at       │       │ qty_empty_returned    │
+└────────┬─────────┘       │ admin_fee             │
+         │                 │ deleted_at            │
+    ┌────▼─────────────┐   └───────────────────────┘
+    │  transactions    │
+    │──────────────────│   ┌───────────────────────┐
+    │ id               │   │ stock_adjustments     │
+    │ customer_id (FK) │   │───────────────────────│
+    │ user_id (FK)     │   │ product_id            │
+    │ payment_method   │   │ field                 │
+    │ payment_status   │   │ old_value / new_value │
+    │ total            │   │ reason                │
+    └──┬────────┬──────┘   └───────────────────────┘
+       │        │
+  ┌────▼───┐  ┌─▼──────────────────┐
+  │ trans. │  │    tube_loans      │
+  │ details│  │────────────────────│
+  │────────│  │ transaction_id     │
+  │ product│  │ customer_id        │
+  │ qty    │  │ product_id         │
+  │ price  │  │ qty                │
+  └────────┘  │ status             │
+              └────────────────────┘
+
+  ┌────────────────────┐   ┌───────────────────────┐
+  │   debt_payments    │   │    deletion_logs      │
+  │────────────────────│   │───────────────────────│
+  │ transaction_id     │   │ user_id               │
+  │ amount             │   │ model_type            │
+  │ method             │   │ model_id              │
+  └────────────────────┘   │ action / reason       │
+                           └───────────────────────┘
+```
+
+---
+
+## 📂 Struktur Proyek
+
+```
+toko-arkamas/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.php        # Autentikasi login/logout
+│   │   │   ├── PosController.php         # Transaksi POS & struk
+│   │   │   ├── InventoryController.php   # Stok, produk, penerimaan agen
+│   │   │   ├── CustomerController.php    # CRUD pelanggan
+│   │   │   ├── DebtController.php        # Piutang & pembayaran
+│   │   │   ├── LoanController.php        # Peminjaman tabung
+│   │   │   ├── ReportController.php      # Laporan & export
+│   │   │   ├── UserController.php        # Manajemen pengguna
+│   │   │   ├── DashboardController.php   # Halaman dashboard
+│   │   │   └── DeletionLogController.php # Audit trail
+│   │   └── Middleware/
+│   └── Models/                           # 10 Eloquent models
+├── database/
+│   ├── migrations/                       # 19 migration files
+│   └── seeders/                          # Seeder akun default
+├── resources/
+│   └── views/
+│       ├── layouts/                      # Layout utama
+│       ├── pos/                          # Halaman kasir
+│       ├── inventory/                    # Halaman inventori
+│       ├── customers/                    # Halaman pelanggan
+│       ├── debts/                        # Halaman piutang
+│       ├── loans/                        # Halaman peminjaman
+│       ├── reports/                      # Halaman laporan
+│       ├── users/                        # Halaman manajemen user
+│       └── dashboard/                    # Halaman dashboard
+├── routes/
+│   └── web.php                           # Definisi seluruh route
+├── tests/
+│   └── Feature/                          # Feature tests
+├── composer.json
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
+---
+
+## 📄 Lisensi
+
+**Proprietary** — Hak cipta dilindungi oleh Toko Arkamas. Seluruh kode sumber dalam repositori ini bersifat rahasia dan tidak diperkenankan untuk didistribusikan, dimodifikasi, atau digunakan tanpa izin tertulis dari pemilik.
+
+---
+
+<p align="center">
+  Dibuat dengan ❤️ untuk <strong>Toko Arkamas</strong>
+</p>
