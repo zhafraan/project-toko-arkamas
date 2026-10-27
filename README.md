@@ -23,10 +23,7 @@
 - [Prasyarat](#-prasyarat)
 - [Instalasi](#-instalasi)
 - [Akun Default](#-akun-default)
-- [Role & Hak Akses](#-role--hak-akses)
-- [Struktur Database](#-struktur-database)
 - [Struktur Proyek](#-struktur-proyek)
-- [Lisensi](#-lisensi)
 
 ---
 
@@ -236,88 +233,6 @@ Setelah menjalankan seeder, tersedia 3 akun bawaan:
 
 ---
 
-## 🔐 Role & Hak Akses
-
-Sistem menggunakan tiga level role dengan hak akses bertingkat:
-
-| Modul | Owner | Admin | Kasir |
-|-------|:-----:|:-----:|:-----:|
-| Dashboard | ✅ | ✅ | ✅ |
-| POS / Kasir | ✅ | ✅ | ✅ |
-| Riwayat Transaksi | ✅ Semua | ✅ Semua | ⚡ Hari ini |
-| Data Pelanggan | ✅ | ✅ | ✅ |
-| Peminjaman Tabung | ✅ | ✅ | ✅ |
-| Piutang & Pembayaran | ✅ | ✅ | ✅ |
-| Lihat Stok | ✅ | ✅ | ✅ |
-| Catat Penerimaan Agen | ✅ | ✅ | ✅ |
-| Kelola Produk | ✅ | — | — |
-| Penyesuaian Stok | ✅ | — | — |
-| Hapus Nota / Penerimaan | ✅ | — | — |
-| Batalkan Pembayaran Piutang | ✅ | — | — |
-| Laporan & Export | ✅ | — | — |
-| Manajemen Pengguna | ✅ | — | — |
-| Riwayat Audit | ✅ | — | — |
-
----
-
-## 🗄️ Struktur Database
-
-```
-┌──────────────────┐       ┌───────────────────────┐
-│      users       │       │       products         │
-│──────────────────│       │───────────────────────│
-│ id               │       │ id                    │
-│ name             │       │ name                  │
-│ email            │       │ type                  │
-│ password         │       │ stock_filled          │
-│ role             │       │ stock_empty           │
-│ deleted_at       │       │ stock_borrowed        │
-└──────────────────┘       │ price                 │
-                           │ is_active             │
-┌──────────────────┐       │ deleted_at            │
-│    customers     │       └───────────┬───────────┘
-│──────────────────│                   │
-│ id               │       ┌───────────▼───────────┐
-│ name             │       │  agent_deliveries     │
-│ phone            │       │───────────────────────│
-│ address          │       │ product_id            │
-│ type             │       │ qty_filled            │
-│ deleted_at       │       │ qty_empty_returned    │
-└────────┬─────────┘       │ admin_fee             │
-         │                 │ deleted_at            │
-    ┌────▼─────────────┐   └───────────────────────┘
-    │  transactions    │
-    │──────────────────│   ┌───────────────────────┐
-    │ id               │   │ stock_adjustments     │
-    │ customer_id (FK) │   │───────────────────────│
-    │ user_id (FK)     │   │ product_id            │
-    │ payment_method   │   │ field                 │
-    │ payment_status   │   │ old_value / new_value │
-    │ total            │   │ reason                │
-    └──┬────────┬──────┘   └───────────────────────┘
-       │        │
-  ┌────▼───┐  ┌─▼──────────────────┐
-  │ trans. │  │    tube_loans      │
-  │ details│  │────────────────────│
-  │────────│  │ transaction_id     │
-  │ product│  │ customer_id        │
-  │ qty    │  │ product_id         │
-  │ price  │  │ qty                │
-  └────────┘  │ status             │
-              └────────────────────┘
-
-  ┌────────────────────┐   ┌───────────────────────┐
-  │   debt_payments    │   │    deletion_logs      │
-  │────────────────────│   │───────────────────────│
-  │ transaction_id     │   │ user_id               │
-  │ amount             │   │ model_type            │
-  │ method             │   │ model_id              │
-  └────────────────────┘   │ action / reason       │
-                           └───────────────────────┘
-```
-
----
-
 ## 📂 Struktur Proyek
 
 ```
@@ -360,14 +275,6 @@ toko-arkamas/
 ├── vite.config.js
 └── README.md
 ```
-
----
-
-## 📄 Lisensi
-
-**Proprietary** — Hak cipta dilindungi oleh Toko Arkamas. Seluruh kode sumber dalam repositori ini bersifat rahasia dan tidak diperkenankan untuk didistribusikan, dimodifikasi, atau digunakan tanpa izin tertulis dari pemilik.
-
----
 
 <p align="center">
   Dibuat dengan ❤️ untuk <strong>Toko Arkamas</strong>
