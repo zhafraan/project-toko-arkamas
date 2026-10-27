@@ -7,8 +7,8 @@
 :root {
     color-scheme: light;
 
-    --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --font-display: 'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Jost', 'Inter', system-ui, sans-serif;
 
     --bg: #F5F3EC;
     --surface: #FFFFFF;
@@ -53,7 +53,11 @@
 
     --r-sm: 8px;
     --r-md: 10px;
-    --r-lg: 14px;
+    --r-lg: 16px;
+    --r-xl: 20px;
+
+    --shadow-card: 0 1px 2px rgba(16, 24, 40, .02), 0 1px 3px rgba(16, 24, 40, .01), 0 20px 40px -20px rgba(31, 42, 34, .14);
+    --shadow-card-hover: 0 10px 40px -15px rgba(63, 107, 79, .28);
 
     --sidebar-w: 248px;
     --topbar-h: 60px;
@@ -264,7 +268,7 @@ html[data-sidebar="collapsed"] .sidebar-user { flex-direction: column; padding: 
 .btn-block { width: 100%; }
 
 /* ---------- Cards ---------- */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.card { background: var(--surface); border: 1px solid color-mix(in srgb, var(--border) 90%, transparent); border-radius: var(--r-xl); box-shadow: var(--shadow-card); overflow: hidden; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
 .card-title { font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: 0; display: flex; align-items: center; gap: 8px; }
 .card-title .icon { color: var(--text-3); }
@@ -327,11 +331,11 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
 .stat-card {
     position: relative;
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
     border-top: 3.5px solid var(--primary-hover);
-    border-radius: 14px;
+    border-radius: var(--r-xl);
     padding: 20px 20px 18px;
-    box-shadow: 0 1px 3px rgba(24, 18, 30, .05);
+    box-shadow: var(--shadow-card);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -341,8 +345,8 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
 }
 a.stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(24, 18, 30, .08);
-    border-color: var(--border-strong);
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in srgb, var(--primary) 25%, var(--border));
     border-top-color: var(--primary);
     text-decoration: none;
 }
