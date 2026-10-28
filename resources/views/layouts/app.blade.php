@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Arkamas Gas') · Arkamas Gas</title>
+    <title>@yield('title', 'Toko Arkamas') · Toko Arkamas</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,14 +30,17 @@
             <circle cx="56" cy="23" r="4" fill="url(#agGold)"/>
         </svg>
         <div class="brand-text">
-            <div class="brand-name">Arkamas Gas</div>
-            <div class="brand-sub">Pangkalan Elpiji</div>
+            <div class="brand-name">Toko Arkamas</div>
+            <div class="brand-sub">Penjualan Gas & Telur</div>
         </div>
     </div>
 
     <nav class="sidebar-nav" aria-label="Menu utama">
         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" title="Dashboard">
             <x-icon name="dashboard" /><span class="label">Dashboard</span>
+        </a>
+        <a href="{{ route('statistics.index') }}" class="nav-link {{ request()->routeIs('statistics.*') ? 'active' : '' }}" title="Statistik penjualan">
+            <x-icon name="bar-chart" /><span class="label">Statistik Penjualan</span>
         </a>
 
         <div class="nav-group">Penjualan</div>
@@ -67,9 +70,6 @@
 
         @if(auth()->user()->isOwner())
         <div class="nav-group">Manajemen</div>
-        <a href="{{ route('statistics.index') }}" class="nav-link {{ request()->routeIs('statistics.*') ? 'active' : '' }}" title="Statistik penjualan">
-            <x-icon name="bar-chart" /><span class="label">Statistik Penjualan</span>
-        </a>
         <a href="{{ route('deletion-logs.index') }}" class="nav-link {{ request()->routeIs('deletion-logs.*') ? 'active' : '' }}" title="Riwayat audit: penghapusan & penyesuaian stok">
             <x-icon name="trash" /><span class="label">Riwayat Audit</span>
         </a>

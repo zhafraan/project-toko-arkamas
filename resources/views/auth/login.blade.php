@@ -24,7 +24,7 @@
             <strong style="font-size:17px;letter-spacing:-.01em;">Toko ARKAMAS</strong>
         </div>
         <div>
-            <h2>Sistem pengelolaan Toko Arkamas.</h2>
+            <h2>Sistem pengelolaan Toko Arkamas. Penjualan Gas dan Telur.</h2>
             <p>Kelola penjualan, stok tabung, dan piutang dalam satu sistem.</p>
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,.7);">© {{ date('Y') }} Toko ARKAMAS</div>

@@ -71,7 +71,7 @@
             </tbody>
         </table>
 
-        <div class="footer">Laporan ini dibuat otomatis oleh sistem Toko Arkamas</div>
+        <div class="footer">Laporan ini dibuat otomatis oleh sistem Toko Arkamas - Penjualan Gas dan Telur</div>
     </div>
 </body>
 </html>
