@@ -67,6 +67,9 @@
 
         @if(auth()->user()->isOwner())
         <div class="nav-group">Manajemen</div>
+        <a href="{{ route('statistics.index') }}" class="nav-link {{ request()->routeIs('statistics.*') ? 'active' : '' }}" title="Statistik penjualan">
+            <x-icon name="bar-chart" /><span class="label">Statistik Penjualan</span>
+        </a>
         <a href="{{ route('deletion-logs.index') }}" class="nav-link {{ request()->routeIs('deletion-logs.*') ? 'active' : '' }}" title="Riwayat audit: penghapusan & penyesuaian stok">
             <x-icon name="trash" /><span class="label">Riwayat Audit</span>
         </a>
