@@ -30,8 +30,12 @@
                 @forelse($loans as $loan)
                 <tr>
                     <td data-label="Pelanggan">
+                        @if($loan->customer)
                         <a href="{{ route('customers.show', $loan->customer) }}" class="cell-title">{{ $loan->customer->name }}</a>
-                        <div class="cell-sub">{{ $loan->customer->phone ?? '-' }}</div>
+                        @else
+                        <span class="cell-title">Pelanggan dihapus</span>
+                        @endif
+                        <div class="cell-sub">{{ $loan->customer?->phone ?? '-' }}</div>
                     </td>
                     <td data-label="Produk">{{ $loan->product->name }}</td>
                     <td class="num" data-label="Dipinjam">{{ $loan->qty_borrowed }}</td>
@@ -50,7 +54,7 @@
                             <button type="button" class="btn btn-success btn-sm"
                                     data-modal-open="returnModal"
                                     data-action="{{ route('loans.return', $loan) }}"
-                                    data-subject="{{ $loan->customer->name }} — {{ $loan->product->name }}"
+                                    data-subject="{{ $loan->customer?->name ?? 'Pelanggan dihapus' }} — {{ $loan->product->name }}"
                                     data-remaining="{{ $loan->remaining_qty }}"
                                     data-qty-return="{{ $loan->remaining_qty }}">
                                 <x-icon name="undo" size="15" /> Catat pengembalian

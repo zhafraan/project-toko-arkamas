@@ -88,9 +88,9 @@ class UserController extends Controller
                 ]
             );
 
-            $user->delete(); // Soft delete
+            $user->delete();
         });
 
-        return back()->with('success', 'Pengguna berhasil diarsipkan. Penghapusan tercatat di riwayat penghapusan.');
+        return back()->with('success', 'Pengguna berhasil dihapus. Penghapusan tercatat di riwayat penghapusan.');
     }
 }

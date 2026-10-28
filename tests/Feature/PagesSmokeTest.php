@@ -42,7 +42,7 @@ class PagesSmokeTest extends TestCase
             route('customers.index'), route('customers.show', $customer), route('customers.search', ['q' => 'war']),
             route('loans.index'), route('debts.index'), route('inventory.index'), route('inventory.deliveries'),
             route('reports.index'), route('reports.index', ['type' => 'weekly']), route('reports.index', ['type' => 'yearly']),
-            route('users.index'),
+            route('users.index'), route('statistics.index'),
         ] as $url) {
             $this->actingAs($owner)->get($url)->assertOk();
         }

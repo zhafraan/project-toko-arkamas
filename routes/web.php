@@ -9,6 +9,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -87,6 +88,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-pdf',  [ReportController::class, 'exportPdf'])->name('exportPdf');
         Route::get('/export-excel',[ReportController::class, 'exportExcel'])->name('exportExcel');
     });
+
+    // Statistik penjualan (Owner only)
+    Route::middleware('role:owner')->get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
 
     // Manajemen Pengguna (Owner only)
     Route::middleware('role:owner')->prefix('users')->name('users.')->group(function () {
