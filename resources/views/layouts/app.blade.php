@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Arkamas Gas') · Arkamas Gas</title>
+    <title>@yield('title', 'Toko ARKAMAS / Penjualan Gas & Telur') · Toko ARKAMAS / Penjualan Gas & Telur</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,8 +30,8 @@
             <circle cx="56" cy="23" r="4" fill="url(#agGold)"/>
         </svg>
         <div class="brand-text">
-            <div class="brand-name">Arkamas Gas</div>
-            <div class="brand-sub">Pangkalan Elpiji</div>
+            <div class="brand-name">Toko ARKAMAS</div>
+            <div class="brand-sub">Penjualan Gas &amp; Telur</div>
         </div>
     </div>
 
@@ -52,16 +52,21 @@
         <a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}" title="Pelanggan">
             <x-icon name="users" /><span class="label">Pelanggan</span>
         </a>
-        <a href="{{ route('loans.index') }}" class="nav-link {{ request()->routeIs('loans.*') ? 'active' : '' }}" title="Pinjaman tabung">
+        <a href="{{ route('loans.index') }}" class="nav-link {{ request()->routeIs('loans.*') ? 'active' : '' }}" title="Pinjaman tabung gas">
             <x-icon name="package" /><span class="label">Pinjaman Tabung</span>
         </a>
         <a href="{{ route('debts.index') }}" class="nav-link {{ request()->routeIs('debts.*') ? 'active' : '' }}" title="Piutang">
             <x-icon name="wallet" /><span class="label">Piutang</span>
         </a>
-        <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') ? 'active' : '' }}" title="Stok gas">
-            <x-icon name="stock" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok Gas' }}</span>
+        <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') ? 'active' : '' }}" title="Stok gas dan telur">
+            <x-icon name="stock" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok' }}</span>
         </a>
-        <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen">
+        @if(auth()->user()->isOwner())
+        <a href="{{ route('inventory.goodsReceipts') }}" class="nav-link {{ request()->routeIs('inventory.goodsReceipts') ? 'active' : '' }}" title="Stok masuk telur">
+            <x-icon name="truck" /><span class="label">Stok Masuk Telur</span>
+        </a>
+        @endif
+        <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen gas">
             <x-icon name="truck" /><span class="label">Penerimaan dari Agen</span>
         </a>
 

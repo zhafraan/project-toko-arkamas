@@ -24,13 +24,25 @@ class TransactionDetail extends Model
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * Get the type label for the transaction.
+     */
     public function getTypeLabelAttribute(): string
     {
         return match($this->transaction_type) {
             'refill'        => 'Refill (Tukar Tabung)',
             'pinjam_tabung' => 'Beli Isi + Pinjam Tabung',
             'plus_tabung'   => 'Beli Baru + Tabung',
+            'jual'          => 'Penjualan',
             default         => '-',
         };
+    }
+
+    /**
+     * Get the unit label from the related product.
+     */
+    public function getUnitLabelAttribute(): ?string
+    {
+        return $this->product?->unit ?? null;
     }
 }

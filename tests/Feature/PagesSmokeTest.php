@@ -23,10 +23,18 @@ class PagesSmokeTest extends TestCase
             'name' => 'LPG 3 Kg', 'sku' => 'LPG-03', 'price_buy' => 14500, 'price_sell' => 18000, 'price_tube' => 150000,
             'stock_filled' => 10, 'stock_empty' => 2, 'stock_borrowed' => 1, 'is_active' => true,
         ]);
+        $t = Product::create([
+            'name' => 'Telur Ayam', 'sku' => 'TEL-01', 'price_buy' => 25000, 'price_sell' => 30000, 'price_tube' => 0,
+            'stock_filled' => 5, 'stock_empty' => 0, 'stock_borrowed' => 0, 'is_active' => true,
+        ]);
         $c = Customer::create(['name' => "Warung D'Arto", 'customer_type' => 'umkm']);
         $this->actingAs($user)->postJson(route('pos.store'), [
             'items' => [['product_id' => $p->id, 'transaction_type' => 'pinjam_tabung', 'qty' => 1]],
             'customer_id' => $c->id, 'payment_method' => 'cash', 'payment_status' => 'belum_lunas', 'paid_amount' => 5000,
+        ])->assertOk();
+        $this->actingAs($user)->postJson(route('pos.store'), [
+            'items' => [['product_id' => $t->id, 'transaction_type' => 'jual', 'qty' => 2]],
+            'customer_id' => $c->id, 'payment_method' => 'cash', 'payment_status' => 'lunas', 'paid_amount' => 60000,
         ])->assertOk();
     }
 
@@ -41,8 +49,8 @@ class PagesSmokeTest extends TestCase
             route('dashboard'), route('pos.index'), route('pos.history'), route('pos.receipt', $trx),
             route('customers.index'), route('customers.show', $customer), route('customers.search', ['q' => 'war']),
             route('loans.index'), route('debts.index'), route('inventory.index'), route('inventory.deliveries'),
-            route('reports.index'), route('reports.index', ['type' => 'weekly']), route('reports.index', ['type' => 'yearly']),
-            route('users.index'),
+            route('inventory.goodsReceipts'), route('reports.index'), route('reports.index', ['type' => 'weekly']),
+            route('reports.index', ['type' => 'yearly']), route('users.index'),
         ] as $url) {
             $this->actingAs($owner)->get($url)->assertOk();
         }

@@ -70,13 +70,20 @@
         <div class="r-item">
             <div class="r-item-name">{{ $detail->product->name }}</div>
             <span class="r-tag">
-                @if($detail->transaction_type === 'refill') Isi ulang (tukar tabung)
-                @elseif($detail->transaction_type === 'pinjam_tabung') Pinjam tabung
-                @else Beli tabung dan isi
+                @if($detail->transaction_type === 'jual')
+                    Penjualan
+                @elseif($detail->transaction_type === 'refill')
+                    Isi ulang (tukar tabung)
+                @elseif($detail->transaction_type === 'pinjam_tabung')
+                    Pinjam tabung
+                @elseif($detail->transaction_type === 'plus_tabung')
+                    Plus tabung
+                @else
+                    Penjualan
                 @endif
             </span>
             <div class="r-item-meta">
-                <span>{{ $detail->qty }} × @rupiah($detail->price)</span>
+                <span>{{ $detail->qty }} {{ $detail->unit ?? '' }} × @rupiah($detail->price)</span>
                 <strong>@rupiah($detail->subtotal)</strong>
             </div>
         </div>

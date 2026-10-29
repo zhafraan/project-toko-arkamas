@@ -23,16 +23,56 @@ class DashboardController extends Controller
         $lowStockLimit = Product::LOW_STOCK;
         $lowStock      = $stocks->filter(fn ($p) => $p->stock_filled <= $lowStockLimit);
 
+        $gasStocks = $stocks->filter(fn ($p) => $p->isGas());
+        $telurStocks = $stocks->filter(fn ($p) => $p->isTelur());
+
+        $totalGasFilled = $gasStocks->sum('stock_filled');
+        $totalGasEmpty = $gasStocks->sum('stock_empty');
+        $totalGasBorrowed = $gasStocks->sum('stock_borrowed');
+
+        $totalTelurFilled = $telurStocks->sum('stock_filled');
+        $telurUnitLabel = $telurStocks->firstWhere('unit', 'butir') ? 'butir' : 'kg';
+
         // ---- Hari ini ----
         $todayQuery   = fn () => Transaction::whereDate('transaction_date', $today);
         $todayRevenue = (float) $todayQuery()->sum('total_amount');
         $todayCount   = $todayQuery()->count();
 
-        // Jumlah tabung isi yang terjual hari ini (semua jenis penjualan gas)
-        $todaySoldQty = (int) TransactionDetail::whereHas(
+        // Jumlah yang terjual hari ini
+        $todayDetails = TransactionDetail::whereHas(
             'transaction',
             fn ($q) => $q->whereDate('transaction_date', $today)
-        )->sum('qty');
+        )->with('product')->get();
+
+        $todayGasQty = (int) $todayDetails->filter(fn ($d) => $d->product->isGas())->sum('qty');
+        $todayTelurQty = (float) $todayDetails->filter(fn ($d) => $d->product->isTelur())->sum('qty');
+        $todaySoldQty = $todayGasQty + $todayTelurQty;
+
+        $gasProducts = $stocks->filter(fn ($p) => $p->isGas());
+        $telurProducts = $stocks->filter(fn ($p) => $p->isTelur());
+
+        $todayGasRevenue = (float) $todayDetails->filter(fn ($d) => $d->product->isGas())->sum(function ($d) {
+            return $d->qty * $d->product->price_sell;
+        });
+        $todayTelurRevenue = (float) $todayDetails->filter(fn ($d) => $d->product->isTelur())->sum(function ($d) {
+            return $d->qty * $d->product->price_sell;
+        });
+        $todayTotalRevenue = $todayGasRevenue + $todayTelurRevenue;
+
+        $monthGasRevenue = (float) TransactionDetail::whereHas('transaction', function ($q) {
+            $q->whereYear('transaction_date', now()->year)
+                ->whereMonth('transaction_date', now()->month);
+        })->whereHas('product', function ($q) {
+            $q->where('category', 'gas');
+        })->sum('qty * price_sell');
+
+        $monthTelurRevenue = (float) TransactionDetail::whereHas('transaction', function ($q) {
+            $q->whereYear('transaction_date', now()->year)
+                ->whereMonth('transaction_date', now()->month);
+        })->whereHas('product', function ($q) {
+            $q->where('category', 'telur');
+        })->sum('qty * price_sell');
+        $monthRevenue = $monthGasRevenue + $monthTelurRevenue;
 
         // Uang yang benar-benar masuk hari ini (cash-basis): pembayaran awal nota
         // yang terjual hari ini (dikurangi kembalian dan cicilan) ditambah cicilan
@@ -57,14 +97,6 @@ class DashboardController extends Controller
         $loanTubes     = (int) (clone $activeLoans)->selectRaw('COALESCE(SUM(qty_borrowed - qty_returned), 0) as n')->value('n');
         $loanCustomers = (clone $activeLoans)->distinct()->count('customer_id');
 
-        // ---- Khusus pemilik ----
-        $monthRevenue = null;
-        if ($user->isOwner()) {
-            $monthRevenue = (float) Transaction::whereYear('transaction_date', now()->year)
-                ->whereMonth('transaction_date', now()->month)
-                ->sum('total_amount');
-        }
-
         $recent = Transaction::with('customer')->latest('transaction_date')->limit(8);
         if ($user->isKasir()) {
             $recent->whereDate('transaction_date', $today);
@@ -75,7 +107,12 @@ class DashboardController extends Controller
             'stocks', 'totalFilled', 'totalEmpty', 'totalBorrowed', 'lowStock', 'lowStockLimit',
             'todayRevenue', 'todayCash', 'todayTransfer', 'todayCount', 'todaySoldQty',
             'totalPiutang', 'countPiutang', 'loanTubes', 'loanCustomers',
-            'monthRevenue', 'recentTransactions'
+            'monthRevenue', 'recentTransactions',
+            'gasStocks', 'telurStocks',
+            'totalGasFilled', 'totalGasEmpty', 'totalGasBorrowed',
+            'totalTelurFilled', 'telurUnitLabel',
+            'todayGasQty', 'todayTelurQty',
+            'todayGasRevenue', 'todayTelurRevenue', 'todayTotalRevenue'
         ));
     }
 }

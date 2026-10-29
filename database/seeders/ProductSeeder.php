@@ -50,6 +50,24 @@ class ProductSeeder extends Seeder
                 'stock_empty'    => 3,
                 'stock_borrowed' => 0,
             ],
+            [
+                'name'           => 'Telur Ayam (kg)',
+                'sku'            => 'TELUR-KG',
+                'price_buy'      => 25000,
+                'price_sell'     => 32000,
+                'stock_filled'   => 100.0,
+                'category'       => 'telur',
+                'unit'           => 'kg',
+            ],
+            [
+                'name'           => 'Telur Ayam (Tray 30 butir)',
+                'sku'            => 'TELUR-TRAY',
+                'price_buy'      => 750000,
+                'price_sell'     => 850000,
+                'stock_filled'   => 20.0,
+                'category'       => 'telur',
+                'unit'           => 'tray',
+            ],
         ];
 
         foreach ($products as $product) {

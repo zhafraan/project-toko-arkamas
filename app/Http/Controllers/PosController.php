@@ -28,8 +28,8 @@ class PosController extends Controller
         $data = $request->validate([
             'items'                    => 'required|array|min:1',
             'items.*.product_id'       => 'required|exists:products,id',
-            'items.*.transaction_type' => 'required|in:refill,pinjam_tabung,plus_tabung',
-            'items.*.qty'              => 'required|integer|min:1',
+            'items.*.transaction_type' => 'required|in:refill,pinjam_tabung,plus_tabung,jual',
+            'items.*.qty'              => 'required|numeric|min:0.01',
             'customer_id'              => 'nullable|exists:customers,id',
             'payment_method'           => 'required|in:cash,transfer',
             'payment_status'           => 'required|in:lunas,belum_lunas',
@@ -75,7 +75,10 @@ class PosController extends Controller
                 $product = $products[$line['product_id']];
                 $qty     = (int) $line['qty'];
                 $type    = $line['transaction_type'];
-                $price   = (float) $product->price_sell + ($type === 'plus_tabung' ? (float) $product->price_tube : 0);
+                $price = (float) $product->price_sell + ($type === 'plus_tabung' ? (float) $product->price_tube : 0);
+                if ($type === 'jual') {
+                    $price = (float) $product->price_sell;
+                }
 
                 $total    += $price * $qty;
                 $details[] = compact('product', 'qty', 'type', 'price');
@@ -132,6 +135,7 @@ class PosController extends Controller
                 //  refill        : isi -qty, kosong +qty (pelanggan menukar tabung kosongnya)
                 //  pinjam_tabung : isi -qty, dipinjam +qty (tabung dibawa pelanggan, wajib kembali)
                 //  plus_tabung   : isi -qty (tabung ikut terjual)
+                //  jual          : isi -qty (jual telur, tidak ada logika tabung)
                 $product->decrement('stock_filled', $d['qty']);
                 if ($d['type'] === 'refill') {
                     $product->increment('stock_empty', $d['qty']);
@@ -234,6 +238,7 @@ class PosController extends Controller
             // Hitung pembalikan stok per produk:
             //  refill        : isi +qty, kosong -qty
             //  plus_tabung   : isi +qty
+            //  jual          : isi +qty (jual telur, tidak ada logika tabung)
             //  pinjam_tabung : isi +qty, dipinjam -(sisa pinjaman), kosong -yang sudah kembali
             $giveFilled   = [];
             $needEmpty    = [];
