@@ -71,41 +71,11 @@ class DashboardController extends Controller
         }
         $recentTransactions = $recent->get();
 
-        // ---- Grafik 7 hari: jumlah tabung terjual per hari ----
-        $from = $today->copy()->subDays(6)->startOfDay();
-        $rows = TransactionDetail::whereHas(
-            'transaction',
-            fn ($q) => $q->where('transaction_date', '>=', $from)
-        )
-            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
-            ->selectRaw('DATE(transactions.transaction_date) as d, SUM(transaction_details.qty) as qty, COUNT(DISTINCT transactions.id) as cnt')
-            ->groupBy('d')->get()->keyBy('d');
-
-        $chartData = [];
-        $maxQty = 0;
-        for ($i = 6; $i >= 0; $i--) {
-            $dt  = $today->copy()->subDays($i);
-            $qty = (int) ($rows[$dt->toDateString()]->qty ?? 0);
-            $maxQty = max($maxQty, $qty);
-            $chartData[] = [
-                'day'     => $dt->translatedFormat('D'),
-                'date'    => $dt->translatedFormat('d M'),
-                'isToday' => $i === 0,
-                'qty'     => $qty,
-                'count'   => (int) ($rows[$dt->toDateString()]->cnt ?? 0),
-            ];
-        }
-        // tinggi batang dalam persen (min 3% agar hari kosong tetap terlihat)
-        foreach ($chartData as &$bar) {
-            $bar['height'] = $maxQty > 0 ? max(3, round($bar['qty'] / $maxQty * 100)) : 3;
-        }
-        unset($bar);
-
         return view('dashboard.index', compact(
             'stocks', 'totalFilled', 'totalEmpty', 'totalBorrowed', 'lowStock', 'lowStockLimit',
             'todayRevenue', 'todayCash', 'todayTransfer', 'todayCount', 'todaySoldQty',
             'totalPiutang', 'countPiutang', 'loanTubes', 'loanCustomers',
-            'monthRevenue', 'recentTransactions', 'chartData'
+            'monthRevenue', 'recentTransactions'
         ));
     }
 }

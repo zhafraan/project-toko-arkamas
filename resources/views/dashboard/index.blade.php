@@ -94,24 +94,6 @@
 
     <div class="stack" style="gap:16px;">
 
-        {{-- Grafik 7 hari: jumlah tabung terjual --}}
-        <div class="card">
-            <div class="card-head">
-                <span class="card-title">Tabung terjual 7 hari terakhir</span>
-            </div>
-            <div class="card-body">
-                <div class="bars">
-                    @foreach($chartData as $bar)
-                    <div class="bar-col {{ $bar['isToday'] ? 'today' : '' }}" title="{{ $bar['date'] }}: {{ number_format($bar['qty']) }} tabung ({{ $bar['count'] }} transaksi)">
-                        <div class="bar-val">{{ number_format($bar['qty']) }}</div>
-                        <div class="bar-track"><div class="bar {{ $bar['isToday'] ? 'today' : '' }}" style="height: {{ $bar['height'] }}%;"></div></div>
-                        <div class="bar-day">{{ $bar['day'] }}</div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
         {{-- Transaksi terbaru --}}
         <div class="card">
             <div class="card-head">
