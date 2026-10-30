@@ -79,7 +79,7 @@ class InventoryController extends Controller
             : 'Produk "' . $product->name . '" dinonaktifkan. Produk tidak tampil di kasir.');
     }
 
-    /** Hapus produk dengan mekanisme soft delete agar riwayat tetap terjaga. */
+    /** Hanya produk yang belum pernah dipakai transaksi yang boleh dihapus; selain itu cukup dinonaktifkan. */
     public function destroy(Product $product)
     {
         if ($product->transactionDetails()->exists() || $product->tubeLoans()->exists()) {
@@ -104,11 +104,11 @@ class InventoryController extends Controller
                 ]
             );
 
-            $product->agentDeliveries()->delete(); // soft delete if exists
-            $product->delete(); // soft delete
+            $product->agentDeliveries()->delete();
+            $product->delete();
         });
 
-        return back()->with('success', 'Produk "' . $name . '" berhasil diarsipkan (soft delete).');
+        return back()->with('success', 'Produk "' . $name . '" berhasil dihapus.');
     }
 
     // Penyesuaian stok — setiap perubahan wajib beralasan dan tercatat di riwayat audit
@@ -248,10 +248,10 @@ class InventoryController extends Controller
             $product->stock_empty += $take;
             $product->save();
 
-            $delivery->delete(); // soft delete
+            $delivery->delete();
         });
 
-        return back()->with('success', 'Penerimaan dari agen diarsipkan dan stok telah dikembalikan. Penghapusan tercatat di riwayat penghapusan.');
+        return back()->with('success', 'Penerimaan dari agen berhasil dihapus dan stok telah dikembalikan. Penghapusan tercatat di riwayat penghapusan.');
     }
 
     public function goodsReceipts()

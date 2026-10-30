@@ -17,12 +17,6 @@ class UserSeeder extends Seeder
             'role'     => 'owner',
         ]);
 
-        User::create([
-            'name'     => 'Admin Toko',
-            'email'    => 'admin@arkamas.com',
-            'password' => Hash::make('admin001'),
-            'role'     => 'admin',
-        ]);
 
         User::create([
             'name'     => 'Kasir 1',

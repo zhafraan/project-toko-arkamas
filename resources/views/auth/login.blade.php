@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Masuk · Arkamas Gas</title>
+    <title>Masuk · Toko ARKAMAS</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,13 +21,13 @@
                 <text x="34" y="48" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="32" letter-spacing="-1"><tspan fill="#FFFFFB">A</tspan><tspan fill="url(#agGoldL)" dx="1">G</tspan></text>
                 <circle cx="56" cy="23" r="4" fill="url(#agGoldL)"/>
             </svg>
-            <strong style="font-size:17px;letter-spacing:-.01em;">Arkamas Gas</strong>
+            <strong style="font-size:17px;letter-spacing:-.01em;">Toko ARKAMAS</strong>
         </div>
         <div>
-            <h2>Sistem pengelolaan Toko Arkamas.</h2>
+            <h2>Sistem pengelolaan Toko Arkamas. Penjualan Gas dan Telur.</h2>
             <p>Kelola penjualan, stok tabung, dan piutang dalam satu sistem.</p>
         </div>
-        <div style="font-size:13px;color:rgba(255,255,255,.7);">© {{ date('Y') }} Arkamas Gas</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.7);">© {{ date('Y') }} Toko ARKAMAS</div>
 
         <svg class="auth-deco" viewBox="0 0 120 200" fill="currentColor" aria-hidden="true">
             <rect x="30" y="50" width="60" height="140" rx="26"/>

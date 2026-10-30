@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title') · Arkamas Gas</title>
+    <title>@yield('title') · Toko ARKAMAS</title>
 
     <script>
         (function () {

@@ -84,10 +84,10 @@ class CustomerController extends Controller
 
             // Riwayat pembelian TIDAK dihapus — transaksi lepas dari pelanggan (customer_id -> null)
             $customer->tubeLoans()->update(['customer_id' => null]);
-            $customer->delete(); // Soft delete
+            $customer->delete();
         });
 
-        return back()->with('success', 'Pelanggan berhasil dihapus (arsip). Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.');
+        return back()->with('success', 'Pelanggan berhasil dihapus. Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.');
     }
 
     public function show(Customer $customer)

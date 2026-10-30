@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Toko ARKAMAS / Penjualan Gas & Telur') · Toko ARKAMAS / Penjualan Gas & Telur</title>
+    <title>@yield('title', 'Toko Arkamas') · Toko Arkamas</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Jost:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
@@ -30,14 +30,17 @@
             <circle cx="56" cy="23" r="4" fill="url(#agGold)"/>
         </svg>
         <div class="brand-text">
-            <div class="brand-name">Toko ARKAMAS</div>
-            <div class="brand-sub">Penjualan Gas &amp; Telur</div>
+            <div class="brand-name">Toko Arkamas</div>
+            <div class="brand-sub">Penjualan Gas & Telur</div>
         </div>
     </div>
 
     <nav class="sidebar-nav" aria-label="Menu utama">
         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" title="Dashboard">
             <x-icon name="dashboard" /><span class="label">Dashboard</span>
+        </a>
+        <a href="{{ route('statistics.index') }}" class="nav-link {{ request()->routeIs('statistics.*') ? 'active' : '' }}" title="Statistik penjualan">
+            <x-icon name="bar-chart" /><span class="label">Statistik Penjualan</span>
         </a>
 
         <div class="nav-group">Penjualan</div>

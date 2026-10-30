@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\TubeLoan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class LoanController extends Controller
 {
@@ -24,24 +26,36 @@ class LoanController extends Controller
     public function returnTube(Request $request, TubeLoan $loan)
     {
         $request->validate([
-            'qty_return' => 'required|integer|min:1|max:' . ($loan->qty_borrowed - $loan->qty_returned),
+            'qty_return' => 'required|integer|min:1',
         ]);
 
         $qty = (int) $request->qty_return;
 
         DB::transaction(function () use ($loan, $qty) {
-            $newReturned = $loan->qty_returned + $qty;
-            $newStatus   = $newReturned >= $loan->qty_borrowed ? 'dikembalikan' : 'sebagian_kembali';
+            // Kunci baris pinjaman & produk agar dua kasir tidak mencatat pengembalian
+            // yang sama bersamaan (stok dipinjam bisa menjadi minus).
+            $fresh   = TubeLoan::lockForUpdate()->findOrFail($loan->id);
+            $product = Product::lockForUpdate()->findOrFail($fresh->product_id);
+            $left    = $fresh->qty_borrowed - $fresh->qty_returned;
 
-            $loan->update([
+            if ($qty > $left) {
+                throw ValidationException::withMessages([
+                    'qty_return' => "Jumlah pengembalian melebihi sisa pinjaman ({$left} tabung).",
+                ]);
+            }
+
+            $newReturned = $fresh->qty_returned + $qty;
+            $newStatus   = $newReturned >= $fresh->qty_borrowed ? 'dikembalikan' : 'sebagian_kembali';
+
+            $fresh->update([
                 'qty_returned' => $newReturned,
                 'status'       => $newStatus,
-                'return_date'  => $newStatus === 'dikembalikan' ? today() : $loan->return_date,
+                'return_date'  => $newStatus === 'dikembalikan' ? today() : $fresh->return_date,
             ]);
 
             // Update stok: borrowed -qty, empty +qty
-            $loan->product->decrement('stock_borrowed', $qty);
-            $loan->product->increment('stock_empty', $qty);
+            $product->decrement('stock_borrowed', $qty);
+            $product->increment('stock_empty', $qty);
         });
 
         if ($request->expectsJson()) {

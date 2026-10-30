@@ -54,7 +54,7 @@
     <div class="receipt">
         <div class="r-head">
             <div class="r-name">ARKAMAS GAS</div>
-            <div class="r-sub">Pangkalan Gas Elpiji</div>
+            <div class="r-sub">Penjualan Gas &amp; Telur</div>
         </div>
 
         <hr class="r-line">
@@ -119,7 +119,7 @@
         @endif
 
         <div class="r-foot">
-            Terima kasih telah berbelanja di Arkamas Gas.<br>Simpan nota ini sebagai bukti pembelian.
+            Terima kasih telah berbelanja di Toko ARKAMAS.<br>Simpan nota ini sebagai bukti pembelian.
         </div>
     </div>
 
