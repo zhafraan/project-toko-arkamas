@@ -274,17 +274,25 @@ class InventoryController extends Controller
 
     public function storeGoodsReceipt(Request $request)
     {
-        $data = $request->validate([
+        $rules = [
             'product_id'          => 'required|exists:products,id',
             'receipt_date'        => 'required|date|after_or_equal:today',
+            'crates'              => 'nullable|numeric|min:0',
             'qty'                 => 'required|numeric|min:0.1',
-            'buy_price_per_unit'  => 'required_if:user_is_owner|numeric|min:0',
             'supplier'            => 'nullable|string|max:255',
             'notes'               => 'nullable|string|max:255',
-        ]);
+        ];
 
         if (auth()->user()->isOwner()) {
-            $data['buy_price_per_unit'] = $data['buy_price_per_unit'] ?? Product::DEFAULT_BUY_PRICE_TELUR;
+            $rules['buy_price_per_unit'] = 'nullable|numeric|min:0';
+        }
+
+        $data = $request->validate($rules);
+
+        if (auth()->user()->isOwner()) {
+            $data['buy_price_per_unit'] = !empty($data['buy_price_per_unit'])
+                ? (float) $data['buy_price_per_unit']
+                : Product::DEFAULT_BUY_PRICE_TELUR;
         } else {
             $lastPrice = GoodsReceipt::where('product_id', $data['product_id'])
                 ->orderByDesc('receipt_date')->orderByDesc('id')->value('buy_price_per_unit');
@@ -299,6 +307,7 @@ class InventoryController extends Controller
                 'product_id'          => $data['product_id'],
                 'user_id'             => auth()->id(),
                 'receipt_date'        => $data['receipt_date'],
+                'crates'              => !empty($data['crates']) ? $data['crates'] : null,
                 'qty'                 => $data['qty'],
                 'buy_price_per_unit'  => $data['buy_price_per_unit'],
                 'total_cost'          => $data['qty'] * $data['buy_price_per_unit'],
@@ -318,12 +327,14 @@ class InventoryController extends Controller
             $receipt->load(['product', 'user']);
             $product = Product::lockForUpdate()->findOrFail($receipt->product_id);
 
+            $crateText = $receipt->crates !== null ? " (" . ($receipt->crates + 0) . " peti)" : "";
             DeletionLog::record(
                 $receipt,
-                "Stok masuk {$receipt->product->name} × {$receipt->qty} {$receipt->product->getUnitLabel()} — Rp " . number_format((float) $receipt->total_cost, 0, ',', '.'),
+                "Stok masuk {$receipt->product->name} × {$receipt->qty} {$receipt->product->getUnitLabel()}{$crateText} — Rp " . number_format((float) $receipt->total_cost, 0, ',', '.'),
                 [
                     'receipt_date'        => $receipt->receipt_date->toDateString(),
                     'product'             => $receipt->product->name,
+                    'crates'              => $receipt->crates !== null ? (float) $receipt->crates : null,
                     'qty'                 => (float) $receipt->qty,
                     'buy_price_per_unit'  => (float) $receipt->buy_price_per_unit,
                     'total_cost'          => (float) $receipt->total_cost,

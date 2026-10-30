@@ -72,14 +72,14 @@
             <thead>
                 <tr>
                     <th>Produk</th>
-                    @if($user->isOwner())<th class="num">Harga beli</th>@endif
-                    <th class="num">Harga jual</th>
+                    @if($user->isOwner())<th class="num">{{ $category === 'telur' ? 'Harga beli perkilo' : 'Harga beli' }}</th>@endif
+                    <th class="num">{{ $category === 'telur' ? 'Harga perkilo' : 'Harga jual' }}</th>
                     @if($category === 'all' || $category === 'gas')
                         <th class="num">Harga tabung</th>
                         <th>Stok</th>
                     @else
                         <th>Satuan</th>
-                        <th class="num">Stok (tersedia)</th>
+                        <th class="num">Jumlah stok</th>
                     @endif
                     <th>Status</th>
                     @if($user->isOwner())<th></th>@endif
@@ -94,8 +94,8 @@
                         <div class="cell-title">{{ $product->name }}</div>
                         <div class="cell-sub">SKU {{ $product->sku }}</div>
                     </td>
-                    @if($user->isOwner())<td class="num" data-label="Harga beli">@rupiah($product->price_buy)</td>@endif
-                    <td class="num fw" data-label="Harga jual">@rupiah($product->price_sell)</td>
+                    @if($user->isOwner())<td class="num" data-label="{{ $product->isTelur() ? 'Harga beli perkilo' : 'Harga beli' }}">@rupiah($product->price_buy){{ $product->isTelur() && $product->unit === 'kg' ? ' / kg' : '' }}</td>@endif
+                    <td class="num fw" data-label="{{ $product->isTelur() ? 'Harga perkilo' : 'Harga jual' }}">@rupiah($product->price_sell){{ $product->isTelur() && $product->unit === 'kg' ? ' / kg' : '' }}</td>
                     @if($category === 'all' || $category === 'gas')
                         <td class="num" data-label="Harga tabung">@rupiah($product->price_tube)</td>
                         <td data-label="Stok">
@@ -110,7 +110,7 @@
                         </td>
                     @else
                         <td data-label="Satuan">{{ $product->getUnitLabel() }}</td>
-                        <td class="num" data-label="Stok (tersedia)">{{ number_format($product->stock_filled, 2) }}</td>
+                        <td class="num" data-label="Jumlah stok">{{ number_format($product->stock_filled, 2) }} {{ $product->getUnitLabel() }}</td>
                     @endif
                     <td data-label="Status">
                         @if($product->is_active)
@@ -225,11 +225,11 @@
                     </select>
                 </div>
                 <div class="field">
-                    <label class="label">Harga beli (modal)</label>
+                    <label class="label" id="addPriceBuyLabel">Harga beli (modal)</label>
                     <input type="number" name="price_buy" class="input" min="0" step="any" value="{{ $reopen === 'addProductModal' ? old('price_buy') : '0' }}">
                 </div>
                 <div class="field">
-                    <label class="label">Harga jual isi ulang <span class="req">*</span></label>
+                    <label class="label" id="addPriceSellLabel">Harga jual isi ulang <span class="req">*</span></label>
                     <input type="number" name="price_sell" class="input" min="0" step="any" value="{{ $reopen === 'addProductModal' ? old('price_sell') : '' }}" required>
                 </div>
                 <div class="field price-gas-field">
@@ -245,7 +245,7 @@
                     <input type="number" name="stock_borrowed" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('stock_borrowed') : '0' }}">
                 </div>
                 <div class="field span-all price-telur-field">
-                    <label class="label">Stok tersedia awal <span class="req">*</span></label>
+                    <label class="label" id="addStockFilledLabel">Jumlah stok (kg) <span class="req">*</span></label>
                     <input type="number" name="stock_filled" class="input" min="0" step="0.1" value="{{ $reopen === 'addProductModal' ? old('stock_filled') : '0' }}" required>
                 </div>
                 <div class="field span-all">
@@ -292,11 +292,11 @@
                     </select>
                 </div>
                 <div class="field">
-                    <label class="label">Harga beli (modal)</label>
+                    <label class="label" id="editPriceBuyLabel">Harga beli (modal)</label>
                     <input type="number" name="price_buy" class="input" min="0" step="any">
                 </div>
                 <div class="field">
-                    <label class="label">Harga jual isi ulang <span class="req">*</span></label>
+                    <label class="label" id="editPriceSellLabel">Harga jual isi ulang <span class="req">*</span></label>
                     <input type="number" name="price_sell" class="input" min="0" step="any" required>
                 </div>
                 <div class="field span-all price-gas-field-edit">
@@ -352,6 +352,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const priceTelurFields = document.querySelectorAll('.price-telur-field');
     const unitField = document.querySelector('select[name="unit"]');
 
+    const addPriceBuyLabel = document.getElementById('addPriceBuyLabel');
+    const addPriceSellLabel = document.getElementById('addPriceSellLabel');
+    const addStockFilledLabel = document.getElementById('addStockFilledLabel');
+
     if (categorySelect) {
         function updateFormFields() {
             const category = categorySelect.value;
@@ -365,6 +369,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 el.style.display = isGas ? 'none' : 'block';
             });
 
+            if (addPriceBuyLabel) {
+                addPriceBuyLabel.textContent = isGas ? 'Harga beli (modal)' : 'Harga beli perkilo (modal)';
+            }
+            if (addPriceSellLabel) {
+                addPriceSellLabel.innerHTML = isGas ? 'Harga jual isi ulang <span class="req">*</span>' : 'Harga perkilo <span class="req">*</span>';
+            }
+            if (addStockFilledLabel) {
+                addStockFilledLabel.innerHTML = isGas ? 'Stok tersedia awal <span class="req">*</span>' : 'Jumlah stok (kg) <span class="req">*</span>';
+            }
+
             if (isGas) {
                 unitSelect.innerHTML = `
                     <option value="tabung">tabung</option>
@@ -374,9 +388,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             } else {
                 unitSelect.innerHTML = `
-                    <option value="butir">butir</option>
-                    <option value="tray">tray</option>
                     <option value="kg">kg</option>
+                    <option value="tray">tray</option>
+                    <option value="butir">butir</option>
                 `;
             }
         }
@@ -387,7 +401,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const editCategorySelect = document.getElementById('editCategorySelect');
     const editPriceGasFields = document.querySelectorAll('.price-gas-field-edit');
-    const editStockFilledField = document.querySelector('input[name="stock_filled"]');
+    const editPriceBuyLabel = document.getElementById('editPriceBuyLabel');
+    const editPriceSellLabel = document.getElementById('editPriceSellLabel');
 
     if (editCategorySelect) {
         function updateEditFormFields() {
@@ -397,6 +412,13 @@ document.addEventListener('DOMContentLoaded', function() {
             editPriceGasFields.forEach(el => {
                 el.style.display = isGas ? 'block' : 'none';
             });
+
+            if (editPriceBuyLabel) {
+                editPriceBuyLabel.textContent = isGas ? 'Harga beli (modal)' : 'Harga beli perkilo (modal)';
+            }
+            if (editPriceSellLabel) {
+                editPriceSellLabel.innerHTML = isGas ? 'Harga jual isi ulang <span class="req">*</span>' : 'Harga perkilo <span class="req">*</span>';
+            }
         }
 
         editCategorySelect.addEventListener('change', updateEditFormFields);

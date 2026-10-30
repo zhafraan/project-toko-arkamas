@@ -10,11 +10,12 @@ class GoodsReceipt extends Model
     use HasFactory;
 
     protected $fillable = [
-        'product_id', 'user_id', 'receipt_date', 'qty', 'buy_price_per_unit', 'total_cost', 'supplier', 'notes',
+        'product_id', 'user_id', 'receipt_date', 'crates', 'qty', 'buy_price_per_unit', 'total_cost', 'supplier', 'notes',
     ];
 
     protected $casts = [
         'receipt_date' => 'date',
+        'crates' => 'decimal:2',
         'qty' => 'decimal:2',
         'buy_price_per_unit' => 'decimal:2',
         'total_cost' => 'decimal:2',

@@ -105,4 +105,36 @@ class PagesSmokeTest extends TestCase
         $this->actingAs($owner)->delete(route('inventory.destroy', $product))->assertSessionHas('error');
         $this->assertNotNull(Product::find($product->id));
     }
+
+    public function test_pemilik_bisa_mencatat_stok_masuk_telur_dengan_peti_dan_kilo(): void
+    {
+        $owner = User::create(['name' => 'Pemilik', 'email' => 'owner@test.local', 'password' => 'secret123', 'role' => 'owner']);
+        $telur = Product::create([
+            'name' => 'Telur Ayam (kg)', 'sku' => 'TEL-02', 'price_buy' => 24000, 'price_sell' => 28000,
+            'category' => 'telur', 'unit' => 'kg', 'stock_filled' => 10, 'stock_empty' => 0, 'stock_borrowed' => 0, 'is_active' => true,
+        ]);
+
+        $this->actingAs($owner)->get(route('inventory.goodsReceipts'))
+            ->assertOk()
+            ->assertSee('Jumlah stok')
+            ->assertSee('Jumlah peti')
+            ->assertSee('Harga perkilo');
+
+        $this->actingAs($owner)->post(route('inventory.storeGoodsReceipt'), [
+            'product_id' => $telur->id,
+            'receipt_date' => today()->toDateString(),
+            'crates' => 5,
+            'qty' => 50.5,
+            'buy_price_per_unit' => 24500,
+            'supplier' => 'Peternak Blitar',
+        ])->assertSessionHas('success');
+
+        $receipt = \App\Models\GoodsReceipt::latest('id')->first();
+        $this->assertNotNull($receipt);
+        $this->assertEquals(5, (float) $receipt->crates);
+        $this->assertEquals(50.5, (float) $receipt->qty);
+        $this->assertEquals(24500, (float) $receipt->buy_price_per_unit);
+        $this->assertEquals(50.5 * 24500, (float) $receipt->total_cost);
+        $this->assertEquals(60.5, (float) $telur->fresh()->stock_filled);
+    }
 }

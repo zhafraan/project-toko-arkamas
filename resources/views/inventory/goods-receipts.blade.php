@@ -35,26 +35,34 @@
                 <input type="date" name="receipt_date" class="input" min="{{ today()->toDateString() }}" value="{{ old('receipt_date', today()->toDateString()) }}" required>
             </div>
             <div class="form-grid">
-                <div class="field {{ auth()->user()->isOwner() ? '' : 'span-all' }}">
-                    <label class="label">Jumlah stok masuk <span class="req">*</span></label>
-                    <input type="text" name="qty" id="qtyReceipt" class="input" inputmode="numeric" placeholder="Ketik jumlah telur" value="{{ old('qty') }}" autocomplete="off" required>
-                    @unless(auth()->user()->isOwner())
-                    <div class="hint">Masukkan jumlah telur yang diterima. Harga beli diatur otomatis.</div>
-                    @endunless
+                <div class="field">
+                    <label class="label">Jumlah peti</label>
+                    <div class="input-affix">
+                        <input type="text" name="crates" id="cratesReceipt" class="input num" inputmode="decimal" placeholder="0" value="{{ old('crates') }}" autocomplete="off">
+                        <span class="affix">peti</span>
+                    </div>
+                    <div class="hint">Opsional (misal: 5 peti).</div>
+                </div>
+                <div class="field">
+                    <label class="label">Jumlah stok <span class="req">*</span></label>
+                    <div class="input-affix">
+                        <input type="text" name="qty" id="qtyReceipt" class="input num" inputmode="decimal" placeholder="0" value="{{ old('qty') }}" autocomplete="off" required>
+                        <span class="affix">kg</span>
+                    </div>
+                    <div class="hint">Total berat dalam kilogram (kg).</div>
                 </div>
                 @if(auth()->user()->isOwner())
-                <div class="field">
-                    <label class="label">Harga beli per unit <span class="req">*</span></label>
+                <div class="field span-all">
+                    <label class="label">Harga perkilo <span class="req">*</span></label>
                     <div class="input-affix">
                         <span class="affix">Rp</span>
-                        <input type="text" name="buy_price_per_unit" id="buyPrice" class="input num" inputmode="numeric" placeholder="Ketik harga beli" value="{{ old('buy_price_per_unit') }}" autocomplete="off" required>
+                        <input type="text" name="buy_price_per_unit" id="buyPrice" class="input num" inputmode="numeric" placeholder="Ketik harga perkilo" value="{{ old('buy_price_per_unit') }}" autocomplete="off" required>
+                        <span class="affix">/ kg</span>
                     </div>
+                    <div class="hint" style="margin-top:4px;">Harga beli per 1 kilogram telur. Nilai ini menjadi default berikutnya.</div>
                 </div>
                 @endif
             </div>
-            @if(auth()->user()->isOwner())
-            <div class="hint" style="margin-top:-8px;margin-bottom:14px;">Isi harga beli untuk mencatat biaya pembelian. Nilai ini menjadi default berikutnya.</div>
-            @endif
             <div class="field">
                 <label class="label">Supplier</label>
                 <input type="text" name="supplier" class="input" maxlength="255" placeholder="Nama supplier (opsional)" value="{{ old('supplier') }}">
@@ -77,15 +85,16 @@
         <div class="table-wrap">
             <table class="table table-stack">
                 <thead>
-                    <tr><th>Produk</th><th>Tanggal</th><th class="num">Qty</th><th class="num">Harga beli</th><th class="num">Total</th><th>Supplier</th><th></th></tr>
+                    <tr><th>Produk</th><th>Tanggal</th><th class="num">Jumlah stok</th><th class="num">Jumlah peti</th><th class="num">Harga perkilo</th><th class="num">Total</th><th>Supplier</th><th></th></tr>
                 </thead>
                 <tbody>
                     @forelse($goodsReceipts as $receipt)
                     <tr>
                         <td class="nowrap" data-label="Produk">{{ $receipt->product->name }}</td>
                         <td data-label="Tanggal">{{ $receipt->receipt_date->isoFormat('D MMM Y') }}</td>
-                        <td class="num" data-label="Qty"><span class="qty-pill qty-filled">{{ $receipt->qty }}</span> {{ $receipt->product->getUnitLabel() }}</td>
-                        <td class="num" data-label="Harga beli">@rupiah($receipt->buy_price_per_unit)</td>
+                        <td class="num" data-label="Jumlah stok"><span class="qty-pill qty-filled">{{ $receipt->qty + 0 }} kg</span></td>
+                        <td class="num" data-label="Jumlah peti">{{ $receipt->crates !== null ? ($receipt->crates + 0) . ' peti' : '-' }}</td>
+                        <td class="num" data-label="Harga perkilo">@rupiah($receipt->buy_price_per_unit) / kg</td>
                         <td class="num fw" data-label="Total">@rupiah($receipt->total_cost)</td>
                         <td class="muted" data-label="Supplier">{{ $receipt->supplier ?: '-' }}</td>
                         <td data-label="Aksi">
@@ -102,7 +111,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7">
+                    <tr><td colspan="8">
                         <div class="empty">
                             <div class="empty-icon"><x-icon name="truck" size="24" /></div>
                             <div class="empty-title">Belum ada stok masuk tercatat</div>
@@ -124,6 +133,7 @@
     if (!form) return;
 
     var qty = document.getElementById('qtyReceipt');
+    var crates = document.getElementById('cratesReceipt');
     var price = document.getElementById('buyPrice');
     var productSelect = document.getElementById('receiptProduct');
 
@@ -148,7 +158,19 @@
     function formatAmount(n) { return n.toLocaleString('id-ID', { maximumFractionDigits: 2 }); }
     function markInvalid(el, invalid) { el.style.borderColor = invalid ? '#dc2626' : ''; }
 
-    if (qty) qty.addEventListener('input', function () { qty.value = qty.value.replace(/\D/g, ''); });
+    if (qty) {
+        qty.addEventListener('input', function () {
+            var s = qty.value.replace(/[^\d.,]/g, '');
+            if (s !== qty.value) qty.value = s;
+        });
+    }
+
+    if (crates) {
+        crates.addEventListener('input', function () {
+            var s = crates.value.replace(/[^\d.,]/g, '');
+            if (s !== crates.value) crates.value = s;
+        });
+    }
 
     if (price) {
         price.addEventListener('input', function () {
@@ -172,7 +194,7 @@
             else {
                 var r = parseAmount(price.value);
                 if (!r.ok) {
-                    masalah.push('Format angka tidak valid pada "Harga beli per unit".');
+                    masalah.push('Format angka tidak valid pada "Harga perkilo".');
                     markInvalid(price, true);
                 } else {
                     price.value = String(r.value);
@@ -180,8 +202,22 @@
             }
         }
         if (qty) {
-            var q = parseFloat(qty.value.replace(/\D/g, '.')) || 0;
-            if (q < 0.1) masalah.push('Jumlah stok masuk minimal 0.1.');
+            var qVal = qty.value.replace(',', '.');
+            var q = parseFloat(qVal) || 0;
+            if (q < 0.1) {
+                masalah.push('Jumlah stok minimal 0.1 kg.');
+            } else {
+                qty.value = String(q);
+            }
+        }
+        if (crates && crates.value.trim() !== '') {
+            var cVal = crates.value.replace(',', '.');
+            var c = parseFloat(cVal);
+            if (isNaN(c) || c < 0) {
+                masalah.push('Jumlah peti tidak valid.');
+            } else {
+                crates.value = String(c);
+            }
         }
         if (masalah.length) { e.preventDefault(); alert(masalah.join('\n')); }
     });
