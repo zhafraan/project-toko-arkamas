@@ -25,7 +25,7 @@
                     <option value="">Pilih produk…</option>
                     @foreach($products as $p)
                     <option value="{{ $p->id }}"
-                            data-last-price="{{ $lastPrices[$p->id] ?? \App\Models\Product::DEFAULT_BUY_PRICE }}"
+                            @if(auth()->user()->isOwner()) data-last-price="{{ $lastPrices[$p->id] ?? \App\Models\Product::DEFAULT_BUY_PRICE }}" @endif
                             {{ old('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }} — stok kosong: {{ $p->stock_empty }}</option>
                     @endforeach
                 </select>
@@ -81,7 +81,18 @@
         <div class="table-wrap">
             <table class="table table-stack">
                 <thead>
-                    <tr><th>Tanggal</th><th>Produk</th><th class="num">Jumlah</th><th class="num">Harga beli</th><th class="num">Total biaya</th><th class="num">Admin kirim</th><th>Pencatat</th><th></th></tr>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Produk</th>
+                        <th class="num">Jumlah</th>
+                        @if(auth()->user()->isOwner())
+                        <th class="num">Harga beli</th>
+                        <th class="num">Total biaya</th>
+                        <th class="num">Admin kirim</th>
+                        @endif
+                        <th>Pencatat</th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                     @forelse($deliveries as $delivery)
@@ -92,6 +103,7 @@
                             @if($delivery->notes)<div class="cell-sub">{{ $delivery->notes }}</div>@endif
                         </td>
                         <td class="num" data-label="Jumlah"><span class="qty-pill qty-filled">{{ $delivery->qty_received }}</span></td>
+                        @if(auth()->user()->isOwner())
                         <td class="num" data-label="Harga beli">@rupiah($delivery->buy_price_per_unit)</td>
                         <td class="num fw" data-label="Total biaya">@rupiah($delivery->total_cost)</td>
                         <td class="num" data-label="Admin kirim">
@@ -101,6 +113,7 @@
                                 <span class="muted">—</span>
                             @endif
                         </td>
+                        @endif
                         <td class="muted" data-label="Pencatat">{{ $delivery->user->name }}</td>
                         <td data-label="Aksi">
                             <div class="actions">
@@ -116,7 +129,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="8">
+                    <tr><td colspan="{{ auth()->user()->isOwner() ? 8 : 5 }}">
                         <div class="empty">
                             <div class="empty-icon"><x-icon name="truck" size="24" /></div>
                             <div class="empty-title">Belum ada penerimaan tercatat</div>

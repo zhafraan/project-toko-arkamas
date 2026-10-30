@@ -60,28 +60,9 @@ class ReportController extends Controller
         $weekStart = $request->input('week_start') ?: now()->startOfWeek()->toDateString();
         $weekEnd   = $request->input('week_end') ?: now()->endOfWeek()->toDateString();
 
-        $query = Transaction::with(['details.product', 'customer', 'debtPayments']);
-
-        switch ($type) {
-            case 'weekly':
-                $query->whereBetween(DB::raw('DATE(transaction_date)'), [$weekStart, $weekEnd]);
-                $label = 'Laporan Mingguan: ' . Carbon::parse($weekStart)->isoFormat('D MMM Y') . ' s/d ' . Carbon::parse($weekEnd)->isoFormat('D MMM Y');
-                break;
-            case 'monthly':
-                $query->whereYear('transaction_date', $year)->whereMonth('transaction_date', $month);
-                $label = 'Laporan Bulanan: ' . Carbon::create($year, $month, 1)->isoFormat('MMMM Y');
-                break;
-            case 'yearly':
-                $query->whereYear('transaction_date', $year);
-                $label = "Laporan Tahunan: {$year}";
-                break;
-            default:
-                $query->whereDate('transaction_date', $date);
-                $label = 'Laporan Harian: ' . Carbon::parse($date)->isoFormat('D MMMM Y');
-        }
-
-        // Batas periode dibutuhkan untuk kas cash-basis: uang dihitung pada
-        // tanggal diterimanya pembayaran (nota atau cicilan), bukan tanggal nota.
+        // Batas periode dibutuhkan untuk filter transaksi dan kalkulasi kas cash-basis:
+        // Menggunakan whereBetween pada rentang waktu (startOfDay s/d endOfDay) agar query
+        // dapat memanfaatkan index database secara optimal tanpa pemanggilan fungsi per baris.
         $periodStart = match ($type) {
             'weekly'  => Carbon::parse($weekStart)->startOfDay(),
             'monthly' => Carbon::create($year, $month, 1)->startOfDay(),
@@ -94,6 +75,16 @@ class ReportController extends Controller
             'yearly'  => Carbon::create($year, 12, 31)->endOfDay(),
             default   => Carbon::parse($date)->endOfDay(),
         };
+
+        $label = match ($type) {
+            'weekly'  => 'Laporan Mingguan: ' . Carbon::parse($weekStart)->isoFormat('D MMM Y') . ' s/d ' . Carbon::parse($weekEnd)->isoFormat('D MMM Y'),
+            'monthly' => 'Laporan Bulanan: ' . Carbon::create($year, $month, 1)->isoFormat('MMMM Y'),
+            'yearly'  => "Laporan Tahunan: {$year}",
+            default   => 'Laporan Harian: ' . Carbon::parse($date)->isoFormat('D MMMM Y'),
+        };
+
+        $query = Transaction::with(['details.product', 'customer', 'debtPayments'])
+            ->whereBetween('transaction_date', [$periodStart, $periodEnd]);
 
         $transactions = $query->latest('transaction_date')->get();
         $metrics      = $this->calculateMetrics($transactions, $periodStart, $periodEnd);

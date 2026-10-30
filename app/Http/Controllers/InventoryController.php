@@ -161,13 +161,17 @@ class InventoryController extends Controller
         $products   = Product::where('is_active', true)->orderBy('name')->get();
         $deliveries = AgentDelivery::with(['product', 'user'])->latest('delivery_date')->latest('id')->paginate(20);
 
-        // Harga agen terakhir per produk dipakai sebagai nilai default di form
-        // (pemilik bisa menggantinya bila ada kenaikan harga dari agen).
-        $lastPrices = AgentDelivery::whereIn('product_id', $products->pluck('id'))
-            ->orderBy('delivery_date')->orderBy('id')
-            ->get(['product_id', 'buy_price_per_unit'])
-            ->groupBy('product_id')
-            ->map(fn ($rows) => (float) $rows->last()->buy_price_per_unit);
+        // Harga agen terakhir per produk dipakai sebagai nilai default di form khusus pemilik.
+        // Kasir tidak memerlukan data harga agen (hanya pemilik yang mengelola harga).
+        $lastPrices = [];
+        if (auth()->user()->isOwner() && $products->isNotEmpty()) {
+            $lastPrices = AgentDelivery::whereIn('id', function ($query) use ($products) {
+                $query->selectRaw('MAX(id)')
+                    ->from('agent_deliveries')
+                    ->whereIn('product_id', $products->pluck('id'))
+                    ->groupBy('product_id');
+            })->pluck('buy_price_per_unit', 'product_id')->all();
+        }
 
         return view('inventory.deliveries', compact('products', 'deliveries', 'lastPrices'));
     }

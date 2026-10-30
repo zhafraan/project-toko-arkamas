@@ -192,4 +192,48 @@ class HardeningTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'self'", (string) $response->headers->get('Content-Security-Policy'));
         $this->assertStringContainsString("form-action 'self'", (string) $response->headers->get('Content-Security-Policy'));
     }
+
+    public function test_kasir_tidak_melihat_kolom_harga_beli_pada_halaman_penerimaan(): void
+    {
+        $kasir = User::firstOrCreate(
+            ['email' => 'kasir@test.local'],
+            ['name' => 'Kasir Uji', 'password' => 'secret123', 'role' => 'kasir']
+        );
+        $p = $this->product();
+        \App\Models\AgentDelivery::create([
+            'user_id' => $kasir->id,
+            'product_id' => $p->id,
+            'delivery_date' => today(),
+            'qty_received' => 10,
+            'buy_price_per_unit' => 14500,
+            'total_cost' => 145000,
+            'admin_fee' => 0,
+        ]);
+
+        $response = $this->actingAs($kasir)->get(route('inventory.deliveries'));
+
+        $response->assertOk();
+        $response->assertDontSee('Harga beli');
+        $response->assertDontSee('Total biaya');
+        $response->assertDontSee('data-last-price', false);
+    }
+
+    public function test_penanganan_error_database_tidak_membocorkan_sql_ke_layar(): void
+    {
+        \Illuminate\Support\Facades\Route::get('/test-db-error-trigger', function () {
+            throw new \Illuminate\Database\QueryException('mysql', 'SELECT * FROM secret_table_not_found', [], new \Exception('Table not found'));
+        });
+
+        // Request web biasa (GET): harus render 500 error view tanpa membocorkan SQL
+        $webResponse = $this->get('/test-db-error-trigger');
+        $webResponse->assertStatus(500);
+        $webResponse->assertDontSee('SELECT * FROM secret_table_not_found');
+        $webResponse->assertSee('Terjadi kesalahan pada sistem');
+
+        // Request AJAX / JSON: harus kirim JSON 500 tanpa stack trace
+        $jsonResponse = $this->getJson('/test-db-error-trigger');
+        $jsonResponse->assertStatus(500);
+        $jsonResponse->assertJson(['success' => false]);
+        $jsonResponse->assertDontSee('SELECT * FROM secret_table_not_found');
+    }
 }

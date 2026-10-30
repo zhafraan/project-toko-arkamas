@@ -23,26 +23,29 @@ class DashboardController extends Controller
         $lowStockLimit = Product::LOW_STOCK;
         $lowStock      = $stocks->filter(fn ($p) => $p->stock_filled <= $lowStockLimit);
 
-        // ---- Hari ini ----
-        $todayQuery   = fn () => Transaction::whereDate('transaction_date', $today);
-        $todayRevenue = (float) $todayQuery()->sum('total_amount');
-        $todayCount   = $todayQuery()->count();
+        // ---- Hari ini (dioptimalkan dengan pengambilan tunggal dan query rentang berindeks) ----
+        $todayStart        = $today->clone()->startOfDay();
+        $todayEnd          = $today->clone()->endOfDay();
+        $todayTransactions = Transaction::whereBetween('transaction_date', [$todayStart, $todayEnd])
+            ->with('debtPayments')
+            ->get();
+
+        $todayRevenue = (float) $todayTransactions->sum('total_amount');
+        $todayCount   = $todayTransactions->count();
 
         // Jumlah tabung gas yang terjual hari ini
-        $todaySoldQty = (int) TransactionDetail::whereHas(
-            'transaction',
-            fn ($q) => $q->whereDate('transaction_date', $today)
-        )->sum('qty');
+        $todaySoldQty = $todayTransactions->isNotEmpty()
+            ? (int) TransactionDetail::whereIn('transaction_id', $todayTransactions->pluck('id'))->sum('qty')
+            : 0;
 
         // Uang yang benar-benar masuk hari ini (cash-basis): pembayaran awal nota
         // yang terjual hari ini (dikurangi kembalian dan cicilan) ditambah cicilan
         // piutang yang jatuh tempo dibayar hari ini — dipisah per metode.
-        $saleReceived = $todayQuery()->with('debtPayments')->get()
-            ->groupBy('payment_method')
+        $saleReceived = $todayTransactions->groupBy('payment_method')
             ->map(fn ($ts) => $ts->sum(
                 fn ($t) => (float) $t->paid_amount - (float) $t->change_amount - (float) $t->debtPayments->sum('amount_paid')
             ));
-        $installmentsToday = DebtPayment::whereDate('payment_date', $today)->get()
+        $installmentsToday = DebtPayment::whereBetween('payment_date', [$todayStart, $todayEnd])->get()
             ->groupBy('payment_method')
             ->map->sum('amount_paid');
 

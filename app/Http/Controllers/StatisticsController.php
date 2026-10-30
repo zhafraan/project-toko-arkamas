@@ -143,11 +143,8 @@ class StatisticsController extends Controller
         $today = today();
         $from = $to->copy()->subDays(6)->startOfDay();
 
-        $rows = TransactionDetail::whereHas(
-            'transaction',
-            fn ($q) => $q->where('transaction_date', '>=', $from)
-        )
-            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+        $rows = TransactionDetail::join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->where('transactions.transaction_date', '>=', $from)
             ->selectRaw('DATE(transactions.transaction_date) as d, SUM(transaction_details.qty) as qty, COUNT(DISTINCT transactions.id) as cnt')
             ->groupBy('d')->get()->keyBy('d');
 
