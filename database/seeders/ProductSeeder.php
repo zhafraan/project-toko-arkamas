@@ -56,6 +56,7 @@ class ProductSeeder extends Seeder
                 'price_buy'      => 25000,
                 'price_sell'     => 32000,
                 'stock_filled'   => 100.0,
+                'stock_crates'   => 10.0,
                 'category'       => 'telur',
                 'unit'           => 'kg',
             ],

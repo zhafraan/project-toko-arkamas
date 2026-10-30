@@ -36,12 +36,16 @@ class InventoryController extends Controller
             'price_buy'      => 'nullable|numeric|min:0',
             'price_sell'     => 'required|numeric|min:0',
             'price_tube'     => 'nullable|numeric|min:0',
-            'stock_filled'   => 'nullable|integer|min:0',
+            'stock_filled'   => 'nullable|numeric|min:0',
+            'stock_crates'   => 'nullable|numeric|min:0',
             'stock_empty'    => 'nullable|integer|min:0',
             'stock_borrowed' => 'nullable|integer|min:0',
+            'category'       => 'nullable|in:gas,telur',
+            'unit'           => 'nullable|string|max:20',
+            'min_stock'      => 'nullable|numeric|min:0',
         ]);
 
-        foreach (['price_buy', 'price_tube', 'stock_filled', 'stock_empty', 'stock_borrowed'] as $key) {
+        foreach (['price_buy', 'price_tube', 'stock_filled', 'stock_crates', 'stock_empty', 'stock_borrowed', 'min_stock'] as $key) {
             $data[$key] = $data[$key] ?? 0;
         }
         $data['is_active'] = true;
@@ -54,16 +58,20 @@ class InventoryController extends Controller
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
-            'name'       => 'required|string|max:255',
-            'sku'        => 'required|string|max:50|unique:products,sku,' . $product->id,
-            'price_buy'  => 'nullable|numeric|min:0',
-            'price_sell' => 'required|numeric|min:0',
-            'price_tube' => 'nullable|numeric|min:0',
-            'is_active'  => 'required|boolean',
+            'name'         => 'required|string|max:255',
+            'sku'          => 'required|string|max:50|unique:products,sku,' . $product->id,
+            'price_buy'    => 'nullable|numeric|min:0',
+            'price_sell'   => 'required|numeric|min:0',
+            'price_tube'   => 'nullable|numeric|min:0',
+            'is_active'    => 'required|boolean',
+            'stock_crates' => 'nullable|numeric|min:0',
         ]);
 
         $data['price_buy']  = $data['price_buy'] ?? 0;
         $data['price_tube'] = $data['price_tube'] ?? 0;
+        if ($request->has('stock_crates')) {
+            $data['stock_crates'] = (float) ($data['stock_crates'] ?? 0);
+        }
 
         $product->update($data);
         return back()->with('success', 'Produk "' . $product->name . '" berhasil diperbarui.');
@@ -327,6 +335,9 @@ class InventoryController extends Controller
             ]);
 
             $product->increment('stock_filled', $data['qty']);
+            if (!empty($data['crates'])) {
+                $product->increment('stock_crates', (float) $data['crates']);
+            }
         });
 
         return back()->with('success', 'Stok masuk berhasil dicatat.');
@@ -356,6 +367,9 @@ class InventoryController extends Controller
             );
 
             $product->decrement('stock_filled', $receipt->qty);
+            if (!empty($receipt->crates)) {
+                $product->decrement('stock_crates', (float) $receipt->crates);
+            }
             $receipt->delete();
         });
 

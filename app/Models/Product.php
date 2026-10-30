@@ -20,7 +20,7 @@ class Product extends Model
 
     protected $fillable = [
         'name', 'sku', 'price_buy', 'price_sell', 'price_tube',
-        'stock_filled', 'stock_empty', 'stock_borrowed', 'is_active',
+        'stock_filled', 'stock_crates', 'stock_empty', 'stock_borrowed', 'is_active',
         'category', 'unit', 'min_stock',
     ];
 
@@ -28,6 +28,7 @@ class Product extends Model
         'is_active' => 'boolean',
         'min_stock' => 'decimal:2',
         'stock_filled' => 'decimal:2',
+        'stock_crates' => 'decimal:2',
         'stock_empty' => 'decimal:2',
         'stock_borrowed' => 'decimal:2',
     ];
@@ -83,7 +84,8 @@ class Product extends Model
             'butir' => 'butir',
             'tray' => 'tray',
             'kg' => 'kg',
-            default => '',
+            'peti' => 'peti',
+            default => $this->unit ?? '',
         };
     }
 }

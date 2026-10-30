@@ -36,7 +36,8 @@
     $totalFilled = $filteredProducts->sum('stock_filled');
     $totalEmpty = $filteredProducts->sum('stock_empty');
     $totalBorrowed = $filteredProducts->sum('stock_borrowed');
-    $telurTotal = $filteredProducts->where('category', 'telur')->sum('stock_filled');
+    $telurTotalKg = $filteredProducts->where('category', 'telur')->sum('stock_filled');
+    $telurTotalPeti = $filteredProducts->where('category', 'telur')->sum('stock_crates');
 @endphp
 
 <div class="summary mb-2">
@@ -59,9 +60,14 @@
     @endif
     @if($category === 'all' || $category === 'telur')
     <div class="summary-item">
-        <div class="summary-label"><i class="dot dot-filled"></i> Telur tersedia</div>
-        <div class="summary-value">{{ number_format($telurTotal, 2) }}</div>
-        <div class="summary-note">telur dalam satuan</div>
+        <div class="summary-label"><i class="dot dot-filled"></i> Telur tersedia (Kg)</div>
+        <div class="summary-value">{{ number_format($telurTotalKg, 2) }} kg</div>
+        <div class="summary-note">total berat dalam kilogram</div>
+    </div>
+    <div class="summary-item">
+        <div class="summary-label"><i class="dot dot-filled"></i> Telur tersedia (Peti)</div>
+        <div class="summary-value">{{ number_format($telurTotalPeti, 1) }} peti</div>
+        <div class="summary-note">total stok dalam peti</div>
     </div>
     @endif
 </div>
@@ -79,7 +85,8 @@
                         <th>Stok</th>
                     @else
                         <th>Satuan</th>
-                        <th class="num">Jumlah stok</th>
+                        <th class="num">Stok (Kg)</th>
+                        <th class="num">Stok (Peti)</th>
                     @endif
                     <th>Status</th>
                     @if($user->isOwner())<th></th>@endif
@@ -99,6 +106,7 @@
                     @if($category === 'all' || $category === 'gas')
                         <td class="num" data-label="Harga tabung">@rupiah($product->price_tube)</td>
                         <td data-label="Stok">
+                            @if($product->isGas())
                             <div class="row" style="gap:6px;">
                                 <span class="qty-pill qty-filled" title="Isi">{{ $product->stock_filled }}</span>
                                 <span class="qty-pill qty-empty" title="Kosong">{{ $product->stock_empty }}</span>
@@ -107,10 +115,17 @@
                                     <span class="badge badge-warning">{{ $product->stock_filled <= 0 ? 'Habis' : 'Menipis' }}</span>
                                 @endif
                             </div>
+                            @else
+                            <div class="row" style="gap:6px;align-items:center;">
+                                <span class="qty-pill qty-filled">{{ number_format($product->stock_filled, 2) }} kg</span>
+                                <span class="qty-pill qty-borrowed">{{ ($product->stock_crates + 0) }} peti</span>
+                            </div>
+                            @endif
                         </td>
                     @else
                         <td data-label="Satuan">{{ $product->getUnitLabel() }}</td>
-                        <td class="num" data-label="Jumlah stok">{{ number_format($product->stock_filled, 2) }} {{ $product->getUnitLabel() }}</td>
+                        <td class="num" data-label="Stok (Kg)"><span class="qty-pill qty-filled">{{ number_format($product->stock_filled, 2) }} kg</span></td>
+                        <td class="num" data-label="Stok (Peti)">{{ ($product->stock_crates + 0) }} peti</td>
                     @endif
                     <td data-label="Status">
                         @if($product->is_active)
@@ -128,7 +143,8 @@
                                     data-name="{{ $product->name }}" data-sku="{{ $product->sku }}"
                                     data-is-active="{{ $product->is_active ? 1 : 0 }}"
                                     data-price-buy="{{ $product->price_buy + 0 }}" data-price-sell="{{ $product->price_sell + 0 }}" data-price-tube="{{ $product->price_tube + 0 }}"
-                                    data-category="{{ $product->category ?? 'gas' }}" data-unit="{{ $product->unit ?? 'tabung' }}">
+                                    data-category="{{ $product->category ?? 'gas' }}" data-unit="{{ $product->unit ?? 'tabung' }}"
+                                    data-stock-crates="{{ $product->stock_crates + 0 }}">
                                 <x-icon name="pencil" size="15" />
                             </button>
                             @if($product->category === 'gas')
@@ -244,9 +260,13 @@
                     <label class="label">Stok dipinjam awal</label>
                     <input type="number" name="stock_borrowed" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('stock_borrowed') : '0' }}">
                 </div>
-                <div class="field span-all price-telur-field">
-                    <label class="label" id="addStockFilledLabel">Jumlah stok (kg) <span class="req">*</span></label>
-                    <input type="number" name="stock_filled" class="input" min="0" step="0.1" value="{{ $reopen === 'addProductModal' ? old('stock_filled') : '0' }}" required>
+                <div class="field price-telur-field">
+                    <label class="label" id="addStockFilledLabel">Stok awal (Kg) <span class="req">*</span></label>
+                    <input type="number" name="stock_filled" class="input" min="0" step="any" value="{{ $reopen === 'addProductModal' ? old('stock_filled') : '0' }}" required>
+                </div>
+                <div class="field price-telur-field">
+                    <label class="label">Jumlah peti awal</label>
+                    <input type="number" name="stock_crates" class="input" min="0" step="any" value="{{ $reopen === 'addProductModal' ? old('stock_crates') : '0' }}">
                 </div>
                 <div class="field span-all">
                     <label class="label">Min stok alert</label>
@@ -303,6 +323,11 @@
                     <label class="label">Harga tabung fisik</label>
                     <input type="number" name="price_tube" class="input" min="0" step="any">
                     <div class="hint">Jumlah stok diubah melalui tombol Penyesuaian stok pada daftar produk.</div>
+                </div>
+                <div class="field span-all price-telur-field-edit" style="display:none;">
+                    <label class="label">Jumlah peti</label>
+                    <input type="number" name="stock_crates" id="editStockCrates" class="input" min="0" step="any">
+                    <div class="hint">Jumlah peti saat ini. Penambahan stok Kg dan Peti juga dapat dicatat melalui menu Stok Masuk Telur.</div>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan perubahan</button>
@@ -389,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 unitSelect.innerHTML = `
                     <option value="kg">kg</option>
+                    <option value="peti">peti</option>
                     <option value="tray">tray</option>
                     <option value="butir">butir</option>
                 `;
@@ -401,8 +427,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const editCategorySelect = document.getElementById('editCategorySelect');
     const editPriceGasFields = document.querySelectorAll('.price-gas-field-edit');
+    const editPriceTelurFields = document.querySelectorAll('.price-telur-field-edit');
     const editPriceBuyLabel = document.getElementById('editPriceBuyLabel');
     const editPriceSellLabel = document.getElementById('editPriceSellLabel');
+    const editStockCrates = document.getElementById('editStockCrates');
 
     if (editCategorySelect) {
         function updateEditFormFields() {
@@ -411,6 +439,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             editPriceGasFields.forEach(el => {
                 el.style.display = isGas ? 'block' : 'none';
+            });
+
+            editPriceTelurFields.forEach(el => {
+                el.style.display = isGas ? 'none' : 'block';
             });
 
             if (editPriceBuyLabel) {
@@ -439,6 +471,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (unitSelect) {
                     unitSelect.value = this.dataset.unit;
                 }
+            }
+            if (this.dataset.stockCrates !== undefined && editStockCrates) {
+                editStockCrates.value = this.dataset.stockCrates;
             }
         });
     });
