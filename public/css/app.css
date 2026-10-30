@@ -190,6 +190,22 @@ html.modal-open { overflow: hidden; }
 .span-all { grid-column: 1 / -1; }
 .layout-side { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) 380px; align-items: start; }
 .layout-side.side-left { grid-template-columns: 360px minmax(0, 1fr); }
+.layout-side.layout-dashboard-cards { align-items: stretch; }
+.layout-dashboard-cards > .stack { display: flex; flex-direction: column; height: 100%; }
+.layout-dashboard-cards .card-main { flex: 1; display: flex; flex-direction: column; min-height: 290px; }
+.layout-dashboard-cards .card-head {
+    height: 64px;
+    min-height: 64px;
+    max-height: 64px;
+    box-sizing: border-box;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+}
+.layout-dashboard-cards .card-main > .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 20px; }
+.layout-dashboard-cards .trx-list { flex: 1; }
 @media (max-width: 1100px) { .layout-side, .layout-side.side-left { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
 
@@ -514,11 +530,6 @@ a.stat-card:hover {
     color: var(--text);
     border-color: var(--border-strong);
     text-decoration: none;
-}
-    flex-shrink: 0;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text-2);
 }
 
 /* Fallback kompatibilitas nama ikon lama -> tetap monokrom bersih */

@@ -62,12 +62,12 @@
     </a>
 </div>
 
-<div class="layout-side mt-2">
+<div class="layout-side layout-dashboard-cards mt-2">
 
     <div class="stack" style="gap:16px;">
 
-        {{-- Transaksi terbaru (Gaya Tabel Skillset) --}}
-        <div class="card">
+        {{-- Transaksi terbaru--}}
+        <div class="card card-main">
             <div class="card-head">
                 <span class="card-title">{{ auth()->user()->isOwner() ? 'Transaksi Terbaru' : 'Transaksi Hari Ini' }}</span>
                 <div class="row" style="gap:8px;">
@@ -142,11 +142,16 @@
         </div>
         @endif
 
-        <div class="card">
+        <div class="card card-main">
             <div class="card-head">
                 <span class="card-title"><x-icon name="stock" /> Stok</span>
-                <a href="{{ route('inventory.index') }}" class="text-sm fw">{{ auth()->user()->isOwner() ? 'Kelola stok' : 'Stok Gas' }}</a>
+                <div class="row" style="gap:8px;align-items:center;">
+                    <a href="{{ route('inventory.index') }}" class="card-action-btn" title="{{ auth()->user()->isOwner() ? 'Kelola stok' : 'Lihat stok gas' }}" aria-label="Kelola stok">
+                        <x-icon name="arrow-up-right" size="14" />
+                    </a>
+                </div>
             </div>
+            @if($stocks->count() > 0)
             <div class="card-body" style="border-bottom:1px solid var(--border);padding:14px 18px;">
                 <div class="legend">
                     <span><i class="dot dot-filled"></i> Isi <strong class="num">{{ number_format($totalFilled) }}</strong></span>
@@ -154,6 +159,7 @@
                     <span><i class="dot dot-borrowed"></i> Dipinjam <strong class="num">{{ number_format($totalBorrowed) }}</strong></span>
                 </div>
             </div>
+            @endif
             @forelse($stocks as $product)
             <div class="stock-item">
                 <div class="row between" style="margin-bottom:8px;">
@@ -180,7 +186,9 @@
             </div>
             @empty
             <div class="empty">
+                <div class="empty-icon"><x-icon name="stock" size="24" /></div>
                 <div class="empty-title">Belum ada produk aktif</div>
+                <div>Tambahkan produk di menu Kelola Stok.</div>
             </div>
             @endforelse
         </div>
