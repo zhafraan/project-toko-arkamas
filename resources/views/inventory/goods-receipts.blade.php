@@ -19,17 +19,7 @@
         <div class="card-head"><span class="card-title"><x-icon name="truck" /> Catat stok masuk baru</span></div>
         <form method="POST" action="{{ route('inventory.storeGoodsReceipt') }}" class="card-body">
             @csrf
-            <div class="field">
-                <label class="label">Produk <span class="req">*</span></label>
-                <select name="product_id" id="receiptProduct" class="select" required>
-                    <option value="">Pilih produk telur…</option>
-                    @foreach($products as $p)
-                    <option value="{{ $p->id }}"
-                            data-last-price="{{ $lastPrices[$p->id] ?? \App\Models\Product::DEFAULT_BUY_PRICE_TELUR }}"
-                            {{ old('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <input type="hidden" name="product_id" value="{{ $telurProduct?->id ?? $products->first()?->id }}">
             <div class="field">
                 <label class="label">Tanggal stok masuk <span class="req">*</span></label>
                 <input type="date" name="receipt_date" class="input" min="{{ today()->toDateString() }}" value="{{ old('receipt_date', today()->toDateString()) }}" required>
@@ -37,18 +27,12 @@
             <div class="form-grid">
                 <div class="field">
                     <label class="label">Jumlah peti</label>
-                    <div class="input-affix">
-                        <input type="text" name="crates" id="cratesReceipt" class="input num" inputmode="decimal" placeholder="0" value="{{ old('crates') }}" autocomplete="off">
-                        <span class="affix">peti</span>
-                    </div>
+                    <input type="text" name="crates" id="cratesReceipt" class="input num" inputmode="decimal" placeholder="0" value="{{ old('crates') }}" autocomplete="off">
                     <div class="hint">Opsional (misal: 5 peti).</div>
                 </div>
                 <div class="field">
-                    <label class="label">Jumlah stok <span class="req">*</span></label>
-                    <div class="input-affix">
-                        <input type="text" name="qty" id="qtyReceipt" class="input num" inputmode="decimal" placeholder="0" value="{{ old('qty') }}" autocomplete="off" required>
-                        <span class="affix">kg</span>
-                    </div>
+                    <label class="label">Jumlah stok(Kg) <span class="req">*</span></label>
+                    <input type="text" name="qty" id="qtyReceipt" class="input num" inputmode="decimal" placeholder="0" value="{{ old('qty') }}" autocomplete="off" required>
                     <div class="hint">Total berat dalam kilogram (kg).</div>
                 </div>
                 @if(auth()->user()->isOwner())
@@ -56,8 +40,7 @@
                     <label class="label">Harga perkilo <span class="req">*</span></label>
                     <div class="input-affix">
                         <span class="affix">Rp</span>
-                        <input type="text" name="buy_price_per_unit" id="buyPrice" class="input num" inputmode="numeric" placeholder="Ketik harga perkilo" value="{{ old('buy_price_per_unit') }}" autocomplete="off" required>
-                        <span class="affix">/ kg</span>
+                        <input type="text" name="buy_price_per_unit" id="buyPrice" class="input num" inputmode="numeric" placeholder="Ketik harga perkilo" value="{{ old('buy_price_per_unit', isset($defaultBuyPrice) && $defaultBuyPrice > 0 ? number_format($defaultBuyPrice, 0, ',', '.') : '') }}" autocomplete="off" required> 
                     </div>
                     <div class="hint" style="margin-top:4px;">Harga beli per 1 kilogram telur. Nilai ini menjadi default berikutnya.</div>
                 </div>
@@ -135,16 +118,6 @@
     var qty = document.getElementById('qtyReceipt');
     var crates = document.getElementById('cratesReceipt');
     var price = document.getElementById('buyPrice');
-    var productSelect = document.getElementById('receiptProduct');
-
-    if (productSelect && price) {
-        productSelect.addEventListener('change', function () {
-            var opt = this.options[this.selectedIndex];
-            var last = opt ? opt.dataset.lastPrice : '';
-            if (last) price.value = formatAmount(parseFloat(last) || 0);
-            markInvalid(price, false);
-        });
-    }
 
     function parseAmount(raw) {
         var s = String(raw || '').replace(/\s+/g, '');

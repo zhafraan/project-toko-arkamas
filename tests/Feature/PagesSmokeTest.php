@@ -136,5 +136,15 @@ class PagesSmokeTest extends TestCase
         $this->assertEquals(24500, (float) $receipt->buy_price_per_unit);
         $this->assertEquals(50.5 * 24500, (float) $receipt->total_cost);
         $this->assertEquals(60.5, (float) $telur->fresh()->stock_filled);
+
+        // Uji simpan tanpa mengirim product_id eksplisit (otomatis memilih produk telur)
+        $this->actingAs($owner)->post(route('inventory.storeGoodsReceipt'), [
+            'receipt_date' => today()->toDateString(),
+            'crates' => 2,
+            'qty' => 20,
+            'buy_price_per_unit' => 24500,
+        ])->assertSessionHas('success');
+
+        $this->assertEquals(80.5, (float) $telur->fresh()->stock_filled);
     }
 }

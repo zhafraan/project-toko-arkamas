@@ -257,6 +257,7 @@ class InventoryController extends Controller
     public function goodsReceipts()
     {
         $products = Product::where('category', 'telur')->where('is_active', true)->orderBy('name')->get();
+        $telurProduct = $products->firstWhere('unit', 'kg') ?? $products->first();
 
         $lastPrices = GoodsReceipt::whereIn('product_id', $products->pluck('id'))
             ->orderBy('receipt_date')->orderBy('id')
@@ -264,18 +265,20 @@ class InventoryController extends Controller
             ->groupBy('product_id')
             ->map(fn ($rows) => (float) $rows->last()->buy_price_per_unit);
 
+        $defaultBuyPrice = (float) ($lastPrices[$telurProduct?->id] ?? $telurProduct?->price_buy ?? Product::DEFAULT_BUY_PRICE_TELUR);
+
         $goodsReceipts = GoodsReceipt::with(['product', 'user'])
             ->whereHas('product', fn ($q) => $q->where('category', 'telur'))
             ->latest('receipt_date')->latest('id')
             ->paginate(20);
 
-        return view('inventory.goods-receipts', compact('products', 'goodsReceipts', 'lastPrices'));
+        return view('inventory.goods-receipts', compact('products', 'telurProduct', 'defaultBuyPrice', 'goodsReceipts', 'lastPrices'));
     }
 
     public function storeGoodsReceipt(Request $request)
     {
         $rules = [
-            'product_id'          => 'required|exists:products,id',
+            'product_id'          => 'nullable|exists:products,id',
             'receipt_date'        => 'required|date|after_or_equal:today',
             'crates'              => 'nullable|numeric|min:0',
             'qty'                 => 'required|numeric|min:0.1',
@@ -288,6 +291,14 @@ class InventoryController extends Controller
         }
 
         $data = $request->validate($rules);
+
+        if (empty($data['product_id'])) {
+            $telur = Product::where('category', 'telur')->where('is_active', true)->orderBy('id')->first();
+            if (!$telur) {
+                return back()->with('error', 'Produk telur belum terdaftar di sistem.');
+            }
+            $data['product_id'] = $telur->id;
+        }
 
         if (auth()->user()->isOwner()) {
             $data['buy_price_per_unit'] = !empty($data['buy_price_per_unit'])
