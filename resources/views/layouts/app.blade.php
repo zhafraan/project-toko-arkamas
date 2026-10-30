@@ -98,7 +98,7 @@
 <div class="main">
     <header class="topbar">
         <button type="button" class="btn btn-ghost btn-icon" onclick="toggleSidebar()" title="Ciutkan atau perluas menu" aria-label="Menu">
-            <x-icon name="panel-left" size="20" />
+            <x-icon name="panel-left" size="18" />
         </button>
         <div class="topbar-title">
             <h1 class="page-title">@yield('page-title', 'Dashboard')</h1>
@@ -108,6 +108,18 @@
         </div>
         <div class="topbar-actions">
             @yield('topbar-actions')
+            <div class="topbar-search-wrap" style="display:inline-flex;align-items:center;">
+                <div class="search topbar-search" style="max-width:200px;">
+                    <x-icon name="search" size="15" />
+                    <input type="search" class="input input-sm" placeholder="Search..." aria-label="Cari..." autocomplete="off">
+                </div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" title="Notifikasi" aria-label="Notifikasi">
+                <x-icon name="bell" size="17" />
+            </button>
+            <a href="{{ route('users.index') }}" title="{{ auth()->user()->name }}" class="avatar" style="width:34px;height:34px;font-size:12.5px;text-decoration:none;">
+                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            </a>
         </div>
     </header>
 

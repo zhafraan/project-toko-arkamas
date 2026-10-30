@@ -353,7 +353,7 @@
         DATA.forEach(function (d, i) {
             var x = m.l + band * i + (band - bw) / 2, v = d[metric], top = y(v), h = m.t + ih - top;
             if (v > 0) {
-                var r = Math.min(4, bw / 2, h);
+                var r = Math.min(10, bw / 2, h);
                 var path = 'M' + x + ',' + (m.t + ih) + 'V' + (top + r) + 'Q' + x + ',' + top + ' ' + (x + r) + ',' + top +
                            'H' + (x + bw - r) + 'Q' + (x + bw) + ',' + top + ' ' + (x + bw) + ',' + (top + r) + 'V' + (m.t + ih) + 'Z';
                 svg.appendChild(el('path', { d: path, 'class': 'bar', 'data-i': i }));

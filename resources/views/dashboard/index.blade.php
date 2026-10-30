@@ -12,7 +12,20 @@
 @section('content')
 
 
-{{-- Ringkasan statistik --}}
+{{-- Filter periode & tanggal gaya Skillset --}}
+<div class="row between wrap mb-2" style="gap:12px;margin-bottom:20px;">
+    <div class="range-tabs">
+        <button type="button" class="active" aria-pressed="true">Hari</button>
+        <a href="{{ route('statistics.index', ['range' => '7d']) }}">Minggu</a>
+        <a href="{{ route('statistics.index', ['range' => 'this_month']) }}">Bulan</a>
+        <a href="{{ route('statistics.index', ['range' => 'this_year']) }}">Tahun</a>
+    </div>
+    <div class="badge" style="height:34px;padding:0 16px;gap:8px;font-size:12.5px;font-weight:600;background:var(--surface);border-color:var(--border);">
+        <x-icon name="calendar" size="14" /> {{ today()->translatedFormat('j M Y') }}
+    </div>
+</div>
+
+{{-- Ringkasan statistik (KPI cards) --}}
 @php
     $isOwner = auth()->user()->isOwner();
     $statCount = 4 + ($isOwner ? 1 : 0) + ($monthRevenue !== null ? 1 : 0);
@@ -22,44 +35,32 @@
     @if($isOwner)
     <div class="stat-card stat-card-dark">
         <div class="stat-card-head">
-            <span class="stat-card-title">Omzet hari ini</span>
-            <div class="stat-card-icon">
-                <x-icon name="trending-up" size="18" />
-            </div>
+            <span class="stat-card-title">Total Omzet Hari Ini</span>
         </div>
         <div class="stat-card-value">@rupiah($todayRevenue)</div>
-        <div class="stat-card-note">{{ $todayCount }} transaksi</div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> {{ $todayCount }} transaksi hari ini</div>
     </div>
     @endif
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Gas terjual hari ini</span>
-            <div class="stat-card-icon">
-                <x-icon name="package" size="18" />
-            </div>
+            <span class="stat-card-title">Gas Terjual Hari Ini</span>
         </div>
         <div class="stat-card-value">{{ number_format($todayGasQty) }} tabung</div>
-        <div class="stat-card-note">Isi gas yang terjual hari ini</div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> Terjual {{ number_format($todayGasQty) }} tabung isi</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Telur terjual hari ini</span>
-            <div class="stat-card-icon">
-                <x-icon name="package" size="18" />
-            </div>
+            <span class="stat-card-title">Telur Terjual Hari Ini</span>
         </div>
         <div class="stat-card-value">{{ number_format($todayTelurQty) }} {{ $telurUnitLabel }}</div>
-        <div class="stat-card-note">Telur yang terjual hari ini</div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> Terjual {{ number_format($todayTelurQty) }} {{ $telurUnitLabel }}</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Penerimaan hari ini</span>
-            <div class="stat-card-icon">
-                <x-icon name="banknote" size="18" />
-            </div>
+            <span class="stat-card-title">Penerimaan Hari Ini</span>
         </div>
         <div class="stat-card-value">@rupiah($todayTotalRevenue)</div>
         <div class="stat-card-note"><span class="nowrap">Gas @rupiah($todayGasRevenue)</span> · <span class="nowrap">Telur @rupiah($todayTelurRevenue)</span></div>
@@ -67,36 +68,27 @@
 
     <a href="{{ route('debts.index') }}" class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Piutang belum lunas</span>
-            <div class="stat-card-icon">
-                <x-icon name="wallet" size="18" />
-            </div>
+            <span class="stat-card-title">Piutang Belum Lunas</span>
         </div>
         <div class="stat-card-value {{ $totalPiutang > 0 ? 'danger' : '' }}">@rupiah($totalPiutang)</div>
-        <div class="stat-card-note">{{ $countPiutang }} nota</div>
+        <div class="stat-card-note"><span class="stat-trend {{ $totalPiutang > 0 ? 'down' : 'up' }}">{{ $totalPiutang > 0 ? '↘' : '✓' }}</span> {{ $countPiutang }} nota belum lunas</div>
     </a>
 
     <a href="{{ route('loans.index') }}" class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Tabung dalam pinjaman</span>
-            <div class="stat-card-icon">
-                <x-icon name="package" size="18" />
-            </div>
+            <span class="stat-card-title">Tabung Dalam Pinjaman</span>
         </div>
         <div class="stat-card-value">{{ number_format($loanTubes) }} tabung</div>
-        <div class="stat-card-note">Dipinjam oleh {{ $loanCustomers }} pelanggan</div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> Dipinjam {{ $loanCustomers }} pelanggan</div>
     </a>
 
     @if($monthRevenue !== null)
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Omzet bulan ini</span>
-            <div class="stat-card-icon">
-                <x-icon name="bar-chart" size="18" />
-            </div>
+            <span class="stat-card-title">Omzet Bulan Ini</span>
         </div>
         <div class="stat-card-value">@rupiah($monthRevenue)</div>
-        <div class="stat-card-note">{{ now()->translatedFormat('F Y') }}</div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> Periode {{ now()->translatedFormat('F Y') }}</div>
     </div>
     @endif
 </div>
@@ -105,17 +97,24 @@
 
     <div class="stack" style="gap:16px;">
 
-        {{-- Transaksi terbaru --}}
+        {{-- Transaksi terbaru (Gaya Tabel Skillset) --}}
         <div class="card">
             <div class="card-head">
-                <span class="card-title">{{ auth()->user()->isOwner() ? 'Transaksi terbaru' : 'Transaksi hari ini' }}</span>
-                <a href="{{ route('pos.history') }}" class="text-sm fw">Lihat semua transaksi</a>
+                <span class="card-title">{{ auth()->user()->isOwner() ? 'Transaksi Terbaru' : 'Transaksi Hari Ini' }}</span>
+                <div class="row" style="gap:8px;">
+                    <a href="{{ route('pos.history') }}" class="card-action-btn" title="Lihat semua transaksi" aria-label="Lihat semua">
+                        <x-icon name="arrow-up-right" size="14" />
+                    </a>
+                </div>
             </div>
             @if($recentTransactions->count() > 0)
             <ul class="trx-list">
                 @foreach($recentTransactions as $trx)
                 <li>
                     <a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="trx-item" title="Buka nota">
+                        <div class="avatar" style="width:38px;height:38px;border-radius:12px;background:var(--surface-2);color:var(--text);font-size:12px;border:1px solid var(--border);flex-shrink:0;">
+                            <x-icon name="cart" size="16" />
+                        </div>
                         <div class="trx-main">
                             <div class="cell-title truncate">{{ $trx->customer?->name ?? 'Pelanggan umum' }}</div>
                             <div class="cell-sub">{{ $trx->transaction_date->format('d M, H:i') }} · {{ $trx->invoice_number }}</div>
