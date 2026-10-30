@@ -245,4 +245,14 @@ class PosStockTest extends TestCase
 
         $this->assertEquals(10500, $trx->fresh()->remaining_debt);
     }
+
+    public function test_pembelian_dengan_qty_desimal_ditolak(): void
+    {
+        $p = $this->product();
+
+        $this->checkout($this->kasir(), [
+            'items' => [['product_id' => $p->id, 'transaction_type' => 'refill', 'qty' => 1.5]],
+            'payment_method' => 'cash', 'payment_status' => 'lunas',
+        ])->assertStatus(422)->assertJsonValidationErrors('items.0.qty');
+    }
 }

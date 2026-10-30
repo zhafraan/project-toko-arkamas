@@ -16,6 +16,9 @@ class TubeLoan extends Model
     ];
 
     protected $casts = [
+        'qty_borrowed' => 'integer',
+        'qty_returned' => 'integer',
+        'deposit_amount' => 'decimal:2',
         'borrow_date' => 'date',
         'return_date' => 'date',
     ];

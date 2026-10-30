@@ -173,15 +173,15 @@
                 </div>
                 <div class="field">
                     <label class="label">Stok isi awal</label>
-                    <input type="number" name="stock_filled" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('stock_filled') : '0' }}">
+                    <input type="number" name="stock_filled" class="input" min="0" step="1" value="{{ $reopen === 'addProductModal' ? old('stock_filled') : '0' }}">
                 </div>
                 <div class="field">
                     <label class="label">Stok kosong awal</label>
-                    <input type="number" name="stock_empty" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('stock_empty') : '0' }}">
+                    <input type="number" name="stock_empty" class="input" min="0" step="1" value="{{ $reopen === 'addProductModal' ? old('stock_empty') : '0' }}">
                 </div>
                 <div class="field">
                     <label class="label">Stok dipinjam awal</label>
-                    <input type="number" name="stock_borrowed" class="input" min="0" value="{{ $reopen === 'addProductModal' ? old('stock_borrowed') : '0' }}">
+                    <input type="number" name="stock_borrowed" class="input" min="0" step="1" value="{{ $reopen === 'addProductModal' ? old('stock_borrowed') : '0' }}">
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Simpan produk</button>
@@ -247,15 +247,15 @@
             <div class="modal-note"><strong data-modal-subject></strong><div class="muted">Masukkan jumlah hasil penghitungan fisik di gudang. Setiap penyesuaian wajib beralasan dan tercatat di riwayat audit.</div></div>
             <div class="field">
                 <label class="label"><i class="dot dot-filled"></i> Tabung isi</label>
-                <input type="number" name="stock_filled" class="input" min="0" required value="{{ $reopen === 'adjustStockModal' ? old('stock_filled') : '' }}">
+                <input type="number" name="stock_filled" class="input" min="0" step="1" required value="{{ $reopen === 'adjustStockModal' ? old('stock_filled') : '' }}">
             </div>
             <div class="field">
                 <label class="label"><i class="dot dot-empty"></i> Tabung kosong</label>
-                <input type="number" name="stock_empty" class="input" min="0" required value="{{ $reopen === 'adjustStockModal' ? old('stock_empty') : '' }}">
+                <input type="number" name="stock_empty" class="input" min="0" step="1" required value="{{ $reopen === 'adjustStockModal' ? old('stock_empty') : '' }}">
             </div>
             <div class="field">
                 <label class="label"><i class="dot dot-borrowed"></i> Tabung dipinjam</label>
-                <input type="number" name="stock_borrowed" class="input" min="0" required value="{{ $reopen === 'adjustStockModal' ? old('stock_borrowed') : '' }}">
+                <input type="number" name="stock_borrowed" class="input" min="0" step="1" required value="{{ $reopen === 'adjustStockModal' ? old('stock_borrowed') : '' }}">
             </div>
             <div class="field">
                 <label class="label">Alasan penyesuaian <span class="req">*</span></label>

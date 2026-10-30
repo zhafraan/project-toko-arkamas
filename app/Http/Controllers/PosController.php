@@ -29,7 +29,7 @@ class PosController extends Controller
             'items'                    => 'required|array|min:1',
             'items.*.product_id'       => 'required|exists:products,id',
             'items.*.transaction_type' => 'required|in:refill,pinjam_tabung,plus_tabung',
-            'items.*.qty'              => 'required|numeric|min:0.01',
+            'items.*.qty'              => 'required|integer|min:1',
             'customer_id'              => 'nullable|exists:customers,id',
             'payment_method'           => 'required|in:cash,transfer',
             'payment_status'           => 'required|in:lunas,belum_lunas',

@@ -15,7 +15,11 @@ class AgentDelivery extends Model
     ];
 
     protected $casts = [
-        'delivery_date' => 'date',
+        'qty_received'       => 'integer',
+        'buy_price_per_unit' => 'decimal:2',
+        'total_cost'         => 'decimal:2',
+        'admin_fee'          => 'decimal:2',
+        'delivery_date'      => 'date',
     ];
 
     public function user()

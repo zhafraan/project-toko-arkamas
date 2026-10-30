@@ -314,7 +314,7 @@
                     '<div style="text-align:right;"><div class="cart-item-price">' + rupiah(unitPrice(l)) + '</div>' +
                     '<div class="stepper" style="margin-top:8px;">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="dec" data-idx="' + i + '" aria-label="Kurangi">' + svg('minus') + '</button>' +
-                    '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + l.qty + '" min="1" max="' + room + '" aria-label="Jumlah">' +
+                    '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + l.qty + '" min="1" max="' + room + '" step="1" aria-label="Jumlah">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="inc" data-idx="' + i + '" aria-label="Tambah">' + svg('plus') + '</button>' +
                     '<button type="button" class="btn btn-ghost btn-xs btn-icon" data-act="del" data-idx="' + i + '" title="Hapus" aria-label="Hapus">' + svg('trash') + '</button>' +
                     '</div></div></div>';

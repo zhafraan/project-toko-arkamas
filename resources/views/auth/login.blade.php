@@ -19,19 +19,19 @@
                 <rect width="72" height="72" rx="18" fill="rgba(255,255,255,.18)"/>
                 <text x="36" y="47" text-anchor="middle" font-family="'Manrope', system-ui, sans-serif" font-weight="800" font-size="28" letter-spacing="-1" fill="#FFFFFF">TA</text>
             </svg>
-            <strong style="font-size:17px;letter-spacing:-.02em;font-weight:800;">Toko Arkamas</strong>
+            <strong style="font-size:20px;letter-spacing:-.02em;font-weight:800;">Toko Arkamas</strong>
         </div>
         <div>
             <h2>Sistem Pengelolaan Toko Arkamas</h2>
             <p>Kelola penjualan gas LPG, stok tabung, dan piutang dalam satu sistem modern.</p>
         </div>
-        <div style="font-size:13px;color:rgba(255,255,255,.6);">© {{ date('Y') }} Toko Arkamas</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.6);">© {{ date('Y') }} Toko Arkamas</div>
     </aside>
 
     <main class="auth-main">
         <div class="auth-card">
             <h1>Masuk</h1>
-            <p class="muted" style="margin:4px 0 24px;">Masuk menggunakan akun yang diberikan oleh pemilik toko.</p>
+            <p class="muted" style="margin:4px 0 24px;">Masuk menggunakan akun yang diberikan oleh Admin.</p>
 
             @if(session('info'))
             <div class="alert alert-info" role="status"><x-icon name="info" /><div class="alert-body">{{ session('info') }}</div></div>
@@ -44,15 +44,15 @@
             <form method="POST" action="{{ route('login.post') }}">
                 @csrf
                 <div class="field">
-                    <label class="label" for="email">Email</label>
+                    <label class="label" for="email">Username</label>
                     <input type="email" name="email" id="email" class="input {{ (isset($errors) && $errors->has('email')) ? 'is-invalid' : '' }}"
                            value="{{ old('email', $rememberedEmail ?? '') }}" placeholder="email@contoh.com" autocomplete="email" autofocus required>
                 </div>
                 <div class="field">
-                    <label class="label" for="password">Kata sandi</label>
+                    <label class="label" for="password">Password</label>
                     <div class="input-affix">
                         <input type="password" name="password" id="password" class="input" style="padding-left:12px;padding-right:44px;" autocomplete="current-password" required>
-                        <button type="button" class="btn btn-ghost btn-icon btn-xs affix-btn" id="togglePw" aria-label="Tampilkan kata sandi" title="Tampilkan / sembunyikan kata sandi">
+                        <button type="button" class="btn btn-ghost btn-icon btn-xs affix-btn" id="togglePw" aria-label="Tampilkan password" title="Tampilkan / sembunyikan Password">
                             <x-icon name="eye" size="17" data-pw-show="" />
                             <x-icon name="eye-off" size="17" data-pw-hide="" hidden />
                         </button>

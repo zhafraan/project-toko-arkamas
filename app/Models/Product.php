@@ -23,10 +23,10 @@ class Product extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'min_stock' => 'decimal:2',
-        'stock_filled' => 'decimal:2',
-        'stock_empty' => 'decimal:2',
-        'stock_borrowed' => 'decimal:2',
+        'min_stock' => 'integer',
+        'stock_filled' => 'integer',
+        'stock_empty' => 'integer',
+        'stock_borrowed' => 'integer',
     ];
 
     public function transactionDetails()
