@@ -7,15 +7,19 @@
 
 <div class="card mb-2">
     <form method="GET" action="{{ route('reports.index') }}" class="toolbar" id="reportForm" style="border-bottom:0;align-items:flex-end;">
-        <div>
-            <label class="label" for="repType">Periode</label>
-            <select name="type" id="repType" class="select">
-                <option value="daily" {{ $type === 'daily' ? 'selected' : '' }}>Harian</option>
-                <option value="weekly" {{ $type === 'weekly' ? 'selected' : '' }}>Mingguan</option>
-                <option value="monthly" {{ $type === 'monthly' ? 'selected' : '' }}>Bulanan</option>
-                <option value="yearly" {{ $type === 'yearly' ? 'selected' : '' }}>Tahunan</option>
-            </select>
+        <div class="range-tabs">
+            @foreach(['daily' => 'Harian', 'weekly' => 'Mingguan', 'monthly' => 'Bulanan', 'yearly' => 'Tahunan'] as $k => $l)
+            <button type="button" class="{{ $type === $k ? 'active' : '' }}" {{ $type === $k ? 'aria-pressed="true"' : '' }} onclick="var s = document.getElementById('repType'); s.value='{{ $k }}'; s.dispatchEvent(new Event('change'));">
+                {{ $l }}
+            </button>
+            @endforeach
         </div>
+        <select name="type" id="repType" class="select" style="display:none;">
+            <option value="daily" {{ $type === 'daily' ? 'selected' : '' }}>Harian</option>
+            <option value="weekly" {{ $type === 'weekly' ? 'selected' : '' }}>Mingguan</option>
+            <option value="monthly" {{ $type === 'monthly' ? 'selected' : '' }}>Bulanan</option>
+            <option value="yearly" {{ $type === 'yearly' ? 'selected' : '' }}>Tahunan</option>
+        </select>
         <div data-for="daily" {{ $type === 'daily' ? '' : 'hidden' }}>
             <label class="label">Tanggal</label>
             <input type="date" name="date" class="input" value="{{ $date }}">

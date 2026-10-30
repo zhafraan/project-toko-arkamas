@@ -14,7 +14,8 @@
     .st-chart text { font-family: var(--font); font-size: 11px; fill: var(--text-3); }
     .st-chart .grid { stroke: var(--border); stroke-width: 1; }
     .st-chart .bar { fill: var(--primary); }
-    .st-chart .bar.is-hover { fill: var(--primary-hover); }
+    .st-chart .bar.is-hover { fill: #4A4A4F; }
+    :root[data-theme="dark"] .st-chart .bar.is-hover { fill: #A1A1AA; }
     .st-chart .hit { fill: transparent; cursor: default; }
     .st-tip { position:absolute; z-index:5; pointer-events:none; background: var(--surface); color: var(--text); border:1px solid var(--border-strong); border-radius: var(--r-sm); box-shadow: var(--shadow-md); padding: 8px 10px; font-size: 12.5px; min-width: 150px; opacity:0; transition: opacity .08s; }
     .st-tip.show { opacity:1; }
@@ -64,24 +65,26 @@
 
 {{-- Filter periode --}}
 <div class="card mb-2">
-    <form method="GET" action="{{ route('statistics.index') }}" class="toolbar" id="stForm" style="border-bottom:0;align-items:flex-end;">
-        <div>
-            <label class="label" for="stRange">Periode</label>
-            <select name="range" id="stRange" class="select">
-                @foreach($presets as $key => $label)
-                <option value="{{ $key }}" {{ $range === $key ? 'selected' : '' }}>{{ $label }}</option>
-                @endforeach
-            </select>
+    <form method="GET" action="{{ route('statistics.index') }}" class="toolbar" id="stForm" style="border-bottom:0;align-items:center;">
+        <div class="range-tabs" id="rangeTabs">
+            @foreach($presets as $key => $label)
+            <button type="button" class="{{ $range === $key ? 'active' : '' }}" {{ $range === $key ? 'aria-pressed="true"' : '' }} onclick="var s = document.getElementById('stRange'); s.value='{{ $key }}'; s.dispatchEvent(new Event('change'));">
+                {{ $label }}
+            </button>
+            @endforeach
         </div>
-        <div data-custom {{ $range === 'custom' ? '' : 'hidden' }}>
-            <label class="label" for="stFrom">Dari</label>
-            <input type="date" id="stFrom" name="from" class="input" value="{{ $from }}">
+        <select name="range" id="stRange" class="select" style="display:none;">
+            @foreach($presets as $key => $label)
+            <option value="{{ $key }}" {{ $range === $key ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
+        </select>
+        <div data-custom {{ $range === 'custom' ? '' : 'hidden' }} class="row" style="gap:8px;margin-left:8px;">
+            <label class="label" for="stFrom" style="margin-bottom:0;">Dari</label>
+            <input type="date" id="stFrom" name="from" class="input input-sm" value="{{ $from }}">
+            <label class="label" for="stTo" style="margin-bottom:0;">Sampai</label>
+            <input type="date" id="stTo" name="to" class="input input-sm" value="{{ $to }}">
+            <button type="submit" class="btn btn-primary btn-sm"><x-icon name="filter" size="14" /> Tampilkan</button>
         </div>
-        <div data-custom {{ $range === 'custom' ? '' : 'hidden' }}>
-            <label class="label" for="stTo">Sampai</label>
-            <input type="date" id="stTo" name="to" class="input" value="{{ $to }}">
-        </div>
-        <button type="submit" class="btn btn-primary"><x-icon name="filter" size="16" /> Tampilkan</button>
         <div class="muted text-sm" style="margin-left:auto;">Pembanding: {{ $prevLabel }}</div>
     </form>
 </div>
@@ -192,9 +195,13 @@
         <div class="card-head"><span class="card-title">Penjualan per produk</span><span class="muted text-sm">diurutkan dari omzet terbesar</span></div>
         <div class="st-rows">
             @foreach($stats['products'] as $p)
+            @php
+                $pName = strtolower($p['name']);
+                $pCatClass = str_contains($pName, 'telur') ? 'cat-bar-telur' : (str_contains($pName, 'gas') || str_contains($pName, 'lpg') ? 'cat-bar-gas' : 'cat-bar-lain');
+            @endphp
             <div class="st-row">
                 <div class="st-row-head"><span class="name">{{ $p['name'] }}</span><span class="val">{{ $rp($p['revenue']) }}</span></div>
-                <div class="st-track" role="presentation"><i style="width: {{ round($p['revenue'] / $maxProduct * 100) }}%"></i></div>
+                <div class="st-track" role="presentation"><i class="{{ $pCatClass }}" style="width: {{ round($p['revenue'] / $maxProduct * 100) }}%"></i></div>
                 <div class="st-sub">
                     <span>{{ number_format($p['units'], 0, ',', '.') }} unit</span>
                     <span>{{ number_format($p['share'], 1, ',', '.') }}% dari omzet</span>
@@ -211,9 +218,13 @@
         <div class="st-rows">
             @php $maxType = collect($stats['types'])->max('revenue') ?: 1; @endphp
             @foreach($stats['types'] as $ty)
+            @php
+                $tyLabel = strtolower($ty['label']);
+                $tyCatClass = str_contains($tyLabel, 'telur') ? 'cat-bar-telur' : (in_array($ty['key'] ?? '', ['refill', 'pinjam_tabung', 'plus_tabung']) || str_contains($tyLabel, 'tabung') ? 'cat-bar-gas' : 'cat-bar-lain');
+            @endphp
             <div class="st-row">
                 <div class="st-row-head"><span class="name">{{ $ty['label'] }}</span><span class="val">{{ $rp($ty['revenue']) }}</span></div>
-                <div class="st-track" role="presentation"><i style="width: {{ round($ty['revenue'] / $maxType * 100) }}%"></i></div>
+                <div class="st-track" role="presentation"><i class="{{ $tyCatClass }}" style="width: {{ round($ty['revenue'] / $maxType * 100) }}%"></i></div>
                 <div class="st-sub"><span>{{ number_format($ty['units'], 0, ',', '.') }} unit</span></div>
             </div>
             @endforeach

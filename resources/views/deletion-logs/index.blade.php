@@ -7,12 +7,14 @@
 @php $tab = $tab ?? 'deletion'; @endphp
 
 <div class="row mb-2" style="gap:8px; flex-wrap:wrap;">
-    <a href="{{ route('deletion-logs.index') }}" class="btn btn-sm {{ $tab === 'deletion' ? 'btn-primary' : 'btn-outline' }}">
-        <x-icon name="trash" size="15" /> Penghapusan
-    </a>
-    <a href="{{ route('deletion-logs.adjustments') }}" class="btn btn-sm {{ $tab === 'adjustment' ? 'btn-primary' : 'btn-outline' }}">
-        <x-icon name="sliders" size="15" /> Penyesuaian Stok
-    </a>
+    <div class="range-tabs">
+        <a href="{{ route('deletion-logs.index') }}" class="{{ $tab === 'deletion' ? 'active' : '' }}">
+            <x-icon name="trash" size="14" /> Penghapusan
+        </a>
+        <a href="{{ route('deletion-logs.adjustments') }}" class="{{ $tab === 'adjustment' ? 'active' : '' }}">
+            <x-icon name="sliders" size="14" /> Penyesuaian Stok
+        </a>
+    </div>
 </div>
 
 @if($tab === 'adjustment')
