@@ -55,16 +55,21 @@
         <a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}" title="Pelanggan">
             <x-icon name="users" /><span class="label">Pelanggan</span>
         </a>
-        <a href="{{ route('loans.index') }}" class="nav-link {{ request()->routeIs('loans.*') ? 'active' : '' }}" title="Pinjaman tabung">
+        <a href="{{ route('loans.index') }}" class="nav-link {{ request()->routeIs('loans.*') ? 'active' : '' }}" title="Pinjaman tabung gas">
             <x-icon name="package" /><span class="label">Pinjaman Tabung</span>
         </a>
         <a href="{{ route('debts.index') }}" class="nav-link {{ request()->routeIs('debts.*') ? 'active' : '' }}" title="Piutang">
             <x-icon name="wallet" /><span class="label">Piutang</span>
         </a>
-        <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') ? 'active' : '' }}" title="Stok gas">
-            <x-icon name="stock" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok Gas' }}</span>
+        <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') ? 'active' : '' }}" title="Stok gas dan telur">
+            <x-icon name="stock" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok' }}</span>
         </a>
-        <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen">
+        @if(auth()->user()->isOwner())
+        <a href="{{ route('inventory.goodsReceipts') }}" class="nav-link {{ request()->routeIs('inventory.goodsReceipts') ? 'active' : '' }}" title="Stok masuk telur">
+            <x-icon name="truck" /><span class="label">Stok Masuk Telur</span>
+        </a>
+        @endif
+        <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen gas">
             <x-icon name="truck" /><span class="label">Penerimaan dari Agen</span>
         </a>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentDelivery;
 use App\Models\DeletionLog;
+use App\Models\GoodsReceipt;
 use App\Models\Product;
 use App\Models\StockAdjustment;
 use Illuminate\Http\Request;
@@ -251,5 +252,91 @@ class InventoryController extends Controller
         });
 
         return back()->with('success', 'Penerimaan dari agen berhasil dihapus dan stok telah dikembalikan. Penghapusan tercatat di riwayat penghapusan.');
+    }
+
+    public function goodsReceipts()
+    {
+        $products = Product::where('category', 'telur')->where('is_active', true)->orderBy('name')->get();
+
+        $lastPrices = GoodsReceipt::whereIn('product_id', $products->pluck('id'))
+            ->orderBy('receipt_date')->orderBy('id')
+            ->get(['product_id', 'buy_price_per_unit'])
+            ->groupBy('product_id')
+            ->map(fn ($rows) => (float) $rows->last()->buy_price_per_unit);
+
+        $goodsReceipts = GoodsReceipt::with(['product', 'user'])
+            ->whereHas('product', fn ($q) => $q->where('category', 'telur'))
+            ->latest('receipt_date')->latest('id')
+            ->paginate(20);
+
+        return view('inventory.goods-receipts', compact('products', 'goodsReceipts', 'lastPrices'));
+    }
+
+    public function storeGoodsReceipt(Request $request)
+    {
+        $data = $request->validate([
+            'product_id'          => 'required|exists:products,id',
+            'receipt_date'        => 'required|date|after_or_equal:today',
+            'qty'                 => 'required|numeric|min:0.1',
+            'buy_price_per_unit'  => 'required_if:user_is_owner|numeric|min:0',
+            'supplier'            => 'nullable|string|max:255',
+            'notes'               => 'nullable|string|max:255',
+        ]);
+
+        if (auth()->user()->isOwner()) {
+            $data['buy_price_per_unit'] = $data['buy_price_per_unit'] ?? Product::DEFAULT_BUY_PRICE_TELUR;
+        } else {
+            $lastPrice = GoodsReceipt::where('product_id', $data['product_id'])
+                ->orderByDesc('receipt_date')->orderByDesc('id')->value('buy_price_per_unit');
+
+            $data['buy_price_per_unit'] = (float) ($lastPrice ?? Product::DEFAULT_BUY_PRICE_TELUR);
+        }
+
+        DB::transaction(function () use ($data) {
+            $product = Product::lockForUpdate()->findOrFail($data['product_id']);
+
+            GoodsReceipt::create([
+                'product_id'          => $data['product_id'],
+                'user_id'             => auth()->id(),
+                'receipt_date'        => $data['receipt_date'],
+                'qty'                 => $data['qty'],
+                'buy_price_per_unit'  => $data['buy_price_per_unit'],
+                'total_cost'          => $data['qty'] * $data['buy_price_per_unit'],
+                'supplier'            => $data['supplier'] ?? null,
+                'notes'               => $data['notes'] ?? null,
+            ]);
+
+            $product->increment('stock_filled', $data['qty']);
+        });
+
+        return back()->with('success', 'Stok masuk berhasil dicatat.');
+    }
+
+    public function destroyGoodsReceipt(GoodsReceipt $receipt)
+    {
+        DB::transaction(function () use ($receipt) {
+            $receipt->load(['product', 'user']);
+            $product = Product::lockForUpdate()->findOrFail($receipt->product_id);
+
+            DeletionLog::record(
+                $receipt,
+                "Stok masuk {$receipt->product->name} × {$receipt->qty} {$receipt->product->getUnitLabel()} — Rp " . number_format((float) $receipt->total_cost, 0, ',', '.'),
+                [
+                    'receipt_date'        => $receipt->receipt_date->toDateString(),
+                    'product'             => $receipt->product->name,
+                    'qty'                 => (float) $receipt->qty,
+                    'buy_price_per_unit'  => (float) $receipt->buy_price_per_unit,
+                    'total_cost'          => (float) $receipt->total_cost,
+                    'supplier'            => $receipt->supplier,
+                    'notes'               => $receipt->notes,
+                    'recorded_by'         => $receipt->user?->name,
+                ]
+            );
+
+            $product->decrement('stock_filled', $receipt->qty);
+            $receipt->delete();
+        });
+
+        return back()->with('success', 'Stok masuk diarsipkan dan stok telah dikurangi. Penghapusan tercatat di riwayat penghapusan.');
     }
 }

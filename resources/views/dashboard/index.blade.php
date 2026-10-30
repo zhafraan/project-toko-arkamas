@@ -34,13 +34,24 @@
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Tabung terjual hari ini</span>
+            <span class="stat-card-title">Gas terjual hari ini (tabung)</span>
             <div class="stat-card-icon stat-icon-green">
                 <x-icon name="package" size="18" />
             </div>
         </div>
-        <div class="stat-card-value {{ $todaySoldQty > 0 ? 'highlight' : '' }}">{{ number_format($todaySoldQty) }} tabung</div>
+        <div class="stat-card-value {{ $todayGasQty > 0 ? 'highlight' : '' }}">{{ number_format($todayGasQty) }} tabung</div>
         <div class="stat-card-note">Isi gas yang terjual hari ini</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-head">
+            <span class="stat-card-title">Telur terjual hari ini (kg/butir)</span>
+            <div class="stat-card-icon stat-icon-green">
+                <x-icon name="package" size="18" />
+            </div>
+        </div>
+        <div class="stat-card-value {{ $todayTelurQty > 0 ? 'highlight' : '' }}">{{ number_format($todayTelurQty) }} {{ $telurUnitLabel }}</div>
+        <div class="stat-card-note">Telur yang terjual hari ini</div>
     </div>
 
     <div class="stat-card">
@@ -50,8 +61,8 @@
                 <x-icon name="banknote" size="18" />
             </div>
         </div>
-        <div class="stat-card-value">@rupiah($todayCash + $todayTransfer)</div>
-        <div class="stat-card-note"><span class="nowrap">Tunai @rupiah($todayCash)</span> · <span class="nowrap">Transfer @rupiah($todayTransfer)</span></div>
+        <div class="stat-card-value">@rupiah($todayTotalRevenue)</div>
+        <div class="stat-card-note"><span class="nowrap">Gas @rupiah($todayGasRevenue)</span> · <span class="nowrap">Telur @rupiah($todayTelurRevenue)</span></div>
     </div>
 
     <a href="{{ route('debts.index') }}" class="stat-card">
@@ -93,24 +104,6 @@
 <div class="layout-side mt-2">
 
     <div class="stack" style="gap:16px;">
-
-        {{-- Grafik 7 hari: jumlah tabung terjual --}}
-        <div class="card">
-            <div class="card-head">
-                <span class="card-title">Tabung terjual 7 hari terakhir</span>
-            </div>
-            <div class="card-body">
-                <div class="bars">
-                    @foreach($chartData as $bar)
-                    <div class="bar-col {{ $bar['isToday'] ? 'today' : '' }}" title="{{ $bar['date'] }}: {{ number_format($bar['qty']) }} tabung ({{ $bar['count'] }} transaksi)">
-                        <div class="bar-val">{{ number_format($bar['qty']) }}</div>
-                        <div class="bar-track"><div class="bar {{ $bar['isToday'] ? 'today' : '' }}" style="height: {{ $bar['height'] }}%;"></div></div>
-                        <div class="bar-day">{{ $bar['day'] }}</div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
 
         {{-- Transaksi terbaru --}}
         <div class="card">
@@ -168,7 +161,7 @@
                 <li style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 18px;border-bottom:1px solid var(--border);">
                     <div>
                         <div class="cell-title">{{ $lp->name }}</div>
-                        <div class="cell-sub">Sisa tabung isi: <strong>{{ $lp->stock_filled }}</strong></div>
+                        <div class="cell-sub">Sisa stok: <strong>{{ $lp->stock_filled }} {{ $lp->getUnitLabel() }}</strong></div>
                     </div>
                     @if($lp->stock_filled <= 0)
                         <span class="badge badge-danger">Habis</span>
@@ -183,17 +176,17 @@
 
         <div class="card">
             <div class="card-head">
-                <span class="card-title"><x-icon name="stock" /> Stok tabung</span>
+                <span class="card-title"><x-icon name="stock" /> Stok</span>
                 <a href="{{ route('inventory.index') }}" class="text-sm fw">{{ auth()->user()->isOwner() ? 'Kelola stok' : 'Stok Gas' }}</a>
             </div>
             <div class="card-body" style="border-bottom:1px solid var(--border);padding:14px 18px;">
                 <div class="legend">
-                    <span><i class="dot dot-filled"></i> Isi <strong class="num">{{ number_format($totalFilled) }}</strong></span>
-                    <span><i class="dot dot-empty"></i> Kosong <strong class="num">{{ number_format($totalEmpty) }}</strong></span>
-                    <span><i class="dot dot-borrowed"></i> Dipinjam <strong class="num">{{ number_format($totalBorrowed) }}</strong></span>
+                    <span><i class="dot dot-filled"></i> Isi <strong class="num">{{ number_format($totalGasFilled) }}</strong></span>
+                    <span><i class="dot dot-empty"></i> Kosong <strong class="num">{{ number_format($totalGasEmpty) }}</strong></span>
+                    <span><i class="dot dot-borrowed"></i> Dipinjam <strong class="num">{{ number_format($totalGasBorrowed) }}</strong></span>
                 </div>
             </div>
-            @forelse($stocks as $product)
+            @forelse($gasStocks as $product)
             <div class="stock-item">
                 <div class="row between" style="margin-bottom:8px;">
                     <div class="grow">
@@ -202,7 +195,7 @@
                     </div>
                     @if($product->stock_filled <= 0)
                         <span class="badge badge-danger">Habis</span>
-                    @elseif($product->stock_filled <= $lowStockLimit)
+                    @elseif($product->stock_filled <= $product->min_stock)
                         <span class="badge badge-warning">Menipis</span>
                     @endif
                 </div>
@@ -223,6 +216,42 @@
             </div>
             @endforelse
         </div>
+
+        @if($telurStocks->count() > 0)
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title"><x-icon name="stock" /> Stok telur</span>
+                <a href="{{ route('inventory.index') }}" class="text-sm fw">{{ auth()->user()->isOwner() ? 'Kelola stok' : 'Stok Telur' }}</a>
+            </div>
+            <div class="card-body" style="border-bottom:1px solid var(--border);padding:14px 18px;">
+                <div class="legend">
+                    <span><i class="dot dot-filled"></i> Isi <strong class="num">{{ number_format($totalTelurFilled) }}</strong> {{ $telurUnitLabel }}</span>
+                </div>
+            </div>
+            @forelse($telurStocks as $product)
+            <div class="stock-item">
+                <div class="row between" style="margin-bottom:8px;">
+                    <div class="grow">
+                        <div class="cell-title truncate">{{ $product->name }}</div>
+                        <div class="cell-sub">@rupiah($product->price_sell) / {{ $product->getUnitLabel() }}</div>
+                    </div>
+                    @if($product->stock_filled <= 0)
+                        <span class="badge badge-danger">Habis</span>
+                    @elseif($product->stock_filled <= $product->min_stock)
+                        <span class="badge badge-warning">Menipis</span>
+                    @endif
+                </div>
+                <div class="legend" style="margin-top:8px;">
+                    <span><i class="dot dot-filled"></i> Isi {{ $product->stock_filled }} {{ $product->getUnitLabel() }}</span>
+                </div>
+            </div>
+            @empty
+            <div class="empty">
+                <div class="empty-title">Belum ada produk aktif</div>
+            </div>
+            @endforelse
+        </div>
+        @endif
     </div>
 </div>
 
