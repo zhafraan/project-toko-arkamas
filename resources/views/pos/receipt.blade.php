@@ -15,7 +15,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Jost:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
         body { display: grid; place-items: start center; padding: 28px 16px 40px; }
@@ -23,7 +23,7 @@
         /* Kertas nota selalu putih agar tercetak benar, apa pun tema layar */
         .receipt { background: #fff; color: #1d1f2e; border-radius: 14px; padding: 22px 22px 18px; box-shadow: var(--shadow-md); font-size: 13px; }
         .r-head { text-align: center; }
-        .r-name { font-family: 'Lexend', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0; }
+        .r-name { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: 0; }
         .r-sub { font-size: 12px; color: #6b6f8c; }
         .r-line { border: 0; border-top: 1px dashed #b9bdd2; margin: 14px 0; }
         .r-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
