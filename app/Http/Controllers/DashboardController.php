@@ -44,35 +44,28 @@ class DashboardController extends Controller
             fn ($q) => $q->whereDate('transaction_date', $today)
         )->with('product')->get();
 
-        $todayGasQty = (int) $todayDetails->filter(fn ($d) => $d->product->isGas())->sum('qty');
-        $todayTelurQty = (float) $todayDetails->filter(fn ($d) => $d->product->isTelur())->sum('qty');
+        $todayGasQty = (int) $todayDetails->filter(fn ($d) => $d->product?->isGas())->sum('qty');
+        $todayTelurQty = (float) $todayDetails->filter(fn ($d) => $d->product?->isTelur())->sum('qty');
         $todaySoldQty = $todayGasQty + $todayTelurQty;
 
         $gasProducts = $stocks->filter(fn ($p) => $p->isGas());
         $telurProducts = $stocks->filter(fn ($p) => $p->isTelur());
 
-        $todayGasRevenue = (float) $todayDetails->filter(fn ($d) => $d->product->isGas())->sum(function ($d) {
-            return $d->qty * $d->product->price_sell;
+        $todayGasRevenue = (float) $todayDetails->filter(fn ($d) => $d->product?->isGas())->sum(function ($d) {
+            return (float) ($d->subtotal ?: ($d->qty * ($d->product?->price_sell ?? 0)));
         });
-        $todayTelurRevenue = (float) $todayDetails->filter(fn ($d) => $d->product->isTelur())->sum(function ($d) {
-            return $d->qty * $d->product->price_sell;
+        $todayTelurRevenue = (float) $todayDetails->filter(fn ($d) => $d->product?->isTelur())->sum(function ($d) {
+            return (float) ($d->subtotal ?: ($d->qty * ($d->product?->price_sell ?? 0)));
         });
         $todayTotalRevenue = $todayGasRevenue + $todayTelurRevenue;
 
-        $monthGasRevenue = (float) TransactionDetail::whereHas('transaction', function ($q) {
-            $q->whereYear('transaction_date', now()->year)
-                ->whereMonth('transaction_date', now()->month);
-        })->whereHas('product', function ($q) {
-            $q->where('category', 'gas');
-        })->sum('qty * price_sell');
-
-        $monthTelurRevenue = (float) TransactionDetail::whereHas('transaction', function ($q) {
-            $q->whereYear('transaction_date', now()->year)
-                ->whereMonth('transaction_date', now()->month);
-        })->whereHas('product', function ($q) {
-            $q->where('category', 'telur');
-        })->sum('qty * price_sell');
-        $monthRevenue = $monthGasRevenue + $monthTelurRevenue;
+        // ---- Khusus pemilik ----
+        $monthRevenue = null;
+        if ($user->isOwner()) {
+            $monthRevenue = (float) Transaction::whereYear('transaction_date', now()->year)
+                ->whereMonth('transaction_date', now()->month)
+                ->sum('total_amount');
+        }
 
         // Uang yang benar-benar masuk hari ini (cash-basis): pembayaran awal nota
         // yang terjual hari ini (dikurangi kembalian dan cicilan) ditambah cicilan
