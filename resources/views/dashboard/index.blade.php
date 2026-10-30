@@ -12,23 +12,10 @@
 @section('content')
 
 
-{{-- Filter periode & tanggal gaya Skillset --}}
-<div class="row between wrap mb-2" style="gap:12px;margin-bottom:20px;">
-    <div class="range-tabs">
-        <button type="button" class="active" aria-pressed="true">Hari</button>
-        <a href="{{ route('statistics.index', ['range' => '7d']) }}">Minggu</a>
-        <a href="{{ route('statistics.index', ['range' => 'this_month']) }}">Bulan</a>
-        <a href="{{ route('statistics.index', ['range' => 'this_year']) }}">Tahun</a>
-    </div>
-    <div class="badge" style="height:34px;padding:0 16px;gap:8px;font-size:12.5px;font-weight:600;background:var(--surface);border-color:var(--border);">
-        <x-icon name="calendar" size="14" /> {{ today()->translatedFormat('j M Y') }}
-    </div>
-</div>
-
 {{-- Ringkasan statistik (KPI cards) --}}
 @php
     $isOwner = auth()->user()->isOwner();
-    $statCount = 4 + ($isOwner ? 1 : 0) + ($monthRevenue !== null ? 1 : 0);
+    $statCount = 5 + ($isOwner ? 1 : 0);
     $statClass = in_array($statCount, [3, 4, 5, 6]) ? 'stat-grid-' . $statCount : '';
 @endphp
 <div class="stat-grid {{ $statClass }}">
@@ -81,16 +68,6 @@
         <div class="stat-card-value">{{ number_format($loanTubes) }} tabung</div>
         <div class="stat-card-note"><span class="stat-trend up">↗</span> Dipinjam {{ $loanCustomers }} pelanggan</div>
     </a>
-
-    @if($monthRevenue !== null)
-    <div class="stat-card">
-        <div class="stat-card-head">
-            <span class="stat-card-title">Omzet Bulan Ini</span>
-        </div>
-        <div class="stat-card-value">@rupiah($monthRevenue)</div>
-        <div class="stat-card-note"><span class="stat-trend up">↗</span> Periode {{ now()->translatedFormat('F Y') }}</div>
-    </div>
-    @endif
 </div>
 
 <div class="layout-side mt-2">

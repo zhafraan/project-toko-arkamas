@@ -59,14 +59,6 @@ class DashboardController extends Controller
         });
         $todayTotalRevenue = $todayGasRevenue + $todayTelurRevenue;
 
-        // ---- Khusus pemilik ----
-        $monthRevenue = null;
-        if ($user->isOwner()) {
-            $monthRevenue = (float) Transaction::whereYear('transaction_date', now()->year)
-                ->whereMonth('transaction_date', now()->month)
-                ->sum('total_amount');
-        }
-
         // Uang yang benar-benar masuk hari ini (cash-basis): pembayaran awal nota
         // yang terjual hari ini (dikurangi kembalian dan cicilan) ditambah cicilan
         // piutang yang jatuh tempo dibayar hari ini — dipisah per metode.
@@ -100,7 +92,7 @@ class DashboardController extends Controller
             'stocks', 'totalFilled', 'totalEmpty', 'totalBorrowed', 'lowStock', 'lowStockLimit',
             'todayRevenue', 'todayCash', 'todayTransfer', 'todayCount', 'todaySoldQty',
             'totalPiutang', 'countPiutang', 'loanTubes', 'loanCustomers',
-            'monthRevenue', 'recentTransactions',
+            'recentTransactions',
             'gasStocks', 'telurStocks',
             'totalGasFilled', 'totalGasEmpty', 'totalGasBorrowed',
             'totalTelurFilled', 'telurUnitLabel',
