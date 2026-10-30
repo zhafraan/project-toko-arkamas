@@ -106,7 +106,7 @@
             <div class="topbar-search-wrap" style="display:inline-flex;align-items:center;">
                 <div class="search topbar-search" style="max-width:200px;">
                     <x-icon name="search" size="15" />
-                    <input type="search" class="input input-sm" placeholder="Search..." aria-label="Cari..." autocomplete="off">
+                    <input type="search" class="input input-sm" placeholder="Cari data..." aria-label="Cari data" autocomplete="off">
                 </div>
             </div>
             <button type="button" class="btn btn-ghost btn-icon btn-sm" title="Notifikasi" aria-label="Notifikasi">

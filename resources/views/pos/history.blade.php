@@ -69,7 +69,7 @@
                     <td data-label="Aksi"><div class="actions">
                         <a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-outline btn-xs"><x-icon name="receipt" size="14" /> Nota</a>
                         @if(auth()->user()->isOwner())
-                        <form method="POST" action="{{ route('pos.destroy', $trx) }}" data-confirm="Hapus nota {{ $trx->invoice_number }}? Stok akan dikembalikan dan penghapusan tercatat di riwayat penghapusan.">
+                        <form method="POST" action="{{ route('pos.destroy', $trx) }}" data-confirm="Hapus nota {{ $trx->invoice_number }}? Stok tabung akan dikembalikan dan tindakan ini tercatat di Riwayat Audit.">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus nota" aria-label="Hapus nota"><x-icon name="trash" size="15" /></button>
                         </form>

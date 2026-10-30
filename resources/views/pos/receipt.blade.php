@@ -53,7 +53,7 @@
 <div class="receipt-wrap">
     <div class="receipt">
         <div class="r-head">
-            <div class="r-name">ARKAMAS GAS</div>
+            <div class="r-name">TOKO ARKAMAS</div>
             <div class="r-sub">Pangkalan Gas LPG</div>
         </div>
 

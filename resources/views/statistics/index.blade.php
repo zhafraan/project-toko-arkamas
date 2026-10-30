@@ -108,7 +108,7 @@
         <div class="summary-note"><span class="st-delta {{ $c }}">{{ $txt }}</span> dari periode sebelumnya</div>
     </div>
     <div class="summary-item">
-        <div class="summary-label">Unit terjual</div>
+        <div class="summary-label">Tabung Terjual</div>
         <div class="summary-value">{{ number_format($t['units'], 0, ',', '.') }}</div>
         @php [$c, $txt] = $fmtDelta($compare['units']); @endphp
         <div class="summary-note"><span class="st-delta {{ $c }}">{{ $txt }}</span> dari periode sebelumnya</div>
@@ -137,11 +137,11 @@
 {{-- Tren Penjualan --}}
 <div class="card mb-2">
     <div class="card-head">
-        <span class="card-title">Tren penjualan {{ $stats['granularity'] === 'month' ? 'per bulan' : 'per hari' }}</span>
+        <span class="card-title">Tren Penjualan {{ $stats['granularity'] === 'month' ? 'per Bulan' : 'per Hari' }}</span>
         <div class="st-seg" id="stMetric" role="group" aria-label="Ukuran grafik">
             <button type="button" data-m="revenue" aria-pressed="true">Omzet</button>
             <button type="button" data-m="count" aria-pressed="false">Transaksi</button>
-            <button type="button" data-m="units" aria-pressed="false">Unit</button>
+            <button type="button" data-m="units" aria-pressed="false">Tabung</button>
         </div>
     </div>
     <div class="st-chart-wrap" id="stChartWrap">

@@ -61,16 +61,16 @@
                     <span class="affix">Rp</span>
                     <input type="text" name="admin_fee" id="adminFee" class="input num" inputmode="numeric" placeholder="0 (kosongkan jika tidak ada)" value="{{ old('admin_fee', 0) }}" autocomplete="off">
                 </div>
-                <div class="hint">Biaya admin pengataran dari agen (sopir).</div>
+                <div class="hint">Biaya admin atau ongkos pengantaran dari agen/pengemudi.</div>
             </div>
             <div class="field">
-                <label class="label">Catatan (Dikirim oleh sopir siapa)</label>
-                <input type="text" name="notes" class="input" maxlength="255" placeholder="Opsional" value="{{ old('notes') }}">
+                <label class="label">Catatan (Pengemudi / No. Kendaraan)</label>
+                <input type="text" name="notes" class="input" maxlength="255" placeholder="Contoh: Pak Budi - L 1234 AB (opsional)" value="{{ old('notes') }}">
             </div>
             <div class="modal-note">
-                <strong>Stok diperbarui secara otomatis!</strong><br>
-                tabung isi <span class="text-success fw">bertambah</span> dan tabung kosong <span class="text-danger fw">berkurang</span> sebanyak jumlah yang diterima.<br>
-                <span class="muted">Stok tabung kosong produk harus minimal sama dengan jumlah diterima (tabung kosong ditukar ke agen).</span>
+                <strong>Pembaruan Stok Otomatis:</strong><br>
+                Tabung isi <span class="text-success fw">bertambah</span> dan tabung kosong <span class="text-danger fw">berkurang</span> sesuai jumlah yang diterima.<br>
+                <span class="muted">Pastikan stok tabung kosong mencukupi untuk diserahkan sebagai penukaran ke pihak agen.</span>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Catat penerimaan</button>
         </form>

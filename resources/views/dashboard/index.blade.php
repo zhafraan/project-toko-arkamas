@@ -31,15 +31,15 @@
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Terjual </span>
+            <span class="stat-card-title">Gas Terjual Hari Ini</span>
         </div>
         <div class="stat-card-value">{{ number_format($todaySoldQty) }} tabung</div>
-        <div class="stat-card-note"><span class="stat-trend up"></span> Terjual {{ number_format($todaySoldQty) }} </div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> Terjual {{ number_format($todaySoldQty) }} tabung isi</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Total Penerimaan </span>
+            <span class="stat-card-title">Penerimaan Hari Ini</span>
         </div>
         <div class="stat-card-value">@rupiah($todayCash + $todayTransfer)</div>
         <div class="stat-card-note"><span class="nowrap">Tunai @rupiah($todayCash)</span> | <span class="nowrap">Transfer @rupiah($todayTransfer)</span></div>
@@ -50,15 +50,15 @@
             <span class="stat-card-title">Piutang Pelanggan</span>
         </div>
         <div class="stat-card-value {{ $totalPiutang > 0 ? 'danger' : '' }}">@rupiah($totalPiutang)</div>
-        <div class="stat-card-note"><span class="stat-trend {{ $totalPiutang > 0 ? 'down' : 'up' }}">{{ $totalPiutang > 0 ? '↘' : '✓' }}</span> {{ $countPiutang }} nota </div>
+        <div class="stat-card-note"><span class="stat-trend {{ $totalPiutang > 0 ? 'down' : 'up' }}">{{ $totalPiutang > 0 ? '↘' : '✓' }}</span> {{ $countPiutang }} nota belum lunas</div>
     </a>
 
     <a href="{{ route('loans.index') }}" class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Tabung dipinjaman</span>
+            <span class="stat-card-title">Tabung Dipinjam</span>
         </div>
         <div class="stat-card-value">{{ number_format($loanTubes) }} tabung</div>
-        <div class="stat-card-note"><span class="stat-trend up"></span> {{ $loanCustomers }} pelanggan</div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> {{ $loanCustomers }} pelanggan</div>
     </a>
 </div>
 

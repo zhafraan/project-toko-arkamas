@@ -65,28 +65,28 @@
     <div class="summary-item">
         <div class="summary-label">Estimasi Laba</div>
         <div class="summary-value text-success">@rupiah($metrics['totalProfit'])</div>
-        <div class="summary-note">estimasi keuntungan kotor</div>
+        <div class="summary-note">Estimasi laba kotor</div>
     </div>
     <div class="summary-item">
         <div class="summary-label">Penerimaan Tunai</div>
         <div class="summary-value">@rupiah($metrics['totalCash'])</div>
-        <div class="summary-note">tunai yang diterima pada periode ini</div>
+        <div class="summary-note">Tunai yang diterima periode ini</div>
     </div>
     <div class="summary-item">
         <div class="summary-label">Penerimaan Transfer</div>
         <div class="summary-value">@rupiah($metrics['totalTransfer'])</div>
-        <div class="summary-note">transfer yang diterima pada periode ini</div>
+        <div class="summary-note">Transfer yang diterima periode ini</div>
     </div>
     <div class="summary-item">
         <div class="summary-label">Piutang Periode Ini</div>
         <div class="summary-value {{ $metrics['totalPiutang'] > 0 ? 'text-danger' : '' }}">@rupiah($metrics['totalPiutang'])</div>
-        <div class="summary-note">belum terbayar oleh customer</div>
+        <div class="summary-note">Belum dilunasi oleh pelanggan</div>
     </div>
 </div>
 
 <div class="layout-side">
     <div class="card">
-        <div class="card-head"><span class="card-title"> Detail transaksi</span></div>
+        <div class="card-head"><span class="card-title"><x-icon name="receipt" size="17" /> Detail Transaksi</span></div>
         <div class="table-wrap">
             <table class="table table-stack">
                 <thead>

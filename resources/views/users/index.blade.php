@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Akun Pengguna')
 @section('page-title', 'Akun Pengguna')
-@section('page-sub', 'Kelola siapa yang bisa masuk ke sistem')
+@section('page-sub', 'Kelola hak akses dan akun pengguna sistem')
 
 @section('topbar-actions')
     <button type="button" class="btn btn-primary" data-modal-open="addUserModal">
