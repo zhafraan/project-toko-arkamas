@@ -54,9 +54,9 @@
     --info-border: #BFDBFE;
 
     /* Status stok tabung & kategori */
-    --filled: #111111;
-    --empty: #8A8A90;
-    --borrowed: #D4D4D8;
+    --filled: #00CA4E;
+    --empty: #FF605C;
+    --borrowed: #FFBD44;
 
     --cat-gas: #111111;
     --cat-lain: #C9C9CE;
@@ -123,9 +123,9 @@
     --info-ink: #93C5FD;
     --info-border: #1E3A8A;
 
-    --filled: #F4F4F5;
-    --empty: #71717A;
-    --borrowed: #3A3A40;
+    --filled: #00CA4E;
+    --empty: #FF605C;
+    --borrowed: #FFBD44;
 
     --cat-gas: #F4F4F5;
     --cat-lain: #52525B;
@@ -698,7 +698,29 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     font-size: 11.5px; font-weight: 600; white-space: nowrap;
     background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border);
 }
-.badge-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge-dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+.badge-dot.badge-success::before,
+.badge-success.badge-dot::before {
+    background: #00CA4E;
+}
+.badge-dot.badge-warning::before,
+.badge-warning.badge-dot::before {
+    background: #FFBD44;
+}
+.badge-dot.badge-danger::before,
+.badge-danger.badge-dot::before {
+    background: #FF605C;
+}
+.badge-dot:not(.badge-success):not(.badge-warning):not(.badge-danger)::before {
+    background: #FF605C;
+}
 .badge-success { background: var(--success-soft); color: var(--success-ink); border-color: var(--success-border); }
 .badge-danger { background: var(--danger-soft); color: var(--danger-ink); border-color: var(--danger-border); }
 .badge-warning { background: var(--warning-soft); color: var(--warning-ink); border-color: var(--warning-border); }
@@ -787,9 +809,9 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
 
 /* ---------- Stok Tabung: Status & Dot ---------- */
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.dot-filled { background: var(--filled); }
-.dot-empty { background: var(--empty); }
-.dot-borrowed { background: var(--borrowed); }
+.dot-filled, .dot-ready, .dot-success, .dot-active { background: #00CA4E; }
+.dot-empty, .dot-danger, .dot-closed, .dot-inactive { background: #FF605C; }
+.dot-borrowed, .dot-warning, .dot-low { background: #FFBD44; }
 .stockbar { display: flex; gap: 2px; height: 8px; border-radius: 99px; overflow: hidden; background: var(--surface-3); }
 .stockbar > span { display: block; height: 100%; }
 .stockbar .s-filled { background: var(--filled); }
@@ -802,10 +824,10 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     min-width: 32px; height: 24px; padding: 0 8px; border-radius: 99px;
     font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; color: #fff;
 }
-.qty-filled { background: var(--filled); color: #fff; }
-:root[data-theme="dark"] .qty-filled { color: #111; }
+.qty-filled { background: var(--filled); color: #0b0b0c; }
+:root[data-theme="dark"] .qty-filled { color: #0b0b0c; }
 .qty-empty { background: var(--empty); color: #fff; }
-.qty-borrowed { background: var(--borrowed); color: #111; }
+.qty-borrowed { background: var(--borrowed); color: #0b0b0c; }
 
 /* ---------- Dashboard Bars (Chunky Pills) ---------- */
 .bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 14px; height: 190px; align-items: end; padding: 10px 6px 0; }

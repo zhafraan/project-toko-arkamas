@@ -67,7 +67,11 @@
                             <span class="qty-pill qty-empty" title="Kosong">{{ $product->stock_empty }}</span>
                             <span class="qty-pill qty-borrowed" title="Dipinjam">{{ $product->stock_borrowed }}</span>
                             @if($product->is_active && $product->stock_filled <= $lowStockLimit)
-                                <span class="badge badge-warning">{{ $product->stock_filled <= 0 ? 'Habis' : 'Menipis' }}</span>
+                                @if($product->stock_filled <= 0)
+                                    <span class="badge badge-danger">Habis</span>
+                                @else
+                                    <span class="badge badge-warning">Menipis</span>
+                                @endif
                             @endif
                         </div>
                     </td>
@@ -75,7 +79,7 @@
                         @if($product->is_active)
                             <span class="badge badge-success badge-dot">Aktif</span>
                         @else
-                            <span class="badge badge-dot">Nonaktif</span>
+                            <span class="badge badge-danger badge-dot">Nonaktif</span>
                         @endif
                     </td>
                     @if($user->isOwner())

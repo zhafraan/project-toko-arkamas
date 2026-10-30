@@ -43,7 +43,7 @@
                     <td class="num" data-label="Belum kembali"><span class="qty-pill qty-borrowed">{{ $loan->remaining_qty }}</span></td>
                     <td data-label="Status">
                         @if($loan->status === 'dipinjam')
-                            <span class="badge badge-danger badge-dot">Dipinjam</span>
+                            <span class="badge badge-warning badge-dot">Dipinjam</span>
                         @else
                             <span class="badge badge-warning badge-dot">Sebagian kembali</span>
                         @endif

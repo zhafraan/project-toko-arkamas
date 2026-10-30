@@ -75,7 +75,7 @@
                                 @elseif($loan->status === 'sebagian_kembali')
                                     <span class="badge badge-warning">Sebagian</span>
                                 @else
-                                    <span class="badge badge-danger">Dipinjam</span>
+                                    <span class="badge badge-warning">Dipinjam</span>
                                 @endif
                             </td>
                             <td class="muted" data-label="Tgl pinjam">{{ $loan->borrow_date->isoFormat('D MMM Y') }}</td>
