@@ -80,12 +80,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/deliveries', [InventoryController::class, 'storeDelivery'])->name('storeDelivery');
         Route::delete('/deliveries/{delivery}', [InventoryController::class, 'destroyDelivery'])
             ->name('destroyDelivery')->middleware('role:owner');
-
-        // Stok masuk telur: kasir boleh mencatat; penghapusan khusus pemilik
-        Route::get('/goods-receipts',  [InventoryController::class, 'goodsReceipts'])->name('goodsReceipts');
-        Route::post('/goods-receipts', [InventoryController::class, 'storeGoodsReceipt'])->name('storeGoodsReceipt');
-        Route::delete('/goods-receipts/{receipt}', [InventoryController::class, 'destroyGoodsReceipt'])
-            ->name('destroyGoodsReceipt')->middleware('role:owner');
     });
 
     // Laporan (Owner only)

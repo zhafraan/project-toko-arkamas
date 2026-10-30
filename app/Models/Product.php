@@ -15,12 +15,9 @@ class Product extends Model
     /** Tarif default harga beli dari agen per tabung (bila pemilik tidak mengisi). */
     public const DEFAULT_BUY_PRICE = 14500;
 
-    /** Tarif default harga beli telur per unit (bila pemilik tidak mengisi). */
-    public const DEFAULT_BUY_PRICE_TELUR = 25000;
-
     protected $fillable = [
         'name', 'sku', 'price_buy', 'price_sell', 'price_tube',
-        'stock_filled', 'stock_crates', 'stock_empty', 'stock_borrowed', 'is_active',
+        'stock_filled', 'stock_empty', 'stock_borrowed', 'is_active',
         'category', 'unit', 'min_stock',
     ];
 
@@ -28,7 +25,6 @@ class Product extends Model
         'is_active' => 'boolean',
         'min_stock' => 'decimal:2',
         'stock_filled' => 'decimal:2',
-        'stock_crates' => 'decimal:2',
         'stock_empty' => 'decimal:2',
         'stock_borrowed' => 'decimal:2',
     ];
@@ -48,14 +44,9 @@ class Product extends Model
         return $this->hasMany(TubeLoan::class);
     }
 
-    public function goodsReceipts()
-    {
-        return $this->hasMany(GoodsReceipt::class);
-    }
-
     public function getTotalStockAttribute(): int
     {
-        return $this->stock_filled + $this->stock_empty + $this->stock_borrowed;
+        return (int) ($this->stock_filled + $this->stock_empty + $this->stock_borrowed);
     }
 
     /**
@@ -63,15 +54,7 @@ class Product extends Model
      */
     public function isGas(): bool
     {
-        return $this->category === 'gas';
-    }
-
-    /**
-     * Cek apakah produk adalah kategori telur.
-     */
-    public function isTelur(): bool
-    {
-        return $this->category === 'telur';
+        return true;
     }
 
     /**
@@ -79,13 +62,6 @@ class Product extends Model
      */
     public function getUnitLabel(): string
     {
-        return match ($this->unit) {
-            'tabung' => 'tabung',
-            'butir' => 'butir',
-            'tray' => 'tray',
-            'kg' => 'kg',
-            'peti' => 'peti',
-            default => $this->unit ?? '',
-        };
+        return 'tabung';
     }
 }

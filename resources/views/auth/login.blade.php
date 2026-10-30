@@ -23,7 +23,7 @@
         </div>
         <div>
             <h2>Sistem Pengelolaan Toko Arkamas</h2>
-            <p>Kelola penjualan gas & telur, stok, dan piutang dalam satu sistem modern.</p>
+            <p>Kelola penjualan gas LPG, stok tabung, dan piutang dalam satu sistem modern.</p>
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,.6);">© {{ date('Y') }} Toko Arkamas</div>
     </aside>

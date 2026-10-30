@@ -23,8 +23,8 @@ class PagesSmokeTest extends TestCase
             'name' => 'LPG 3 Kg', 'sku' => 'LPG-03', 'price_buy' => 14500, 'price_sell' => 18000, 'price_tube' => 150000,
             'stock_filled' => 10, 'stock_empty' => 2, 'stock_borrowed' => 1, 'is_active' => true,
         ]);
-        $t = Product::create([
-            'name' => 'Telur Ayam', 'sku' => 'TEL-01', 'price_buy' => 25000, 'price_sell' => 30000, 'price_tube' => 0,
+        $p2 = Product::create([
+            'name' => 'Bright Gas 5.5 Kg', 'sku' => 'BG-55', 'price_buy' => 68000, 'price_sell' => 78000, 'price_tube' => 300000,
             'stock_filled' => 5, 'stock_empty' => 0, 'stock_borrowed' => 0, 'is_active' => true,
         ]);
         $c = Customer::create(['name' => "Warung D'Arto", 'customer_type' => 'umkm']);
@@ -33,8 +33,8 @@ class PagesSmokeTest extends TestCase
             'customer_id' => $c->id, 'payment_method' => 'cash', 'payment_status' => 'belum_lunas', 'paid_amount' => 5000,
         ])->assertOk();
         $this->actingAs($user)->postJson(route('pos.store'), [
-            'items' => [['product_id' => $t->id, 'transaction_type' => 'jual', 'qty' => 2]],
-            'customer_id' => $c->id, 'payment_method' => 'cash', 'payment_status' => 'lunas', 'paid_amount' => 60000,
+            'items' => [['product_id' => $p2->id, 'transaction_type' => 'refill', 'qty' => 2]],
+            'customer_id' => $c->id, 'payment_method' => 'cash', 'payment_status' => 'lunas', 'paid_amount' => 156000,
         ])->assertOk();
     }
 
@@ -106,45 +106,5 @@ class PagesSmokeTest extends TestCase
         $this->assertNotNull(Product::find($product->id));
     }
 
-    public function test_pemilik_bisa_mencatat_stok_masuk_telur_dengan_peti_dan_kilo(): void
-    {
-        $owner = User::create(['name' => 'Pemilik', 'email' => 'owner@test.local', 'password' => 'secret123', 'role' => 'owner']);
-        $telur = Product::create([
-            'name' => 'Telur Ayam (kg)', 'sku' => 'TEL-02', 'price_buy' => 24000, 'price_sell' => 28000,
-            'category' => 'telur', 'unit' => 'kg', 'stock_filled' => 10, 'stock_empty' => 0, 'stock_borrowed' => 0, 'is_active' => true,
-        ]);
 
-        $this->actingAs($owner)->get(route('inventory.goodsReceipts'))
-            ->assertOk()
-            ->assertSee('Jumlah stok')
-            ->assertSee('Jumlah peti')
-            ->assertSee('Harga perkilo');
-
-        $this->actingAs($owner)->post(route('inventory.storeGoodsReceipt'), [
-            'product_id' => $telur->id,
-            'receipt_date' => today()->toDateString(),
-            'crates' => 5,
-            'qty' => 50.5,
-            'buy_price_per_unit' => 24500,
-            'supplier' => 'Peternak Blitar',
-        ])->assertSessionHas('success');
-
-        $receipt = \App\Models\GoodsReceipt::latest('id')->first();
-        $this->assertNotNull($receipt);
-        $this->assertEquals(5, (float) $receipt->crates);
-        $this->assertEquals(50.5, (float) $receipt->qty);
-        $this->assertEquals(24500, (float) $receipt->buy_price_per_unit);
-        $this->assertEquals(50.5 * 24500, (float) $receipt->total_cost);
-        $this->assertEquals(60.5, (float) $telur->fresh()->stock_filled);
-
-        // Uji simpan tanpa mengirim product_id eksplisit (otomatis memilih produk telur)
-        $this->actingAs($owner)->post(route('inventory.storeGoodsReceipt'), [
-            'receipt_date' => today()->toDateString(),
-            'crates' => 2,
-            'qty' => 20,
-            'buy_price_per_unit' => 24500,
-        ])->assertSessionHas('success');
-
-        $this->assertEquals(80.5, (float) $telur->fresh()->stock_filled);
-    }
 }

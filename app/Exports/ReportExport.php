@@ -24,7 +24,7 @@ class ReportExport implements FromArray, WithHeadings, WithTitle, WithStyles, Wi
     public function headings(): array
     {
         return [
-            ['Toko Arkamas - Penjualan Gas dan Telur'],
+            ['Toko Arkamas - Pangkalan Gas LPG'],
             [$this->data['periodTitle'] ?? ucfirst($this->data['type'])],
             ['Periode: ' . ($this->data['periodRange'] ?? '')],
             ['Dicetak: ' . now()->isoFormat('D MMMM Y, HH:mm')],

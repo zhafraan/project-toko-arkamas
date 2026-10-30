@@ -197,7 +197,7 @@
             @foreach($stats['products'] as $p)
             @php
                 $pName = strtolower($p['name']);
-                $pCatClass = str_contains($pName, 'telur') ? 'cat-bar-telur' : (str_contains($pName, 'gas') || str_contains($pName, 'lpg') ? 'cat-bar-gas' : 'cat-bar-lain');
+                $pCatClass = 'cat-bar-gas';
             @endphp
             <div class="st-row">
                 <div class="st-row-head"><span class="name">{{ $p['name'] }}</span><span class="val">{{ $rp($p['revenue']) }}</span></div>
@@ -220,7 +220,7 @@
             @foreach($stats['types'] as $ty)
             @php
                 $tyLabel = strtolower($ty['label']);
-                $tyCatClass = str_contains($tyLabel, 'telur') ? 'cat-bar-telur' : (in_array($ty['key'] ?? '', ['refill', 'pinjam_tabung', 'plus_tabung']) || str_contains($tyLabel, 'tabung') ? 'cat-bar-gas' : 'cat-bar-lain');
+                $tyCatClass = 'cat-bar-gas';
             @endphp
             <div class="st-row">
                 <div class="st-row-head"><span class="name">{{ $ty['label'] }}</span><span class="val">{{ $rp($ty['revenue']) }}</span></div>

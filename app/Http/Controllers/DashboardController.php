@@ -23,41 +23,16 @@ class DashboardController extends Controller
         $lowStockLimit = Product::LOW_STOCK;
         $lowStock      = $stocks->filter(fn ($p) => $p->stock_filled <= $lowStockLimit);
 
-        $gasStocks = $stocks->filter(fn ($p) => $p->isGas());
-        $telurStocks = $stocks->filter(fn ($p) => $p->isTelur());
-
-        $totalGasFilled = $gasStocks->sum('stock_filled');
-        $totalGasEmpty = $gasStocks->sum('stock_empty');
-        $totalGasBorrowed = $gasStocks->sum('stock_borrowed');
-
-        $totalTelurFilled = $telurStocks->sum('stock_filled');
-        $telurUnitLabel = $telurStocks->firstWhere('unit', 'butir') ? 'butir' : 'kg';
-
         // ---- Hari ini ----
         $todayQuery   = fn () => Transaction::whereDate('transaction_date', $today);
         $todayRevenue = (float) $todayQuery()->sum('total_amount');
         $todayCount   = $todayQuery()->count();
 
-        // Jumlah yang terjual hari ini
-        $todayDetails = TransactionDetail::whereHas(
+        // Jumlah tabung gas yang terjual hari ini
+        $todaySoldQty = (int) TransactionDetail::whereHas(
             'transaction',
             fn ($q) => $q->whereDate('transaction_date', $today)
-        )->with('product')->get();
-
-        $todayGasQty = (int) $todayDetails->filter(fn ($d) => $d->product?->isGas())->sum('qty');
-        $todayTelurQty = (float) $todayDetails->filter(fn ($d) => $d->product?->isTelur())->sum('qty');
-        $todaySoldQty = $todayGasQty + $todayTelurQty;
-
-        $gasProducts = $stocks->filter(fn ($p) => $p->isGas());
-        $telurProducts = $stocks->filter(fn ($p) => $p->isTelur());
-
-        $todayGasRevenue = (float) $todayDetails->filter(fn ($d) => $d->product?->isGas())->sum(function ($d) {
-            return (float) ($d->subtotal ?: ($d->qty * ($d->product?->price_sell ?? 0)));
-        });
-        $todayTelurRevenue = (float) $todayDetails->filter(fn ($d) => $d->product?->isTelur())->sum(function ($d) {
-            return (float) ($d->subtotal ?: ($d->qty * ($d->product?->price_sell ?? 0)));
-        });
-        $todayTotalRevenue = $todayGasRevenue + $todayTelurRevenue;
+        )->sum('qty');
 
         // Uang yang benar-benar masuk hari ini (cash-basis): pembayaran awal nota
         // yang terjual hari ini (dikurangi kembalian dan cicilan) ditambah cicilan
@@ -92,12 +67,7 @@ class DashboardController extends Controller
             'stocks', 'totalFilled', 'totalEmpty', 'totalBorrowed', 'lowStock', 'lowStockLimit',
             'todayRevenue', 'todayCash', 'todayTransfer', 'todayCount', 'todaySoldQty',
             'totalPiutang', 'countPiutang', 'loanTubes', 'loanCustomers',
-            'recentTransactions',
-            'gasStocks', 'telurStocks',
-            'totalGasFilled', 'totalGasEmpty', 'totalGasBorrowed',
-            'totalTelurFilled', 'telurUnitLabel',
-            'todayGasQty', 'todayTelurQty',
-            'todayGasRevenue', 'todayTelurRevenue', 'todayTotalRevenue'
+            'recentTransactions'
         ));
     }
 }

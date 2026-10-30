@@ -13,17 +13,10 @@
             <input type="search" id="productSearch" class="input" placeholder="Cari nama produk atau kode SKU" autocomplete="off">
         </div>
 
-        <div class="seg" id="categoryFilter" style="margin-bottom:16px;" aria-label="Filter kategori">
-            <button type="button" data-cat="all" aria-pressed="true">Semua</button>
-            <button type="button" data-cat="gas" aria-pressed="false">Gas</button>
-            <button type="button" data-cat="telur" aria-pressed="false">Telur</button>
-        </div>
-
         <div class="product-grid" id="productGrid">
             @foreach($products as $product)
             <button type="button" class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-sku="{{ $product->sku }}"
                     data-price="{{ (float) $product->price_sell }}" data-tube="{{ (float) $product->price_tube }}" data-stock="{{ $product->stock_filled }}"
-                    data-category="{{ $product->category }}" data-unit="{{ $product->unit }}"
                     @if($product->stock_filled <= 0) disabled @endif>
                 <span class="in-cart" hidden></span>
                 <span class="product-name">{{ $product->name }}</span>
@@ -33,13 +26,11 @@
                     @if($product->stock_filled <= 0)
                         <span class="badge badge-danger">Habis</span>
                     @elseif($product->stock_filled <= $lowStockLimit)
-                        <span class="badge badge-warning">Sisa {{ $product->stock_filled }} {{ $product->getUnitLabel() }}</span>
+                        <span class="badge badge-warning">Sisa {{ $product->stock_filled }} tabung</span>
                     @else
-                        <span class="badge badge-success">Stok {{ $product->stock_filled }} {{ $product->getUnitLabel() }}</span>
+                        <span class="badge badge-success">Stok {{ $product->stock_filled }} tabung</span>
                     @endif
-                    @if($product->category === 'gas')
-                        <span class="muted">Tabung kosong: {{ $product->stock_empty }}</span>
-                    @endif
+                    <span class="muted">Tabung kosong: {{ $product->stock_empty }}</span>
                 </span>
             </button>
             @endforeach
@@ -202,7 +193,6 @@
     var LOW = {{ $lowStockLimit }};
     var STORE_KEY = 'arkamas_pos_cart_v3';
     var TYPES = { refill: 'Isi ulang (tukar tabung)', pinjam_tabung: 'Pinjam tabung', plus_tabung: 'Beli tabung dan isi' };
-    var CATEGORY_FILTER = 'all';
 
     var $ = function (id) { return document.getElementById(id); };
     var ICON = {
@@ -235,12 +225,7 @@
         products[el.dataset.id] = {
             id: el.dataset.id, name: el.dataset.name, sku: el.dataset.sku,
             price: parseFloat(el.dataset.price) || 0, tube: parseFloat(el.dataset.tube) || 0,
-            stock: parseInt(el.dataset.stock, 10) || 0, category: el.dataset.category || 'gas',
-            unit: el.dataset.unit || 'tabung', el: el,
-            getUnitLabel: function () {
-                var u = this.unit;
-                return u === 'tabung' ? 'tabung' : (u === 'butir' ? 'butir' : (u === 'tray' ? 'tray' : (u === 'kg' ? 'kg' : '')));
-            }
+            stock: parseInt(el.dataset.stock, 10) || 0, el: el
         };
     });
 
@@ -274,17 +259,10 @@
             if (!Array.isArray(saved)) return;
             saved.forEach(function (l) {
                 var p = products[l.id];
-                if (!p || p.stock <= 0) return;
-                var isTelur = p.category === 'telur';
-                var isKg = p.unit === 'kg';
-                var minQty = isKg ? 0.1 : 1;
-                var types = isTelur ? { jual: 'Jual' } : TYPES;
-                if (!types[l.type]) return;
+                if (!p || p.stock <= 0 || !TYPES[l.type]) return;
                 var room = p.stock - qtyOfProduct(l.id);
-                var qty = Math.min(parseFloat(l.qty) || minQty, room);
-                if (isKg) qty = Math.round(qty * 10) / 10;
-                else qty = Math.max(minQty, qty);
-                if (qty >= minQty) cart.push({ id: l.id, type: l.type, qty: qty });
+                var qty = Math.min(parseInt(l.qty, 10) || 1, room);
+                if (qty > 0) cart.push({ id: l.id, type: l.type, qty: qty });
             });
         } catch (e) {}
     }
@@ -294,27 +272,19 @@
         var p = products[id];
         if (!p || p.stock <= 0) return;
         if (qtyOfProduct(id) >= p.stock) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); return; }
-        var isTelur = p.category === 'telur';
-        var minQty = isTelur && p.unit === 'kg' ? 0.1 : 1;
         var line = cart.find(function (l) { return l.id === id && l.type === 'refill'; });
         if (line) {
-            line.qty = Math.round((parseFloat(line.qty) + minQty) * 10) / 10;
+            line.qty += 1;
         } else {
-            cart.push({ id: id, type: isTelur ? 'jual' : 'refill', qty: minQty });
+            cart.push({ id: id, type: 'refill', qty: 1 });
         }
         render();
     }
     function changeQty(idx, delta) {
         var l = cart[idx], p = products[l.id];
-        var isTelur = p.category === 'telur';
-        var isKg = p.unit === 'kg';
-        var step = isKg ? 0.1 : 1;
-        var min = isKg ? 0.1 : 1;
-        var newQty = parseFloat(l.qty) + delta * step;
         if (delta > 0 && qtyOfProduct(l.id) >= p.stock) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); return; }
-        l.qty = Math.max(min, Math.round(newQty / step) * step);
-        if (isKg) l.qty = Math.round(l.qty * 10) / 10;
-        render();
+        l.qty += delta;
+        if (l.qty <= 0) removeLine(idx); else render();
     }
     function changeType(idx, type) {
         var l = cart[idx];
@@ -333,32 +303,18 @@
         } else {
             box.innerHTML = cart.map(function (l, i) {
                 var p = products[l.id];
-                var isTelur = p.category === 'telur';
-                var unitLabel = p.getUnitLabel ? p.getUnitLabel() : (p.unit || 'tabung');
-                var isKg = unitLabel === 'kg';
-                var step = isKg ? '0.1' : '1';
-                var priceLabel = isTelur ? rupiah(p.price) + '/' + unitLabel : rupiah(unitPrice(l));
-                var qtyDisplay = isKg ? parseFloat(l.qty).toFixed(1) + ' ' + unitLabel : Math.round(l.qty) + ' ' + unitLabel;
-                var qtyValue = isKg ? parseFloat(l.qty).toFixed(1) : Math.round(l.qty);
-                var room = Math.max(isKg ? 0.1 : 1, p.stock - (qtyOfProduct(l.id) - l.qty));
-                var opts = '';
-                if (!isTelur) {
-                    opts = Object.keys(TYPES).map(function (t) {
-                        var label = TYPES[t] + (t === 'plus_tabung' && p.tube > 0 ? ' (+' + rupiah(p.tube) + ')' : '');
-                        return '<option value="' + t + '"' + (t === l.type ? ' selected' : '') + '>' + esc(label) + '</option>';
-                    }).join('');
-                }
-                var qtyInput = isTelur
-                    ? '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + qtyValue + '" step="' + step + '" min="' + (isKg ? '0.1' : '1') + '" max="' + room + '" aria-label="Jumlah">'
-                    : '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + l.qty + '" min="1" max="' + room + '" aria-label="Jumlah">';
+                var room = Math.max(1, p.stock - (qtyOfProduct(l.id) - l.qty));
+                var opts = Object.keys(TYPES).map(function (t) {
+                    var label = TYPES[t] + (t === 'plus_tabung' && p.tube > 0 ? ' (+' + rupiah(p.tube) + ')' : '');
+                    return '<option value="' + t + '"' + (t === l.type ? ' selected' : '') + '>' + esc(label) + '</option>';
+                }).join('');
                 return '<div class="cart-item">' +
                     '<div style="min-width:0;"><div class="cart-item-name">' + esc(p.name) + '</div>' +
-                    (isTelur ? '' : '<select class="select select-sm" data-act="type" data-idx="' + i + '" style="margin-top:6px;" aria-label="Jenis transaksi">' + opts + '</select>') +
-                    '<div class="cart-item-qty" style="margin-top:4px;font-size:13px;color:var(--muted-ink)">' + qtyDisplay + '</div></div>' +
-                    '<div style="text-align:right;"><div class="cart-item-price">' + priceLabel + '</div>' +
+                    '<select class="select select-sm" data-act="type" data-idx="' + i + '" style="margin-top:6px;" aria-label="Jenis transaksi">' + opts + '</select></div>' +
+                    '<div style="text-align:right;"><div class="cart-item-price">' + rupiah(unitPrice(l)) + '</div>' +
                     '<div class="stepper" style="margin-top:8px;">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="dec" data-idx="' + i + '" aria-label="Kurangi">' + svg('minus') + '</button>' +
-                    qtyInput +
+                    '<input type="number" class="qty-input" data-act="qty" data-idx="' + i + '" value="' + l.qty + '" min="1" max="' + room + '" aria-label="Jumlah">' +
                     '<button type="button" class="btn btn-outline btn-xs btn-icon" data-act="inc" data-idx="' + i + '" aria-label="Tambah">' + svg('plus') + '</button>' +
                     '<button type="button" class="btn btn-ghost btn-xs btn-icon" data-act="del" data-idx="' + i + '" title="Hapus" aria-label="Hapus">' + svg('trash') + '</button>' +
                     '</div></div></div>';
@@ -455,17 +411,10 @@
         if (e.target.dataset.act === 'qty') {
             var i = parseInt(e.target.dataset.idx, 10);
             var l = cart[i], p = products[l.id];
-            var isTelur = p.category === 'telur';
-            var isKg = p.unit === 'kg';
-            var step = isKg ? 0.1 : 1;
-            var min = isKg ? 0.1 : 1;
-            var val = parseFloat(e.target.value) || min;
-            if (isKg) val = Math.round(val * 10) / 10;
-            else val = Math.round(val);
+            var val = parseInt(e.target.value, 10) || 1;
             var max = p.stock - (qtyOfProduct(l.id) - l.qty);
-            if (val > max) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); val = Math.max(min, max); }
-            val = Math.max(min, val);
-            l.qty = val;
+            if (val > max) { toast('Stok ' + p.name + ' hanya tersisa ' + p.stock, 'error'); val = max; }
+            l.qty = Math.max(1, val);
             render();
         }
     });
@@ -476,23 +425,6 @@
         var q = this.value.trim().toLowerCase(), shown = 0;
         Object.keys(products).forEach(function (id) {
             var p = products[id], hit = !q || p.name.toLowerCase().indexOf(q) > -1 || p.sku.toLowerCase().indexOf(q) > -1;
-            if (hit && CATEGORY_FILTER !== 'all' && p.category !== CATEGORY_FILTER) hit = false;
-            p.el.hidden = !hit; if (hit) shown++;
-        });
-        $('noProductMatch').hidden = shown > 0;
-    });
-    $('categoryFilter').addEventListener('click', function (e) {
-        var b = e.target.closest('button'); if (!b) return;
-        var cat = b.dataset.cat;
-        if (!cat) return;
-        document.querySelectorAll('#categoryFilter button').forEach(function (btn) {
-            btn.setAttribute('aria-pressed', btn.dataset.cat === cat ? 'true' : 'false');
-        });
-        CATEGORY_FILTER = cat;
-        var q = $('productSearch').value.trim().toLowerCase(), shown = 0;
-        Object.keys(products).forEach(function (id) {
-            var p = products[id], hit = !q || p.name.toLowerCase().indexOf(q) > -1 || p.sku.toLowerCase().indexOf(q) > -1;
-            if (hit && CATEGORY_FILTER !== 'all' && p.category !== CATEGORY_FILTER) hit = false;
             p.el.hidden = !hit; if (hit) shown++;
         });
         $('noProductMatch').hidden = shown > 0;

@@ -15,7 +15,7 @@
 {{-- Ringkasan statistik (KPI cards) --}}
 @php
     $isOwner = auth()->user()->isOwner();
-    $statCount = 5 + ($isOwner ? 1 : 0);
+    $statCount = 4 + ($isOwner ? 1 : 0);
     $statClass = in_array($statCount, [3, 4, 5, 6]) ? 'stat-grid-' . $statCount : '';
 @endphp
 <div class="stat-grid {{ $statClass }}">
@@ -33,24 +33,16 @@
         <div class="stat-card-head">
             <span class="stat-card-title">Gas Terjual Hari Ini</span>
         </div>
-        <div class="stat-card-value">{{ number_format($todayGasQty) }} tabung</div>
-        <div class="stat-card-note"><span class="stat-trend up">↗</span> Terjual {{ number_format($todayGasQty) }} tabung isi</div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-card-head">
-            <span class="stat-card-title">Telur Terjual Hari Ini</span>
-        </div>
-        <div class="stat-card-value">{{ number_format($todayTelurQty) }} {{ $telurUnitLabel }}</div>
-        <div class="stat-card-note"><span class="stat-trend up">↗</span> Terjual {{ number_format($todayTelurQty) }} {{ $telurUnitLabel }}</div>
+        <div class="stat-card-value">{{ number_format($todaySoldQty) }} tabung</div>
+        <div class="stat-card-note"><span class="stat-trend up">↗</span> Terjual {{ number_format($todaySoldQty) }} tabung isi</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-card-head">
             <span class="stat-card-title">Penerimaan Hari Ini</span>
         </div>
-        <div class="stat-card-value">@rupiah($todayTotalRevenue)</div>
-        <div class="stat-card-note"><span class="nowrap">Gas @rupiah($todayGasRevenue)</span> · <span class="nowrap">Telur @rupiah($todayTelurRevenue)</span></div>
+        <div class="stat-card-value">@rupiah($todayCash + $todayTransfer)</div>
+        <div class="stat-card-note"><span class="nowrap">Tunai @rupiah($todayCash)</span> · <span class="nowrap">Transfer @rupiah($todayTransfer)</span></div>
     </div>
 
     <a href="{{ route('debts.index') }}" class="stat-card">
@@ -157,12 +149,12 @@
             </div>
             <div class="card-body" style="border-bottom:1px solid var(--border);padding:14px 18px;">
                 <div class="legend">
-                    <span><i class="dot dot-filled"></i> Isi <strong class="num">{{ number_format($totalGasFilled) }}</strong></span>
-                    <span><i class="dot dot-empty"></i> Kosong <strong class="num">{{ number_format($totalGasEmpty) }}</strong></span>
-                    <span><i class="dot dot-borrowed"></i> Dipinjam <strong class="num">{{ number_format($totalGasBorrowed) }}</strong></span>
+                    <span><i class="dot dot-filled"></i> Isi <strong class="num">{{ number_format($totalFilled) }}</strong></span>
+                    <span><i class="dot dot-empty"></i> Kosong <strong class="num">{{ number_format($totalEmpty) }}</strong></span>
+                    <span><i class="dot dot-borrowed"></i> Dipinjam <strong class="num">{{ number_format($totalBorrowed) }}</strong></span>
                 </div>
             </div>
-            @forelse($gasStocks as $product)
+            @forelse($stocks as $product)
             <div class="stock-item">
                 <div class="row between" style="margin-bottom:8px;">
                     <div class="grow">
@@ -192,42 +184,6 @@
             </div>
             @endforelse
         </div>
-
-        @if($telurStocks->count() > 0)
-        <div class="card">
-            <div class="card-head">
-                <span class="card-title"><x-icon name="stock" /> Stok telur</span>
-                <a href="{{ route('inventory.index') }}" class="text-sm fw">{{ auth()->user()->isOwner() ? 'Kelola stok' : 'Stok Telur' }}</a>
-            </div>
-            <div class="card-body" style="border-bottom:1px solid var(--border);padding:14px 18px;">
-                <div class="legend">
-                    <span><i class="dot dot-filled"></i> Isi <strong class="num">{{ number_format($totalTelurFilled) }}</strong> {{ $telurUnitLabel }}</span>
-                </div>
-            </div>
-            @forelse($telurStocks as $product)
-            <div class="stock-item">
-                <div class="row between" style="margin-bottom:8px;">
-                    <div class="grow">
-                        <div class="cell-title truncate">{{ $product->name }}</div>
-                        <div class="cell-sub">@rupiah($product->price_sell) / {{ $product->getUnitLabel() }}</div>
-                    </div>
-                    @if($product->stock_filled <= 0)
-                        <span class="badge badge-danger">Habis</span>
-                    @elseif($product->stock_filled <= $product->min_stock)
-                        <span class="badge badge-warning">Menipis</span>
-                    @endif
-                </div>
-                <div class="legend" style="margin-top:8px;">
-                    <span><i class="dot dot-filled"></i> Isi {{ $product->stock_filled }} {{ $product->getUnitLabel() }}</span>
-                </div>
-            </div>
-            @empty
-            <div class="empty">
-                <div class="empty-title">Belum ada produk aktif</div>
-            </div>
-            @endforelse
-        </div>
-        @endif
     </div>
 </div>
 

@@ -54,7 +54,7 @@
     <div class="receipt">
         <div class="r-head">
             <div class="r-name">ARKAMAS GAS</div>
-            <div class="r-sub">Penjualan Gas &amp; Telur</div>
+            <div class="r-sub">Pangkalan Gas LPG</div>
         </div>
 
         <hr class="r-line">

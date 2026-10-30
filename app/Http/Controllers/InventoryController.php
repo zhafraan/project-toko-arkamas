@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentDelivery;
 use App\Models\DeletionLog;
-use App\Models\GoodsReceipt;
 use App\Models\Product;
 use App\Models\StockAdjustment;
 use Illuminate\Http\Request;
@@ -36,16 +35,12 @@ class InventoryController extends Controller
             'price_buy'      => 'nullable|numeric|min:0',
             'price_sell'     => 'required|numeric|min:0',
             'price_tube'     => 'nullable|numeric|min:0',
-            'stock_filled'   => 'nullable|numeric|min:0',
-            'stock_crates'   => 'nullable|numeric|min:0',
+            'stock_filled'   => 'nullable|integer|min:0',
             'stock_empty'    => 'nullable|integer|min:0',
             'stock_borrowed' => 'nullable|integer|min:0',
-            'category'       => 'nullable|in:gas,telur',
-            'unit'           => 'nullable|string|max:20',
-            'min_stock'      => 'nullable|numeric|min:0',
         ]);
 
-        foreach (['price_buy', 'price_tube', 'stock_filled', 'stock_crates', 'stock_empty', 'stock_borrowed', 'min_stock'] as $key) {
+        foreach (['price_buy', 'price_tube', 'stock_filled', 'stock_empty', 'stock_borrowed'] as $key) {
             $data[$key] = $data[$key] ?? 0;
         }
         $data['is_active'] = true;
@@ -58,20 +53,16 @@ class InventoryController extends Controller
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'sku'          => 'required|string|max:50|unique:products,sku,' . $product->id,
-            'price_buy'    => 'nullable|numeric|min:0',
-            'price_sell'   => 'required|numeric|min:0',
-            'price_tube'   => 'nullable|numeric|min:0',
-            'is_active'    => 'required|boolean',
-            'stock_crates' => 'nullable|numeric|min:0',
+            'name'       => 'required|string|max:255',
+            'sku'        => 'required|string|max:50|unique:products,sku,' . $product->id,
+            'price_buy'  => 'nullable|numeric|min:0',
+            'price_sell' => 'required|numeric|min:0',
+            'price_tube' => 'nullable|numeric|min:0',
+            'is_active'  => 'required|boolean',
         ]);
 
         $data['price_buy']  = $data['price_buy'] ?? 0;
         $data['price_tube'] = $data['price_tube'] ?? 0;
-        if ($request->has('stock_crates')) {
-            $data['stock_crates'] = (float) ($data['stock_crates'] ?? 0);
-        }
 
         $product->update($data);
         return back()->with('success', 'Produk "' . $product->name . '" berhasil diperbarui.');
@@ -260,119 +251,5 @@ class InventoryController extends Controller
         });
 
         return back()->with('success', 'Penerimaan dari agen berhasil dihapus dan stok telah dikembalikan. Penghapusan tercatat di riwayat penghapusan.');
-    }
-
-    public function goodsReceipts()
-    {
-        $products = Product::where('category', 'telur')->where('is_active', true)->orderBy('name')->get();
-        $telurProduct = $products->firstWhere('unit', 'kg') ?? $products->first();
-
-        $lastPrices = GoodsReceipt::whereIn('product_id', $products->pluck('id'))
-            ->orderBy('receipt_date')->orderBy('id')
-            ->get(['product_id', 'buy_price_per_unit'])
-            ->groupBy('product_id')
-            ->map(fn ($rows) => (float) $rows->last()->buy_price_per_unit);
-
-        $defaultBuyPrice = (float) ($lastPrices[$telurProduct?->id] ?? $telurProduct?->price_buy ?? Product::DEFAULT_BUY_PRICE_TELUR);
-
-        $goodsReceipts = GoodsReceipt::with(['product', 'user'])
-            ->whereHas('product', fn ($q) => $q->where('category', 'telur'))
-            ->latest('receipt_date')->latest('id')
-            ->paginate(20);
-
-        return view('inventory.goods-receipts', compact('products', 'telurProduct', 'defaultBuyPrice', 'goodsReceipts', 'lastPrices'));
-    }
-
-    public function storeGoodsReceipt(Request $request)
-    {
-        $rules = [
-            'product_id'          => 'nullable|exists:products,id',
-            'receipt_date'        => 'required|date|after_or_equal:today',
-            'crates'              => 'nullable|numeric|min:0',
-            'qty'                 => 'required|numeric|min:0.1',
-            'supplier'            => 'nullable|string|max:255',
-            'notes'               => 'nullable|string|max:255',
-        ];
-
-        if (auth()->user()->isOwner()) {
-            $rules['buy_price_per_unit'] = 'nullable|numeric|min:0';
-        }
-
-        $data = $request->validate($rules);
-
-        if (empty($data['product_id'])) {
-            $telur = Product::where('category', 'telur')->where('is_active', true)->orderBy('id')->first();
-            if (!$telur) {
-                return back()->with('error', 'Produk telur belum terdaftar di sistem.');
-            }
-            $data['product_id'] = $telur->id;
-        }
-
-        if (auth()->user()->isOwner()) {
-            $data['buy_price_per_unit'] = !empty($data['buy_price_per_unit'])
-                ? (float) $data['buy_price_per_unit']
-                : Product::DEFAULT_BUY_PRICE_TELUR;
-        } else {
-            $lastPrice = GoodsReceipt::where('product_id', $data['product_id'])
-                ->orderByDesc('receipt_date')->orderByDesc('id')->value('buy_price_per_unit');
-
-            $data['buy_price_per_unit'] = (float) ($lastPrice ?? Product::DEFAULT_BUY_PRICE_TELUR);
-        }
-
-        DB::transaction(function () use ($data) {
-            $product = Product::lockForUpdate()->findOrFail($data['product_id']);
-
-            GoodsReceipt::create([
-                'product_id'          => $data['product_id'],
-                'user_id'             => auth()->id(),
-                'receipt_date'        => $data['receipt_date'],
-                'crates'              => !empty($data['crates']) ? $data['crates'] : null,
-                'qty'                 => $data['qty'],
-                'buy_price_per_unit'  => $data['buy_price_per_unit'],
-                'total_cost'          => $data['qty'] * $data['buy_price_per_unit'],
-                'supplier'            => $data['supplier'] ?? null,
-                'notes'               => $data['notes'] ?? null,
-            ]);
-
-            $product->increment('stock_filled', $data['qty']);
-            if (!empty($data['crates'])) {
-                $product->increment('stock_crates', (float) $data['crates']);
-            }
-        });
-
-        return back()->with('success', 'Stok masuk berhasil dicatat.');
-    }
-
-    public function destroyGoodsReceipt(GoodsReceipt $receipt)
-    {
-        DB::transaction(function () use ($receipt) {
-            $receipt->load(['product', 'user']);
-            $product = Product::lockForUpdate()->findOrFail($receipt->product_id);
-
-            $crateText = $receipt->crates !== null ? " (" . ($receipt->crates + 0) . " peti)" : "";
-            DeletionLog::record(
-                $receipt,
-                "Stok masuk {$receipt->product->name} × {$receipt->qty} {$receipt->product->getUnitLabel()}{$crateText} — Rp " . number_format((float) $receipt->total_cost, 0, ',', '.'),
-                [
-                    'receipt_date'        => $receipt->receipt_date->toDateString(),
-                    'product'             => $receipt->product->name,
-                    'crates'              => $receipt->crates !== null ? (float) $receipt->crates : null,
-                    'qty'                 => (float) $receipt->qty,
-                    'buy_price_per_unit'  => (float) $receipt->buy_price_per_unit,
-                    'total_cost'          => (float) $receipt->total_cost,
-                    'supplier'            => $receipt->supplier,
-                    'notes'               => $receipt->notes,
-                    'recorded_by'         => $receipt->user?->name,
-                ]
-            );
-
-            $product->decrement('stock_filled', $receipt->qty);
-            if (!empty($receipt->crates)) {
-                $product->decrement('stock_crates', (float) $receipt->crates);
-            }
-            $receipt->delete();
-        });
-
-        return back()->with('success', 'Stok masuk diarsipkan dan stok telah dikurangi. Penghapusan tercatat di riwayat penghapusan.');
     }
 }
