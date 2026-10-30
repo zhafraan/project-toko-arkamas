@@ -20,44 +20,44 @@
 @endphp
 <div class="stat-grid {{ $statClass }}">
     @if($isOwner)
-    <div class="stat-card">
+    <div class="stat-card stat-card-dark">
         <div class="stat-card-head">
             <span class="stat-card-title">Omzet hari ini</span>
-            <div class="stat-card-icon stat-icon-peach">
+            <div class="stat-card-icon">
                 <x-icon name="trending-up" size="18" />
             </div>
         </div>
-        <div class="stat-card-value {{ $todayRevenue > 0 ? 'highlight' : '' }}">@rupiah($todayRevenue)</div>
+        <div class="stat-card-value">@rupiah($todayRevenue)</div>
         <div class="stat-card-note">{{ $todayCount }} transaksi</div>
     </div>
     @endif
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Gas terjual hari ini (tabung)</span>
-            <div class="stat-card-icon stat-icon-green">
+            <span class="stat-card-title">Gas terjual hari ini</span>
+            <div class="stat-card-icon">
                 <x-icon name="package" size="18" />
             </div>
         </div>
-        <div class="stat-card-value {{ $todayGasQty > 0 ? 'highlight' : '' }}">{{ number_format($todayGasQty) }} tabung</div>
+        <div class="stat-card-value">{{ number_format($todayGasQty) }} tabung</div>
         <div class="stat-card-note">Isi gas yang terjual hari ini</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-card-head">
-            <span class="stat-card-title">Telur terjual hari ini (kg/butir)</span>
-            <div class="stat-card-icon stat-icon-green">
+            <span class="stat-card-title">Telur terjual hari ini</span>
+            <div class="stat-card-icon">
                 <x-icon name="package" size="18" />
             </div>
         </div>
-        <div class="stat-card-value {{ $todayTelurQty > 0 ? 'highlight' : '' }}">{{ number_format($todayTelurQty) }} {{ $telurUnitLabel }}</div>
+        <div class="stat-card-value">{{ number_format($todayTelurQty) }} {{ $telurUnitLabel }}</div>
         <div class="stat-card-note">Telur yang terjual hari ini</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-card-head">
             <span class="stat-card-title">Penerimaan hari ini</span>
-            <div class="stat-card-icon stat-icon-amber">
+            <div class="stat-card-icon">
                 <x-icon name="banknote" size="18" />
             </div>
         </div>
@@ -68,7 +68,7 @@
     <a href="{{ route('debts.index') }}" class="stat-card">
         <div class="stat-card-head">
             <span class="stat-card-title">Piutang belum lunas</span>
-            <div class="stat-card-icon stat-icon-rose">
+            <div class="stat-card-icon">
                 <x-icon name="wallet" size="18" />
             </div>
         </div>
@@ -79,11 +79,11 @@
     <a href="{{ route('loans.index') }}" class="stat-card">
         <div class="stat-card-head">
             <span class="stat-card-title">Tabung dalam pinjaman</span>
-            <div class="stat-card-icon stat-icon-stone">
+            <div class="stat-card-icon">
                 <x-icon name="package" size="18" />
             </div>
         </div>
-        <div class="stat-card-value {{ $loanTubes > 0 ? 'highlight' : '' }}">{{ number_format($loanTubes) }} tabung</div>
+        <div class="stat-card-value">{{ number_format($loanTubes) }} tabung</div>
         <div class="stat-card-note">Dipinjam oleh {{ $loanCustomers }} pelanggan</div>
     </a>
 
@@ -91,11 +91,11 @@
     <div class="stat-card">
         <div class="stat-card-head">
             <span class="stat-card-title">Omzet bulan ini</span>
-            <div class="stat-card-icon stat-icon-green">
+            <div class="stat-card-icon">
                 <x-icon name="bar-chart" size="18" />
             </div>
         </div>
-        <div class="stat-card-value {{ $monthRevenue > 0 ? 'highlight' : '' }}">@rupiah($monthRevenue)</div>
+        <div class="stat-card-value">@rupiah($monthRevenue)</div>
         <div class="stat-card-note">{{ now()->translatedFormat('F Y') }}</div>
     </div>
     @endif
@@ -148,13 +148,13 @@
     <div class="stack" style="gap:16px;">
         {{-- Peringatan stok menipis (khusus owner) --}}
         @if(auth()->user()->isOwner() && $lowStock->count() > 0)
-        <div class="card" style="border:1.5px solid var(--warning-soft,#fde68a);">
-            <div class="card-head" style="background:var(--warning-soft,#fffbeb);border-radius:12px 12px 0 0;">
-                <span class="card-title" style="color:var(--warning-ink,#92400e);">
-                    <svg class="icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title text-warning">
+                    <x-icon name="alert" size="17" />
                     Peringatan stok
                 </span>
-                <a href="{{ route('inventory.index') }}" class="text-sm fw" style="color:var(--warning-ink,#92400e);">Kelola stok</a>
+                <a href="{{ route('inventory.index') }}" class="text-sm fw">Kelola stok</a>
             </div>
             <ul style="margin:0;padding:0;list-style:none;">
                 @foreach($lowStock as $lp)

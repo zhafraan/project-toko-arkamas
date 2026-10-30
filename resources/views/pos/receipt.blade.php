@@ -15,7 +15,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Jost:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
         body { display: grid; place-items: start center; padding: 28px 16px 40px; }
@@ -32,7 +32,7 @@
         .r-item { margin-bottom: 10px; }
         .r-item-name { font-weight: 700; }
         .r-item-meta { display: flex; justify-content: space-between; color: #4b4f6e; font-variant-numeric: tabular-nums; }
-        .r-tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: #E3EBDD; color: #2E5239; margin: 2px 0; }
+        .r-tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: #F1F1F2; color: #111111; border: 1px solid #E4E4E7; margin: 2px 0; }
         .r-total { font-family: 'Lexend', sans-serif; display: flex; justify-content: space-between; align-items: baseline; font-size: 17px; font-weight: 600; margin: 8px 0; }
         .r-status { text-align: center; font-weight: 800; letter-spacing: .04em; padding: 8px; border-radius: 8px; margin-top: 12px; }
         .r-status.lunas { background: #e0f6ec; color: #05694a; }

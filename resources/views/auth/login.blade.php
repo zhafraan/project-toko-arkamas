@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Jost:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
@@ -16,25 +16,16 @@
     <aside class="auth-aside" aria-hidden="true">
         <div class="row" style="gap:12px;">
             <svg width="40" height="40" viewBox="0 0 72 72" fill="none">
-                <defs><linearGradient id="agGoldL" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F2B66B"/><stop offset="100%" stop-color="#D9822B"/></linearGradient></defs>
-                <rect width="72" height="72" rx="18" fill="rgba(255,255,255,.16)"/>
-                <text x="34" y="48" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="32" letter-spacing="-1"><tspan fill="#FFFFFB">A</tspan><tspan fill="url(#agGoldL)" dx="1">G</tspan></text>
-                <circle cx="56" cy="23" r="4" fill="url(#agGoldL)"/>
+                <rect width="72" height="72" rx="18" fill="rgba(255,255,255,.18)"/>
+                <text x="36" y="47" text-anchor="middle" font-family="'Manrope', system-ui, sans-serif" font-weight="800" font-size="28" letter-spacing="-1" fill="#FFFFFF">TA</text>
             </svg>
-            <strong style="font-size:17px;letter-spacing:-.01em;">Toko ARKAMAS</strong>
+            <strong style="font-size:17px;letter-spacing:-.02em;font-weight:800;">Toko Arkamas</strong>
         </div>
         <div>
-            <h2>Sistem pengelolaan Toko Arkamas. Penjualan Gas dan Telur.</h2>
-            <p>Kelola penjualan, stok tabung, dan piutang dalam satu sistem.</p>
+            <h2>Sistem Pengelolaan Toko Arkamas</h2>
+            <p>Kelola penjualan gas & telur, stok, dan piutang dalam satu sistem modern.</p>
         </div>
-        <div style="font-size:13px;color:rgba(255,255,255,.7);">© {{ date('Y') }} Toko ARKAMAS</div>
-
-        <svg class="auth-deco" viewBox="0 0 120 200" fill="currentColor" aria-hidden="true">
-            <rect x="30" y="50" width="60" height="140" rx="26"/>
-            <rect x="48" y="26" width="24" height="30" rx="6"/>
-            <rect x="40" y="12" width="40" height="14" rx="7"/>
-        </svg>
-
+        <div style="font-size:13px;color:rgba(255,255,255,.6);">© {{ date('Y') }} Toko Arkamas</div>
     </aside>
 
     <main class="auth-main">

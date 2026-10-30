@@ -8,7 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Jost:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
@@ -19,15 +19,10 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <svg viewBox="0 0 72 72" fill="none" aria-hidden="true">
-            <defs>
-                <linearGradient id="agBrand" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4F7F61"/><stop offset="100%" stop-color="#2E5239"/></linearGradient>
-                <linearGradient id="agGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F2B66B"/><stop offset="100%" stop-color="#D9822B"/></linearGradient>
-            </defs>
-            <rect width="72" height="72" rx="18" fill="url(#agBrand)"/>
-            <text x="34" y="48" text-anchor="middle" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="32" letter-spacing="-1">
-                <tspan fill="#FFFFFB">A</tspan><tspan fill="url(#agGold)" dx="1">G</tspan>
+            <rect width="72" height="72" rx="18" fill="var(--primary)"/>
+            <text x="36" y="47" text-anchor="middle" font-family="'Manrope', system-ui, sans-serif" font-weight="800" font-size="28" letter-spacing="-1" fill="var(--surface)">
+                TA
             </text>
-            <circle cx="56" cy="23" r="4" fill="url(#agGold)"/>
         </svg>
         <div class="brand-text">
             <div class="brand-name">Toko Arkamas</div>

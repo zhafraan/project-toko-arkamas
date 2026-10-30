@@ -20,14 +20,14 @@
 @section('content')
 @php $reopen = old('_modal'); @endphp
 
-<div class="card" style="margin-bottom:16px;">
-    <div class="tabs" style="display:flex;flex-wrap:wrap;gap:4px;">
+<div style="margin-bottom:16px;">
+    <div class="range-tabs">
         <a href="{{ request()->query() ? '?' . http_build_query(array_merge(request()->query(), ['category' => 'all'])) : '?category=all' }}"
-           class="tab {{ $category === 'all' ? 'active' : '' }}">Semua</a>
+           class="{{ $category === 'all' ? 'active' : '' }}">Semua</a>
         <a href="{{ request()->query() ? '?' . http_build_query(array_merge(request()->query(), ['category' => 'gas'])) : '?category=gas' }}"
-           class="tab {{ $category === 'gas' ? 'active' : '' }}">Gas</a>
+           class="{{ $category === 'gas' ? 'active' : '' }}">Gas</a>
         <a href="{{ request()->query() ? '?' . http_build_query(array_merge(request()->query(), ['category' => 'telur'])) : '?category=telur' }}"
-           class="tab {{ $category === 'telur' ? 'active' : '' }}">Telur</a>
+           class="{{ $category === 'telur' ? 'active' : '' }}">Telur</a>
     </div>
 </div>
 
