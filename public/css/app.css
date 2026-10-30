@@ -240,12 +240,54 @@ html[data-sidebar="collapsed"] { --sidebar-w: 72px; }
     color: var(--text-2); font-weight: 600; font-size: 13.5px; border-radius: var(--r-pill); white-space: nowrap;
     transition: background .12s ease, color .12s ease;
 }
-.nav-link:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
-.nav-link.active {
-    background: var(--primary); color: #FFFFFF; font-weight: 600;
+.nav-link .label {
+    display: inline;
+    margin-bottom: 0;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
 }
-:root[data-theme="dark"] .nav-link.active {
-    background: var(--primary); color: #0B0B0C; font-weight: 700;
+.nav-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+    text-decoration: none;
+}
+.nav-link:hover .label {
+    color: var(--text);
+}
+.nav-link.active,
+.nav-link.active:hover,
+.nav-link:active {
+    background: var(--primary);
+    color: #FFFFFF !important;
+    font-weight: 600;
+}
+.nav-link.active .label,
+.nav-link.active:hover .label,
+.nav-link:active .label {
+    color: #FFFFFF !important;
+}
+.nav-link.active .icon,
+.nav-link.active:hover .icon,
+.nav-link:active .icon {
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
+:root[data-theme="dark"] .nav-link.active,
+:root[data-theme="dark"] .nav-link.active:hover,
+:root[data-theme="dark"] .nav-link:active {
+    background: #27272A;
+    color: #FFFFFF !important;
+    font-weight: 600;
+}
+:root[data-theme="dark"] .nav-link.active .label,
+:root[data-theme="dark"] .nav-link.active:hover .label,
+:root[data-theme="dark"] .nav-link:active .label,
+:root[data-theme="dark"] .nav-link.active .icon,
+:root[data-theme="dark"] .nav-link.active:hover .icon,
+:root[data-theme="dark"] .nav-link:active .icon {
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
 }
 .nav-link .icon { width: 18px; height: 18px; stroke-width: 2; }
 .nav-count {
