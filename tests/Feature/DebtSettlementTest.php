@@ -159,4 +159,42 @@ class DebtSettlementTest extends TestCase
         $this->assertSame(70000.0, (float) $nota->remaining_debt);
         $this->assertSame(110000.0, (float) $nota->paid_amount);
     }
+
+    public function test_nota_belum_lunas_tidak_dapat_dihapus(): void
+    {
+        $nota = $this->notaPiutang($this->kasir());
+
+        $this->actingAs($this->owner())
+            ->delete(route('pos.destroy', $nota))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('transactions', ['id' => $nota->id]);
+    }
+
+    public function test_nota_lunas_dengan_riwayat_pembayaran_piutang_dapat_dihapus(): void
+    {
+        $nota = $this->notaPiutang($this->kasir());
+
+        // Bayar lunas sisa 130.000
+        $this->actingAs($this->kasir())->post(route('debts.pay', $nota), [
+            'amount_paid' => 130000, 'payment_method' => 'cash',
+        ])->assertSessionHasNoErrors();
+
+        $nota->refresh();
+        $this->assertSame('lunas', $nota->payment_status);
+        $this->assertSame(0.0, (float) $nota->remaining_debt);
+
+        // Hapus nota oleh pemilik
+        $this->actingAs($this->owner())
+            ->delete(route('pos.destroy', $nota))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('transactions', ['id' => $nota->id]);
+        $this->assertDatabaseMissing('debt_payments', ['transaction_id' => $nota->id]);
+
+        $log = \App\Models\DeletionLog::where('deletable_type', 'Transaction')->latest('id')->first();
+        $this->assertNotNull($log);
+        $this->assertNotEmpty($log->data['debt_payments']);
+        $this->assertSame(130000.0, (float) $log->data['debt_payments'][0]['amount_paid']);
+    }
 }

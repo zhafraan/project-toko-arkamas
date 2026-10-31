@@ -220,12 +220,13 @@ class PosController extends Controller
     /** Hapus nota (khusus owner) — stok dikembalikan & penghapusan dicatat di riwayat penghapusan. */
     public function destroy(Transaction $transaction)
     {
-        if ($transaction->debtPayments()->exists()) {
-            return back()->with('error', 'Nota ' . $transaction->invoice_number . ' tidak dapat dihapus karena sudah ada pembayaran piutang tercatat.');
+        // Nota yang masih memiliki sisa piutang (belum lunas) tidak dapat dihapus
+        if ($transaction->payment_status === 'belum_lunas' || (float) $transaction->remaining_debt > 0) {
+            return back()->with('error', 'Nota ' . $transaction->invoice_number . ' tidak dapat dihapus karena masih berstatus piutang (belum lunas). Selesaikan pembayaran piutang terlebih dahulu.');
         }
 
         DB::transaction(function () use ($transaction) {
-            $transaction->load(['details.product', 'tubeLoans.product', 'customer', 'user']);
+            $transaction->load(['details.product', 'tubeLoans.product', 'debtPayments', 'customer', 'user']);
 
             $productIds = $transaction->details->pluck('product_id')
                 ->concat($transaction->tubeLoans->pluck('product_id'))->unique();
@@ -307,9 +308,16 @@ class PosController extends Controller
                         'qty_returned' => $l->qty_returned,
                         'status'       => $l->status,
                     ])->all(),
+                    'debt_payments'    => $transaction->debtPayments->map(fn ($p) => [
+                        'payment_date'   => $p->payment_date?->toDateTimeString(),
+                        'amount_paid'    => (float) $p->amount_paid,
+                        'payment_method' => $p->payment_method,
+                        'notes'          => $p->notes,
+                    ])->all(),
                 ]
             );
 
+            $transaction->debtPayments()->delete();
             $transaction->tubeLoans()->delete();
             $transaction->delete(); // details ikut terhapus (cascade)
         });
