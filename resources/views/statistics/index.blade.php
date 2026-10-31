@@ -46,10 +46,95 @@
     .st-seg button { border:0; background:transparent; font: inherit; font-size:12.5px; font-weight:600; color: var(--text-2); padding:5px 12px; border-radius:6px; cursor:pointer; }
     .st-seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
     details.st-table summary { cursor:pointer; padding: 10px 18px; font-size:12.5px; font-weight:600; color: var(--primary-text); border-top:1px solid var(--border); }
-    .st-pembanding { margin-left: auto; }
+    .st-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .st-custom-date { display: inline-flex; align-items: center; gap: 8px; }
+    .st-custom-date .st-date-field { display: inline-flex; align-items: center; gap: 6px; }
+    .st-custom-date .st-date-field .label { margin-bottom: 0; font-size: 13px; color: var(--text-2); white-space: nowrap; }
+    .st-pembanding { margin-left: auto; font-size: 12.5px; color: var(--text-3); white-space: nowrap; }
+
     @media (max-width: 768px) {
-        .st-custom-date { width: 100%; margin-left: 0 !important; flex-wrap: wrap; margin-top: 4px; }
-        .st-pembanding { width: 100%; margin-left: 0 !important; margin-top: 2px; font-size: 11.5px; }
+        .st-toolbar { padding: 12px 14px; gap: 10px; }
+        .st-range-tabs {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 6px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        .st-range-tabs button {
+            width: 100% !important;
+            height: 34px !important;
+            padding: 0 4px !important;
+            font-size: 11.5px !important;
+            text-align: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            box-sizing: border-box !important;
+            flex: 1 1 0 !important;
+        }
+        .st-custom-date {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+            width: 100% !important;
+            margin-top: 4px !important;
+            padding-top: 10px !important;
+            border-top: 1px dashed var(--border) !important;
+            box-sizing: border-box !important;
+        }
+        .st-custom-date .st-date-field {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 4px !important;
+            min-width: 0 !important;
+            width: 100% !important;
+        }
+        .st-custom-date .st-date-field .label {
+            font-size: 11.5px !important;
+            font-weight: 600 !important;
+            color: var(--text-2) !important;
+        }
+        .st-custom-date .st-date-field .input {
+            width: 100% !important;
+            height: 36px !important;
+            padding: 0 8px !important;
+            font-size: 13px !important;
+            box-sizing: border-box !important;
+        }
+        .st-custom-date .st-date-btn {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+            height: 38px !important;
+            display: inline-flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 6px !important;
+            font-weight: 600 !important;
+            box-sizing: border-box !important;
+        }
+        .st-pembanding {
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-top: 4px !important;
+            text-align: center !important;
+            font-size: 12px !important;
+            color: var(--text-3) !important;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .st-range-tabs {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .st-range-tabs button {
+            font-size: 12px !important;
+            padding: 0 8px !important;
+        }
     }
 </style>
 @endpush
@@ -70,10 +155,10 @@
 
 {{-- Filter periode --}}
 <div class="card mb-2">
-    <form method="GET" action="{{ route('statistics.index') }}" class="toolbar" id="stForm" style="border-bottom:0;align-items:center;">
-        <div class="range-tabs" id="rangeTabs">
+    <form method="GET" action="{{ route('statistics.index') }}" class="toolbar st-toolbar" id="stForm" style="border-bottom:0;align-items:center;">
+        <div class="range-tabs st-range-tabs" id="rangeTabs">
             @foreach($presets as $key => $label)
-            <button type="button" class="{{ $range === $key ? 'active' : '' }}" {{ $range === $key ? 'aria-pressed="true"' : '' }} onclick="var s = document.getElementById('stRange'); s.value='{{ $key }}'; s.dispatchEvent(new Event('change'));">
+            <button type="button" data-range="{{ $key }}" class="{{ $range === $key ? 'active' : '' }}" {{ $range === $key ? 'aria-pressed="true"' : '' }} onclick="var s = document.getElementById('stRange'); s.value='{{ $key }}'; s.dispatchEvent(new Event('change'));">
                 {{ $label }}
             </button>
             @endforeach
@@ -83,12 +168,16 @@
             <option value="{{ $key }}" {{ $range === $key ? 'selected' : '' }}>{{ $label }}</option>
             @endforeach
         </select>
-        <div data-custom {{ $range === 'custom' ? '' : 'hidden' }} class="st-custom-date row" style="gap:8px;">
-            <label class="label" for="stFrom" style="margin-bottom:0;">Dari</label>
-            <input type="date" id="stFrom" name="from" class="input input-sm" value="{{ $from }}">
-            <label class="label" for="stTo" style="margin-bottom:0;">Sampai</label>
-            <input type="date" id="stTo" name="to" class="input input-sm" value="{{ $to }}">
-            <button type="submit" class="btn btn-primary btn-sm"><x-icon name="filter" size="14" /> Tampilkan</button>
+        <div data-custom {{ $range === 'custom' ? '' : 'hidden' }} class="st-custom-date">
+            <div class="st-date-field">
+                <label class="label" for="stFrom">Dari</label>
+                <input type="date" id="stFrom" name="from" class="input input-sm" value="{{ $from }}">
+            </div>
+            <div class="st-date-field">
+                <label class="label" for="stTo">Sampai</label>
+                <input type="date" id="stTo" name="to" class="input input-sm" value="{{ $to }}">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm st-date-btn"><x-icon name="filter" size="14" /> Tampilkan</button>
         </div>
         <div class="muted text-sm st-pembanding">Pembanding: {{ $prevLabel }}</div>
     </form>
@@ -304,10 +393,27 @@
 (function () {
     // Form: tampilkan input tanggal hanya untuk "Pilih tanggal"
     var sel = document.getElementById('stRange');
-    sel.addEventListener('change', function () {
-        document.querySelectorAll('[data-custom]').forEach(function (el) { el.hidden = sel.value !== 'custom'; });
-        if (sel.value !== 'custom') document.getElementById('stForm').submit();
-    });
+    var tabs = document.querySelectorAll('#rangeTabs button');
+
+    function updateRangeButtons(val) {
+        tabs.forEach(function (btn) {
+            var isActive = btn.getAttribute('data-range') === val;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    }
+
+    if (sel) {
+        sel.addEventListener('change', function () {
+            updateRangeButtons(sel.value);
+            document.querySelectorAll('[data-custom]').forEach(function (el) {
+                el.hidden = sel.value !== 'custom';
+            });
+            if (sel.value !== 'custom') {
+                document.getElementById('stForm').submit();
+            }
+        });
+    }
 
     var svg = document.getElementById('stChart');
     if (!svg) return;
