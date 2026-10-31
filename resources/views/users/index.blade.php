@@ -21,9 +21,9 @@
                 @foreach($users as $user)
                 <tr>
                     <td data-label="Nama">
-                        <div class="row">
-                            <div class="avatar" style="width:34px;height:34px;">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-                            <div>
+                        <div class="row" style="justify-content:flex-start;align-items:center;">
+                            <div class="avatar" style="width:34px;height:34px;flex-shrink:0;">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+                            <div style="text-align:left;">
                                 <div class="cell-title">{{ $user->name }}</div>
                                 @if($user->id === auth()->id())<span class="badge badge-info" style="height:18px;font-size:11px;">Anda</span>@endif
                             </div>

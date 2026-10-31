@@ -137,7 +137,7 @@
     {{ $products->links('vendor.pagination.simple') }}
 </div>
 
-<div class="legend mt-2">
+<div class="legend legend-center mt-2" style="justify-content:center;text-align:center;">
     <span><i class="dot dot-filled"></i> Tabung isi</span>
     <span><i class="dot dot-empty"></i> Tabung kosong</span>
     <span><i class="dot dot-borrowed"></i> Tabung dipinjam</span>
