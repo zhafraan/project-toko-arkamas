@@ -18,8 +18,19 @@ class Product extends Model
     protected $fillable = [
         'name', 'sku', 'price_buy', 'price_sell', 'price_tube',
         'stock_filled', 'stock_empty', 'stock_borrowed', 'is_active',
-        'category', 'unit', 'min_stock',
+        'category', 'unit', 'min_stock', 'photo',
     ];
+
+    /**
+     * URL foto produk (atau null jika belum ada foto).
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (!$this->photo) {
+            return null;
+        }
+        return \Illuminate\Support\Facades\Storage::url($this->photo);
+    }
 
     protected $casts = [
         'is_active' => 'boolean',

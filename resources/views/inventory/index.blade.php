@@ -14,6 +14,108 @@
         <x-icon name="plus" /> <span class="btn-text">Tambah Produk</span>
     </button>
     @endif
+
+@push('scripts')
+<script>
+// --- Foto Produk: preview & remove ---
+function previewProductPhoto(input, previewId, imgId, placeholderId) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        document.getElementById(imgId).src = e.target.result;
+        document.getElementById(previewId).hidden = false;
+        document.getElementById(placeholderId).hidden = true;
+        // Reset remove_photo jika ada
+        var rm = document.getElementById('editRemovePhoto');
+        if (rm) rm.value = '0';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeProductPhoto(previewId, placeholderId, inputId, removeHiddenId) {
+    document.getElementById(previewId).hidden = true;
+    document.getElementById(placeholderId).hidden = false;
+    var inp = document.getElementById(inputId);
+    if (inp) inp.value = '';
+    var rm = document.getElementById(removeHiddenId);
+    if (rm) rm.value = '1';
+    // Reset img src
+    var img = document.getElementById(previewId).querySelector('img');
+    if (img) img.src = '';
+}
+
+// --- Edit modal: isi data dari button ---
+document.addEventListener('DOMContentLoaded', function () {
+    var editBtns = document.querySelectorAll('[data-modal-open="editProductModal"]');
+    editBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var modal = document.getElementById('editProductModal');
+            if (!modal) return;
+            var form = modal.querySelector('form');
+            form.action = btn.dataset.action;
+            form.querySelector('[name="name"]').value = btn.dataset.name || '';
+            form.querySelector('[name="sku"]').value = btn.dataset.sku || '';
+            form.querySelector('[name="price_buy"]').value = btn.dataset.priceBuy || '0';
+            form.querySelector('[name="price_sell"]').value = btn.dataset.priceSell || '';
+            form.querySelector('[name="price_tube"]').value = btn.dataset.priceTube || '0';
+            var statusSel = form.querySelector('[name="is_active"]');
+            if (statusSel) statusSel.value = btn.dataset.isActive || '1';
+
+            // Foto: tampilkan foto saat ini atau placeholder
+            var photoUrl = btn.dataset.photo || '';
+            var hasPhoto = btn.dataset.hasPhoto === '1';
+            var preview = document.getElementById('editPhotoPreview');
+            var placeholder = document.getElementById('editPhotoPlaceholder');
+            var img = document.getElementById('editPhotoImg');
+            var rmInput = document.getElementById('editRemovePhoto');
+            var fileInput = document.getElementById('editPhotoInput');
+
+            if (rmInput) rmInput.value = '0';
+            if (fileInput) fileInput.value = '';
+
+            if (hasPhoto && photoUrl) {
+                if (img) img.src = photoUrl;
+                if (preview) preview.hidden = false;
+                if (placeholder) placeholder.hidden = true;
+            } else {
+                if (preview) preview.hidden = true;
+                if (placeholder) { placeholder.hidden = false; placeholder.style.display = ''; }
+                if (img) img.src = '';
+            }
+        });
+    });
+
+    // Add modal: reset photo preview on open
+    var addModalTriggers = document.querySelectorAll('[data-modal-open="addProductModal"]');
+    addModalTriggers.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var preview = document.getElementById('addPhotoPreview');
+            var placeholder = document.getElementById('addPhotoPlaceholder');
+            var img = document.getElementById('addPhotoImg');
+            var fileInput = document.getElementById('addPhotoInput');
+            if (preview) preview.hidden = true;
+            if (placeholder) { placeholder.hidden = false; placeholder.style.display = ''; }
+            if (img) img.src = '';
+            if (fileInput) fileInput.value = '';
+        });
+    });
+
+    // Remove photo on add modal
+    var addRemoveBtn = document.getElementById('addPhotoRemove');
+    if (addRemoveBtn) {
+        addRemoveBtn.addEventListener('click', function () {
+            var preview = document.getElementById('addPhotoPreview');
+            var placeholder = document.getElementById('addPhotoPlaceholder');
+            var fileInput = document.getElementById('addPhotoInput');
+            if (preview) preview.hidden = true;
+            if (placeholder) { placeholder.hidden = false; placeholder.style.display = ''; }
+            if (fileInput) fileInput.value = '';
+        });
+    }
+});
+</script>
+@endpush
 @endsection
 
 @section('content')
@@ -56,8 +158,17 @@
                 @foreach($products as $product)
                 <tr>
                     <td data-label="Produk">
-                        <div class="cell-title">{{ $product->name }}</div>
-                        <div class="cell-sub">SKU {{ $product->sku }}</div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            @if($product->photo)
+                                <img src="{{ Storage::url($product->photo) }}" alt="{{ $product->name }}" class="product-thumb" loading="lazy">
+                            @else
+                                <div class="product-thumb-placeholder"><x-icon name="package" size="16" /></div>
+                            @endif
+                            <div>
+                                <div class="cell-title">{{ $product->name }}</div>
+                                <div class="cell-sub">SKU {{ $product->sku }}</div>
+                            </div>
+                        </div>
                     </td>
                     @if($user->isOwner())<td class="num" data-label="Harga beli">@rupiah($product->price_buy)</td>@endif
                     <td class="num fw" data-label="Harga jual">@rupiah($product->price_sell)</td>
@@ -91,7 +202,9 @@
                                     data-action="{{ route('inventory.update', $product) }}"
                                     data-name="{{ $product->name }}" data-sku="{{ $product->sku }}"
                                     data-is-active="{{ $product->is_active ? 1 : 0 }}"
-                                    data-price-buy="{{ $product->price_buy + 0 }}" data-price-sell="{{ $product->price_sell + 0 }}" data-price-tube="{{ $product->price_tube + 0 }}">
+                                    data-price-buy="{{ $product->price_buy + 0 }}" data-price-sell="{{ $product->price_sell + 0 }}" data-price-tube="{{ $product->price_tube + 0 }}"
+                                    data-photo="{{ $product->photo ? Storage::url($product->photo) : '' }}"
+                                    data-has-photo="{{ $product->photo ? '1' : '0' }}">
                                 <x-icon name="pencil" size="15" />
                             </button>
                             <button type="button" class="btn btn-ghost btn-xs btn-icon" title="Penyesuaian stok" aria-label="Penyesuaian stok"
@@ -151,9 +264,25 @@
             <div class="modal-title">Tambah produk baru</div>
             <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
-        <form method="POST" action="{{ route('inventory.store') }}" class="modal-body">
+        <form method="POST" action="{{ route('inventory.store') }}" class="modal-body" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="_modal" value="addProductModal">
+            {{-- Foto Produk --}}
+            <div class="field span-all">
+                <label class="label">Foto Produk <span class="muted" style="font-weight:400;">(opsional, maks. 2 MB)</span></label>
+                <div class="product-photo-upload" id="addPhotoUpload">
+                    <div class="product-photo-preview" id="addPhotoPreview" hidden>
+                        <img id="addPhotoImg" src="" alt="Pratinjau foto">
+                        <button type="button" class="product-photo-remove" id="addPhotoRemove" title="Hapus foto"><x-icon name="x" size="14" /></button>
+                    </div>
+                    <label class="product-photo-placeholder" id="addPhotoPlaceholder" for="addPhotoInput">
+                        <x-icon name="image" size="22" />
+                        <span>Klik untuk pilih foto</span>
+                        <span class="muted" style="font-size:11.5px;">JPG, PNG, WebP</span>
+                    </label>
+                    <input type="file" name="photo" id="addPhotoInput" accept="image/jpeg,image/png,image/webp" class="sr-only" onchange="previewProductPhoto(this,'addPhotoPreview','addPhotoImg','addPhotoPlaceholder')">
+                </div>
+            </div>
             <div class="form-grid">
                 <div class="field span-all">
                     <label class="label">Nama produk <span class="req">*</span></label>
@@ -200,9 +329,26 @@
             <div class="modal-title">Edit produk</div>
             <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-icon name="x" /></button>
         </div>
-        <form method="POST" action="" class="modal-body">
+        <form method="POST" action="" class="modal-body" enctype="multipart/form-data">
             @csrf @method('PUT')
             <input type="hidden" name="_modal" value="editProductModal">
+            <input type="hidden" name="remove_photo" id="editRemovePhoto" value="0">
+            {{-- Foto Produk --}}
+            <div class="field span-all">
+                <label class="label">Foto Produk <span class="muted" style="font-weight:400;">(opsional, maks. 2 MB)</span></label>
+                <div class="product-photo-upload" id="editPhotoUpload">
+                    <div class="product-photo-preview" id="editPhotoPreview" hidden>
+                        <img id="editPhotoImg" src="" alt="Pratinjau foto">
+                        <button type="button" class="product-photo-remove" id="editPhotoRemove" title="Hapus foto" onclick="removeProductPhoto('editPhotoPreview','editPhotoPlaceholder','editPhotoInput','editRemovePhoto')"><x-icon name="x" size="14" /></button>
+                    </div>
+                    <label class="product-photo-placeholder" id="editPhotoPlaceholder" for="editPhotoInput">
+                        <x-icon name="image" size="22" />
+                        <span>Klik untuk pilih foto</span>
+                        <span class="muted" style="font-size:11.5px;">JPG, PNG, WebP</span>
+                    </label>
+                    <input type="file" name="photo" id="editPhotoInput" accept="image/jpeg,image/png,image/webp" class="sr-only" onchange="previewProductPhoto(this,'editPhotoPreview','editPhotoImg','editPhotoPlaceholder')">
+                </div>
+            </div>
             <div class="form-grid">
                 <div class="field span-all">
                     <label class="label">Nama produk <span class="req">*</span></label>
@@ -271,4 +417,106 @@
     </div>
 </div>
 @endif
+
+@push('scripts')
+<script>
+// --- Foto Produk: preview & remove ---
+function previewProductPhoto(input, previewId, imgId, placeholderId) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        document.getElementById(imgId).src = e.target.result;
+        document.getElementById(previewId).hidden = false;
+        document.getElementById(placeholderId).hidden = true;
+        // Reset remove_photo jika ada
+        var rm = document.getElementById('editRemovePhoto');
+        if (rm) rm.value = '0';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeProductPhoto(previewId, placeholderId, inputId, removeHiddenId) {
+    document.getElementById(previewId).hidden = true;
+    document.getElementById(placeholderId).hidden = false;
+    var inp = document.getElementById(inputId);
+    if (inp) inp.value = '';
+    var rm = document.getElementById(removeHiddenId);
+    if (rm) rm.value = '1';
+    // Reset img src
+    var img = document.getElementById(previewId).querySelector('img');
+    if (img) img.src = '';
+}
+
+// --- Edit modal: isi data dari button ---
+document.addEventListener('DOMContentLoaded', function () {
+    var editBtns = document.querySelectorAll('[data-modal-open="editProductModal"]');
+    editBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var modal = document.getElementById('editProductModal');
+            if (!modal) return;
+            var form = modal.querySelector('form');
+            form.action = btn.dataset.action;
+            form.querySelector('[name="name"]').value = btn.dataset.name || '';
+            form.querySelector('[name="sku"]').value = btn.dataset.sku || '';
+            form.querySelector('[name="price_buy"]').value = btn.dataset.priceBuy || '0';
+            form.querySelector('[name="price_sell"]').value = btn.dataset.priceSell || '';
+            form.querySelector('[name="price_tube"]').value = btn.dataset.priceTube || '0';
+            var statusSel = form.querySelector('[name="is_active"]');
+            if (statusSel) statusSel.value = btn.dataset.isActive || '1';
+
+            // Foto: tampilkan foto saat ini atau placeholder
+            var photoUrl = btn.dataset.photo || '';
+            var hasPhoto = btn.dataset.hasPhoto === '1';
+            var preview = document.getElementById('editPhotoPreview');
+            var placeholder = document.getElementById('editPhotoPlaceholder');
+            var img = document.getElementById('editPhotoImg');
+            var rmInput = document.getElementById('editRemovePhoto');
+            var fileInput = document.getElementById('editPhotoInput');
+
+            if (rmInput) rmInput.value = '0';
+            if (fileInput) fileInput.value = '';
+
+            if (hasPhoto && photoUrl) {
+                if (img) img.src = photoUrl;
+                if (preview) preview.hidden = false;
+                if (placeholder) placeholder.hidden = true;
+            } else {
+                if (preview) preview.hidden = true;
+                if (placeholder) { placeholder.hidden = false; placeholder.style.display = ''; }
+                if (img) img.src = '';
+            }
+        });
+    });
+
+    // Add modal: reset photo preview on open
+    var addModalTriggers = document.querySelectorAll('[data-modal-open="addProductModal"]');
+    addModalTriggers.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var preview = document.getElementById('addPhotoPreview');
+            var placeholder = document.getElementById('addPhotoPlaceholder');
+            var img = document.getElementById('addPhotoImg');
+            var fileInput = document.getElementById('addPhotoInput');
+            if (preview) preview.hidden = true;
+            if (placeholder) { placeholder.hidden = false; placeholder.style.display = ''; }
+            if (img) img.src = '';
+            if (fileInput) fileInput.value = '';
+        });
+    });
+
+    // Remove photo on add modal
+    var addRemoveBtn = document.getElementById('addPhotoRemove');
+    if (addRemoveBtn) {
+        addRemoveBtn.addEventListener('click', function () {
+            var preview = document.getElementById('addPhotoPreview');
+            var placeholder = document.getElementById('addPhotoPlaceholder');
+            var fileInput = document.getElementById('addPhotoInput');
+            if (preview) preview.hidden = true;
+            if (placeholder) { placeholder.hidden = false; placeholder.style.display = ''; }
+            if (fileInput) fileInput.value = '';
+        });
+    }
+});
+</script>
+@endpush
 @endsection

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\StockAdjustment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class InventoryController extends Controller
@@ -38,6 +39,7 @@ class InventoryController extends Controller
             'stock_filled'   => 'nullable|integer|min:0',
             'stock_empty'    => 'nullable|integer|min:0',
             'stock_borrowed' => 'nullable|integer|min:0',
+            'photo'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         foreach (['price_buy', 'price_tube', 'stock_filled', 'stock_empty', 'stock_borrowed'] as $key) {
@@ -45,7 +47,16 @@ class InventoryController extends Controller
         }
         $data['is_active'] = true;
 
-        $product = Product::create($data);
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('products', 'public');
+        }
+
+        unset($data['photo']); // remove validated file from data (already stored)
+
+        $product = Product::create(array_merge(
+            array_diff_key($data, ['photo' => null]),
+            isset($data['photo']) ? ['photo' => $data['photo']] : []
+        ));
         return back()->with('success', 'Produk "' . $product->name . '" berhasil ditambahkan.');
     }
 
@@ -59,10 +70,26 @@ class InventoryController extends Controller
             'price_sell' => 'required|numeric|min:0',
             'price_tube' => 'nullable|numeric|min:0',
             'is_active'  => 'required|boolean',
+            'photo'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $data['price_buy']  = $data['price_buy'] ?? 0;
         $data['price_tube'] = $data['price_tube'] ?? 0;
+
+        // Handle foto: upload baru atau hapus foto lama
+        if ($request->hasFile('photo')) {
+            if ($product->photo) {
+                Storage::disk('public')->delete($product->photo);
+            }
+            $data['photo'] = $request->file('photo')->store('products', 'public');
+        } elseif ($request->input('remove_photo') === '1') {
+            if ($product->photo) {
+                Storage::disk('public')->delete($product->photo);
+            }
+            $data['photo'] = null;
+        } else {
+            unset($data['photo']); // tidak ada perubahan foto
+        }
 
         $product->update($data);
         return back()->with('success', 'Produk "' . $product->name . '" berhasil diperbarui.');
@@ -104,6 +131,10 @@ class InventoryController extends Controller
             );
 
             $product->agentDeliveries()->delete();
+            // Hapus foto produk dari storage jika ada
+            if ($product->photo) {
+                Storage::disk('public')->delete($product->photo);
+            }
             $product->delete();
         });
 

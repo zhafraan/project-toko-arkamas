@@ -19,6 +19,15 @@
                     data-price="{{ (float) $product->price_sell }}" data-tube="{{ (float) $product->price_tube }}" data-stock="{{ $product->stock_filled }}"
                     @if($product->stock_filled <= 0) disabled @endif>
                 <span class="in-cart" hidden></span>
+                @if($product->photo)
+                    <span class="product-photo-wrap">
+                        <img src="{{ Storage::url($product->photo) }}" alt="{{ $product->name }}" class="product-card-photo" loading="lazy">
+                    </span>
+                @else
+                    <span class="product-photo-wrap product-photo-empty">
+                        <x-icon name="package" size="28" />
+                    </span>
+                @endif
                 <span class="product-name">{{ $product->name }}</span>
                 <span class="product-sku">SKU {{ $product->sku }}</span>
                 <span class="product-price">@rupiah($product->price_sell)</span>
