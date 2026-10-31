@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Penerimaan dari Agen')
-@section('page-title', 'Penerimaan dari Agen')
+@section('title', 'Pengiriman dari Agen')
+@section('page-title', 'Pengiriman dari Agen')
 @section('page-sub', 'Catat tabung isi yang diterima dari agen')
 
 @push('styles')
@@ -53,7 +53,7 @@
                 @endif
             </div>
             @if(auth()->user()->isOwner())
-            <div class="hint" style="margin-top:-8px;margin-bottom:14px;">Kosongkan untuk memakai tarif default <strong>Rp 14.500</strong>. Isi bila ada kenaikan harga dari agen — nilai ini menjadi default berikutnya.</div>
+            <div class="hint" style="margin-top:-8px;margin-bottom:14px;">Kosongkan untuk memakai tarif default <strong>Rp 14.500</strong>. Isi bila ada kenaikan harga dari agen, maka nilai ini menjadi default berikutnya.</div>
             @endif
             <div class="field">
                 <label class="label">Uang admin pengiriman</label>

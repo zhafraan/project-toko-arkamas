@@ -86,7 +86,7 @@
 
 <div class="layout-side">
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="receipt" size="17" /> Detail Transaksi</span></div>
+        <div class="card-head"><span class="card-title">Detail Transaksi</span></div>
         <div class="table-wrap">
             <table class="table table-stack">
                 <thead>
@@ -115,7 +115,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6"><div class="empty"><div class="empty-icon"><x-icon name="inbox" size="24" /></div><div class="empty-title">Tidak ada transaksi pada periode ini</div></div></td></tr>
+                    <tr class="empty-row"><td colspan="6"><div class="empty"><div class="empty-icon"><x-icon name="inbox" size="24" /></div><div class="empty-title">Tidak ada transaksi pada periode ini</div></div></td></tr>
                     @endforelse
                 </tbody>
             </table>

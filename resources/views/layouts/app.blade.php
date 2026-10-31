@@ -60,7 +60,7 @@
             <x-icon name="stock" /><span class="label">{{ auth()->user()->isOwner() ? 'Produk & Stok' : 'Stok' }}</span>
         </a>
         <a href="{{ route('inventory.deliveries') }}" class="nav-link {{ request()->routeIs('inventory.deliveries') ? 'active' : '' }}" title="Penerimaan dari agen gas">
-            <x-icon name="truck" /><span class="label">Penerimaan dari Agen</span>
+            <x-icon name="truck" /><span class="label">Pengiriman dari Agen</span>
         </a>
 
         @if(auth()->user()->isOwner())

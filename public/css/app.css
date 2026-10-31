@@ -709,15 +709,16 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     .table-stack thead { display: none; }
     .table-stack tbody { display: block; }
     .table-stack tbody tr {
-        display: block; padding: 14px 16px; margin: 0 0 14px;
-        border: 1px solid var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
-        box-shadow: var(--shadow-sm);
+        display: block; padding: 14px 18px; margin: 0;
+        border: none; border-bottom: 1px solid var(--border);
+        border-radius: 0; background: transparent;
+        box-shadow: none;
     }
-    .table-stack tbody tr:last-child { margin-bottom: 0; }
-    .table-stack tbody tr:hover { background: var(--surface); }
+    .table-stack tbody tr:last-child { border-bottom: 0; }
+    .table-stack tbody tr:hover { background: var(--surface-2); }
     .table-stack tbody td {
         display: flex; align-items: center; justify-content: space-between; gap: 12px;
-        padding: 8px 0; border-bottom: 1px dashed var(--border); text-align: right;
+        padding: 8px 0; border-bottom: 1px solid var(--border); text-align: right;
     }
     .table-stack tbody td:last-child { border-bottom: 0; padding-bottom: 0; }
     .table-stack tbody td:first-child { border-bottom: 1px solid var(--border); padding-top: 0; }
@@ -729,8 +730,17 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     .table-stack tbody td:first-child { display: block; text-align: left; padding-bottom: 10px; }
     .table-stack tbody td .row { justify-content: flex-end; }
     .table-stack tbody td .actions { justify-content: flex-end; }
-    .table-stack tbody td[colspan] { display: block; }
+    .table-stack tbody td[colspan] { display: block; padding: 0; border: none; }
     .table-stack tbody td[colspan]::before { content: none; }
+    .table-stack tbody tr.empty-row,
+    .table-stack tbody tr:has(td[colspan]) {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
 }
 
 /* ---------- Badges (Pills) ---------- */

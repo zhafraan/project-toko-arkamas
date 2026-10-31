@@ -22,7 +22,6 @@
             <strong style="font-size:20px;letter-spacing:-.02em;font-weight:900;">Toko Arkamas</strong>
         </div>
         <div>
-            <h2 style="margin-bottom:14px;">Selamat datang di,</h2>
             <h2 style="margin-bottom:14px;">Sistem Manajemen Toko Gas ARKAMAS</h2>
             <p>Kelola penjualan, stok gas, dan pencatatan gas secara terpadu.</p>
         </div>
@@ -39,7 +38,7 @@
                     </svg>
                     <span class="auth-mobile-name">Toko Arkamas</span>
                 </div>
-                <div class="auth-welcome-text">Selamat datang di Sistem Manajemen Toko Arkamas</div>
+                <div class="auth-welcome-text">Selamat datang di Toko Arkamas</div>
             </div>
 
             <h1>Masuk</h1>
