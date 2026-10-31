@@ -972,15 +972,38 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
 /* ---------- Login ---------- */
 .auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
 .auth-aside {
-    background: #111111; color: #FFFFFF; padding: 60px;
+    background: #F4F4F5; color: #18181B; padding: 60px;
     display: flex; flex-direction: column; justify-content: space-between;
     position: relative; overflow: hidden;
+    border-right: 1px solid var(--border);
+}
+.auth-aside::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: url('../images/login-bg.jpg') center/cover no-repeat;
+    filter: blur(8px);
+    transform: scale(1.08);
+    z-index: 0;
+}
+.auth-aside::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(4px);
+    z-index: 1;
+}
+.auth-aside > * {
+    position: relative;
+    z-index: 2;
 }
 .auth-aside h2 {
     font-family: var(--font-display); font-size: 32px; line-height: 1.2;
-    letter-spacing: -.0em; font-weight: 900; max-width: 450px; color: #FFFFFF;
+    letter-spacing: -.0em; font-weight: 900; max-width: 450px; color: #18181B;
 }
-.auth-aside p { color: rgba(255, 255, 255, .7); max-width: 500px; margin-top: 14px; font-size: 15px; }
+.auth-aside p { color: #3F3F46; max-width: 500px; margin-top: 14px; font-size: 15px; font-weight: 500; }
+.auth-aside strong { color: #18181B; }
 .auth-deco { display: none; }
 
 .auth-main { display: grid; place-items: center; padding: 32px 20px; background: var(--bg); }
@@ -1013,8 +1036,39 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
 @media (max-width: 860px) {
     .auth { grid-template-columns: 1fr; }
     .auth-aside { display: none; }
+    .auth-main {
+        position: relative;
+        overflow: hidden;
+        background: #F4F4F5;
+        min-height: 100vh;
+    }
+    .auth-main::before {
+        content: '';
+        position: absolute;
+        inset: -20px;
+        background: url('../images/login-bg.jpg') center/cover no-repeat;
+        filter: blur(8px);
+        transform: scale(1.08);
+        z-index: 0;
+    }
+    .auth-main::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(4px);
+        z-index: 1;
+    }
+    .auth-card {
+        position: relative;
+        z-index: 2;
+        padding: 32px 24px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
     .auth-mobile-brand { display: flex; }
-    .auth-card { padding: 32px 24px; }
 }
 
 /* ---------- Statistics View Scoped CSS Helpers ---------- */

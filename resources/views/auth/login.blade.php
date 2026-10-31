@@ -16,7 +16,7 @@
     <aside class="auth-aside" aria-hidden="true">
         <div class="row" style="gap:12px;">
             <svg width="40" height="40" viewBox="0 0 72 72" fill="none">
-                <rect width="72" height="72" rx="18" fill="rgba(255,255,255,.18)"/>
+                <rect width="72" height="72" rx="18" fill="#18181B"/>
                 <text x="36" y="47" text-anchor="middle" font-family="'Manrope', system-ui, sans-serif" font-weight="800" font-size="28" letter-spacing="-1" fill="#FFFFFF">TA</text>
             </svg>
             <strong style="font-size:20px;letter-spacing:-.02em;font-weight:900;">Toko Arkamas</strong>
@@ -25,7 +25,7 @@
             <h2 style="margin-bottom:14px;">Sistem Manajemen Toko Gas ARKAMAS</h2>
             <p>Kelola penjualan, stok gas, dan pencatatan gas secara terpadu.</p>
         </div>
-        <div style="font-size:14px;color:rgba(255, 255, 255, 1);">© {{ date('Y') }} Created by Zhafran</div>
+        <div style="font-size:14px;color:#71717A;">© {{ date('Y') }} Created by Zhafran</div>
     </aside>
 
     <main class="auth-main">
