@@ -16,7 +16,10 @@ class StatisticsTest extends TestCase
 
     private function owner(): User
     {
-        return User::create(['name' => 'Pemilik', 'email' => 'o@test.local', 'password' => 'secret123', 'role' => 'owner']);
+        return User::firstOrCreate(
+            ['email' => 'o@test.local'],
+            ['name' => 'Pemilik', 'password' => 'secret123', 'role' => 'owner']
+        );
     }
 
     public function test_halaman_statistik_tampil_kosong_dan_berisi(): void
@@ -42,6 +45,9 @@ class StatisticsTest extends TestCase
     {
         $kasir = User::create(['name' => 'Kasir', 'email' => 'k@test.local', 'password' => 'secret123', 'role' => 'kasir']);
         $this->actingAs($kasir)->get(route('statistics.index'))->assertForbidden();
+        $this->actingAs($kasir)->get(route('dashboard'))->assertDontSee('Statistik Penjualan');
+
+        $this->actingAs($this->owner())->get(route('dashboard'))->assertSee('Statistik Penjualan');
 
         $this->actingAs($this->owner())
             ->get(route('statistics.index', ['range' => 'custom', 'from' => '2026-10-10', 'to' => '2026-10-01']))

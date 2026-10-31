@@ -34,9 +34,11 @@
         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" title="Dashboard">
             <x-icon name="dashboard" /><span class="label">Dashboard</span>
         </a>
+        @if(auth()->user()->isOwner())
         <a href="{{ route('statistics.index') }}" class="nav-link {{ request()->routeIs('statistics.*') ? 'active' : '' }}" title="Statistik penjualan">
             <x-icon name="bar-chart" /><span class="label">Statistik Penjualan</span>
         </a>
+        @endif
 
         <div class="nav-group">Penjualan</div>
         <a href="{{ route('pos.index') }}" class="nav-link {{ request()->routeIs('pos.index') ? 'active' : '' }}" title="Kasir">
