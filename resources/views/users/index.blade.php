@@ -4,8 +4,8 @@
 @section('page-sub', 'Kelola hak akses dan akun pengguna sistem')
 
 @section('topbar-actions')
-    <button type="button" class="btn btn-primary" data-modal-open="addUserModal">
-        <x-icon name="user-plus" /> Tambah Pengguna
+    <button type="button" class="btn btn-primary" data-modal-open="addUserModal" title="Tambah Pengguna" aria-label="Tambah Pengguna">
+        <x-icon name="plus" /> <span class="btn-text">Tambah Pengguna</span>
     </button>
 @endsection
 

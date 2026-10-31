@@ -10,8 +10,8 @@
 
 @section('topbar-actions')
     @if($user->isOwner())
-    <button type="button" class="btn btn-primary" data-modal-open="addProductModal">
-        <x-icon name="plus" /> Tambah Produk
+    <button type="button" class="btn btn-primary" data-modal-open="addProductModal" title="Tambah Produk" aria-label="Tambah Produk">
+        <x-icon name="plus" /> <span class="btn-text">Tambah Produk</span>
     </button>
     @endif
 @endsection

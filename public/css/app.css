@@ -326,7 +326,7 @@ html[data-sidebar="collapsed"] .sidebar-user { flex-direction: column; padding: 
     display: flex; align-items: center; gap: 12px; padding: 0 24px;
     background: var(--surface); border-bottom: 1px solid var(--border);
 }
-.topbar-title { min-width: 0; }
+.topbar-title { min-width: 0; flex: 1; }
 .page-title {
     font-family: var(--font-display); font-size: 17px; font-weight: 800;
     letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text);
@@ -957,15 +957,15 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
 /* ---------- Login ---------- */
 .auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
 .auth-aside {
-    background: #111111; color: #FFFFFF; padding: 56px;
+    background: #111111; color: #FFFFFF; padding: 60px;
     display: flex; flex-direction: column; justify-content: space-between;
     position: relative; overflow: hidden;
 }
 .auth-aside h2 {
     font-family: var(--font-display); font-size: 32px; line-height: 1.2;
-    letter-spacing: -.02em; font-weight: 800; max-width: 440px; color: #FFFFFF;
+    letter-spacing: -.0em; font-weight: 900; max-width: 450px; color: #FFFFFF;
 }
-.auth-aside p { color: rgba(255, 255, 255, .7); max-width: 400px; margin-top: 14px; font-size: 15px; }
+.auth-aside p { color: rgba(255, 255, 255, .7); max-width: 500px; margin-top: 14px; font-size: 15px; }
 .auth-deco { display: none; }
 
 .auth-main { display: grid; place-items: center; padding: 32px 20px; background: var(--bg); }
@@ -975,7 +975,32 @@ a.trx-item:hover { background: var(--surface-2); text-decoration: none; }
     padding: 38px 34px; box-shadow: var(--shadow-card);
 }
 .auth-card h1 { font-family: var(--font-display); font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
-@media (max-width: 860px) { .auth { grid-template-columns: 1fr; } .auth-aside { display: none; } }
+.auth-welcome-banner { margin-bottom: 12px; }
+.auth-welcome-text {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-2);
+    line-height: 1.4;
+}
+.auth-mobile-brand {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.auth-mobile-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--text);
+}
+@media (max-width: 860px) {
+    .auth { grid-template-columns: 1fr; }
+    .auth-aside { display: none; }
+    .auth-mobile-brand { display: flex; }
+    .auth-card { padding: 32px 24px; }
+}
 
 /* ---------- Statistics View Scoped CSS Helpers ---------- */
 .st-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; }
@@ -1053,7 +1078,26 @@ details.st-table summary { cursor: pointer; padding: 12px 20px; font-size: 12.5p
 @media (max-width: 640px) {
     .page { padding: 12px 10px; }
     .topbar { gap: 6px; }
+    .topbar-title { flex: 1; min-width: 0; }
     .page-title { font-size: 15px; }
+    .topbar-actions .btn .btn-text { display: none !important; }
+    .topbar-actions .btn {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        flex-shrink: 0 !important;
+    }
+    .topbar-actions .btn .icon,
+    .topbar-actions .btn svg {
+        margin: 0 !important;
+    }
     .btn { height: 40px; padding: 0 14px; }
     .btn-sm { height: 36px; padding: 0 12px; }
     .btn-xs { height: 32px; padding: 0 10px; }

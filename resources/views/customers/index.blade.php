@@ -4,8 +4,8 @@
 @section('page-sub', 'Data pelanggan, piutang, dan riwayat belanja')
 
 @section('topbar-actions')
-    <button type="button" class="btn btn-primary" data-modal-open="addCustomerModal">
-        <x-icon name="user-plus" /> Tambah Pelanggan
+    <button type="button" class="btn btn-primary" data-modal-open="addCustomerModal" title="Tambah Pelanggan" aria-label="Tambah Pelanggan">
+        <x-icon name="plus" /> <span class="btn-text">Tambah Pelanggan</span>
     </button>
 @endsection
 

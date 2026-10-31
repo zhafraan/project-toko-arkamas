@@ -4,11 +4,11 @@
 @section('page-sub', 'Detail pelanggan')
 
 @section('topbar-actions')
-    <a href="{{ route('customers.index') }}" class="btn btn-ghost"><x-icon name="arrow-left" /> Semua pelanggan</a>
+    <a href="{{ route('customers.index') }}" class="btn btn-ghost" title="Semua pelanggan" aria-label="Semua pelanggan"><x-icon name="arrow-left" /> <span class="btn-text">Semua pelanggan</span></a>
     @if(auth()->user()->isOwner())
-    <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}? Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.">
+    <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}? Riwayat pembeliannya tetap tersimpan. Tindakan ini tercatat di Riwayat Audit.">
         @csrf @method('DELETE')
-        <button type="submit" class="btn btn-danger-soft"><x-icon name="trash" /> Hapus</button>
+        <button type="submit" class="btn btn-danger-soft" title="Hapus" aria-label="Hapus"><x-icon name="trash" /> <span class="btn-text">Hapus</span></button>
     </form>
     @endif
 @endsection

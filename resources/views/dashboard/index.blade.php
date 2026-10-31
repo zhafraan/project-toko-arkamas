@@ -4,8 +4,8 @@
 @section('page-sub', today()->translatedFormat('l, j F Y'))
 
 @section('topbar-actions')
-    <a href="{{ route('pos.index') }}" class="btn btn-primary">
-        <x-icon name="cart" /> Buka Kasir
+    <a href="{{ route('pos.index') }}" class="btn btn-primary" title="Buka Kasir" aria-label="Buka Kasir">
+        <x-icon name="cart" /> <span class="btn-text">Buka Kasir</span>
     </a>
 @endsection
 

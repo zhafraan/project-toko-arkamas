@@ -19,17 +19,29 @@
                 <rect width="72" height="72" rx="18" fill="rgba(255,255,255,.18)"/>
                 <text x="36" y="47" text-anchor="middle" font-family="'Manrope', system-ui, sans-serif" font-weight="800" font-size="28" letter-spacing="-1" fill="#FFFFFF">TA</text>
             </svg>
-            <strong style="font-size:20px;letter-spacing:-.02em;font-weight:800;">Toko Arkamas</strong>
+            <strong style="font-size:20px;letter-spacing:-.02em;font-weight:900;">Toko Arkamas</strong>
         </div>
         <div>
-            <h2>Sistem Manajemen Pangkalan Gas LPG</h2>
-            <p>Kelola penjualan gas LPG, persediaan tabung, dan pencatatan piutang secara terpadu dan profesional.</p>
+            <h2 style="margin-bottom:14px;">Selamat datang di,</h2>
+            <h2 style="margin-bottom:14px;">Sistem Manajemen Toko Gas ARKAMAS</h2>
+            <p>Kelola penjualan, stok gas, dan pencatatan gas secara terpadu.</p>
         </div>
-        <div style="font-size:14px;color:rgba(255,255,255,.6);">© {{ date('Y') }} Toko Arkamas</div>
+        <div style="font-size:14px;color:rgba(255, 255, 255, 1);">© {{ date('Y') }} Created by Zhafran</div>
     </aside>
 
     <main class="auth-main">
         <div class="auth-card">
+            <div class="auth-welcome-banner">
+                <div class="auth-mobile-brand">
+                    <svg width="36" height="36" viewBox="0 0 72 72" fill="none" aria-hidden="true">
+                        <rect width="72" height="72" rx="16" fill="var(--primary)"/>
+                        <text x="36" y="47" text-anchor="middle" font-family="'Manrope', system-ui, sans-serif" font-weight="800" font-size="28" letter-spacing="-1" fill="var(--surface)">TA</text>
+                    </svg>
+                    <span class="auth-mobile-name">Toko Arkamas</span>
+                </div>
+                <div class="auth-welcome-text">Selamat datang di Sistem Manajemen Toko Arkamas</div>
+            </div>
+
             <h1>Masuk</h1>
             <p class="muted" style="margin:4px 0 24px;">Silakan masuk menggunakan akun pengguna Anda.</p>
 
