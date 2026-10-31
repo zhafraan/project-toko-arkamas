@@ -42,7 +42,7 @@
             Object.keys(opener.dataset).forEach(function (key) {
                 if (key === 'modalOpen' || key === 'action') return;
                 var field = modal.querySelector('[name="' + snake(key) + '"]');
-                if (field) field.value = opener.dataset[key];
+                if (field && field.type !== 'file') field.value = opener.dataset[key];
             });
             var title = modal.querySelector('[data-modal-subject]');
             if (title && opener.dataset.subject) title.textContent = opener.dataset.subject;

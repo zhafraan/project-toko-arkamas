@@ -101,7 +101,7 @@
                                     data-name="{{ $product->name }}" data-sku="{{ $product->sku }}"
                                     data-is-active="{{ $product->is_active ? 1 : 0 }}"
                                     data-price-buy="{{ $product->price_buy + 0 }}" data-price-sell="{{ $product->price_sell + 0 }}" data-price-tube="{{ $product->price_tube + 0 }}"
-                                    data-photo="{{ $product->photo ? Storage::url($product->photo) : '' }}"
+                                    data-photo-url="{{ $product->photo ? Storage::url($product->photo) : '' }}"
                                     data-has-photo="{{ $product->photo ? '1' : '0' }}">
                                 <x-icon name="pencil" size="15" />
                             </button>
@@ -364,8 +364,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (statusSel) statusSel.value = btn.dataset.isActive || '1';
 
             // Foto: tampilkan foto saat ini atau placeholder
-            var photoUrl = btn.dataset.photo || '';
-            var hasPhoto = btn.dataset.hasPhoto === '1';
+            var photoUrl = btn.dataset.photoUrl || btn.dataset.photo || '';
+            var hasPhoto = btn.dataset.hasPhoto === '1' && !!photoUrl;
             var preview = document.getElementById('editPhotoPreview');
             var placeholder = document.getElementById('editPhotoPlaceholder');
             var img = document.getElementById('editPhotoImg');
@@ -383,6 +383,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (preview) preview.hidden = true;
                 if (placeholder) { placeholder.hidden = false; placeholder.style.display = ''; }
                 if (img) img.src = '';
+            }
+
+            if (typeof window.openModal === 'function') {
+                window.openModal(modal);
             }
         });
     });
