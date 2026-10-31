@@ -54,7 +54,7 @@
     <div class="receipt">
         <div class="r-head">
             <div class="r-name">TOKO ARKAMAS</div>
-            <div class="r-sub">Pangkalan Gas LPG</div>
+            <div class="r-sub">Pangkalan Gas LPG (3kg, 5.5kg & 12kg)</div>
         </div>
 
         <hr class="r-line">
@@ -114,7 +114,8 @@
                 @if($loan->deposit_amount > 0) · deposit @rupiah($loan->deposit_amount) @endif
             </div>
             @endforeach
-            <div style="margin-top:4px;">Mohon kembalikan tabung dalam kondisi bersih.</div>
+            <div style="margin-top:4px;">Mohon jika ada kebocoran gas segera untuk dikembalikan maksimal 12 jam setelah pembelian 
+                untuk di tukar jika lebih dari itu maka tidak bisa ditukar.</div>
         </div>
         @endif
 
