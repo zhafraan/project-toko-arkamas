@@ -49,7 +49,7 @@
             </select>
         </div>
         <button type="submit" class="btn btn-primary"><x-icon name="filter" size="16" /> Tampilkan</button>
-        <div class="row" style="margin-left:auto;gap:8px;">
+        <div class="row report-actions" style="margin-left:auto;gap:8px;">
             <button type="submit" class="btn btn-outline" formaction="{{ route('reports.exportPdf') }}" formtarget="_blank"><x-icon name="file-text" size="16" /> PDF</button>
             <button type="submit" class="btn btn-outline" formaction="{{ route('reports.exportExcel') }}"><x-icon name="sheet" size="16" /> Excel</button>
         </div>

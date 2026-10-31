@@ -46,6 +46,11 @@
     .st-seg button { border:0; background:transparent; font: inherit; font-size:12.5px; font-weight:600; color: var(--text-2); padding:5px 12px; border-radius:6px; cursor:pointer; }
     .st-seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
     details.st-table summary { cursor:pointer; padding: 10px 18px; font-size:12.5px; font-weight:600; color: var(--primary-text); border-top:1px solid var(--border); }
+    .st-pembanding { margin-left: auto; }
+    @media (max-width: 768px) {
+        .st-custom-date { width: 100%; margin-left: 0 !important; flex-wrap: wrap; margin-top: 4px; }
+        .st-pembanding { width: 100%; margin-left: 0 !important; margin-top: 2px; font-size: 11.5px; }
+    }
 </style>
 @endpush
 
@@ -78,14 +83,14 @@
             <option value="{{ $key }}" {{ $range === $key ? 'selected' : '' }}>{{ $label }}</option>
             @endforeach
         </select>
-        <div data-custom {{ $range === 'custom' ? '' : 'hidden' }} class="row" style="gap:8px;margin-left:8px;">
+        <div data-custom {{ $range === 'custom' ? '' : 'hidden' }} class="st-custom-date row" style="gap:8px;">
             <label class="label" for="stFrom" style="margin-bottom:0;">Dari</label>
             <input type="date" id="stFrom" name="from" class="input input-sm" value="{{ $from }}">
             <label class="label" for="stTo" style="margin-bottom:0;">Sampai</label>
             <input type="date" id="stTo" name="to" class="input input-sm" value="{{ $to }}">
             <button type="submit" class="btn btn-primary btn-sm"><x-icon name="filter" size="14" /> Tampilkan</button>
         </div>
-        <div class="muted text-sm" style="margin-left:auto;">Pembanding: {{ $prevLabel }}</div>
+        <div class="muted text-sm st-pembanding">Pembanding: {{ $prevLabel }}</div>
     </form>
 </div>
 

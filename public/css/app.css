@@ -642,6 +642,8 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     border-radius: var(--r-pill);
     padding: 3px;
     gap: 2px;
+    max-width: 100%;
+    min-width: 0;
 }
 .range-tabs a, .range-tabs button,
 .seg button, .tab-pills a, .tab-pills button {
@@ -661,6 +663,7 @@ a.summary-item:hover { background: var(--surface-2); text-decoration: none; }
     cursor: pointer;
     transition: all .15s ease;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 .range-tabs a:hover, .range-tabs button:hover,
 .seg button:hover, .tab-pills a:hover, .tab-pills button:hover {
@@ -1083,6 +1086,63 @@ details.st-table summary { cursor: pointer; padding: 12px 20px; font-size: 12.5p
     .cart-pay { padding: 14px; }
     .topbar { padding: 0 14px; }
     .toast-wrap { right: 12px; left: 12px; bottom: 12px; }
+
+    /* Range tabs & pills di mobile/tablet: membungkus rapi menjadi chips mandiri agar semua opsi terlihat penuh */
+    .range-tabs, .tab-pills {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        gap: 6px !important;
+    }
+    .range-tabs a, .range-tabs button,
+    .tab-pills a, .tab-pills button {
+        background: var(--surface-2) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--r-pill) !important;
+        padding: 0 12px !important;
+        height: 32px !important;
+        font-size: 12px !important;
+        color: var(--text-2) !important;
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+    }
+    .range-tabs a:hover, .range-tabs button:hover,
+    .tab-pills a:hover, .tab-pills button:hover {
+        color: var(--text) !important;
+        border-color: var(--border-strong) !important;
+    }
+    .range-tabs a.active, .range-tabs button.active,
+    .range-tabs a[aria-pressed="true"], .range-tabs button[aria-pressed="true"],
+    .tab-pills a.active, .tab-pills button.active {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: #FFFFFF !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+    :root[data-theme="dark"] .range-tabs a.active,
+    :root[data-theme="dark"] .range-tabs button.active,
+    :root[data-theme="dark"] .range-tabs a[aria-pressed="true"],
+    :root[data-theme="dark"] .range-tabs button[aria-pressed="true"],
+    :root[data-theme="dark"] .tab-pills a.active,
+    :root[data-theme="dark"] .tab-pills button.active {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: #111111 !important;
+    }
+    .toolbar .range-tabs {
+        width: 100% !important;
+        margin-bottom: 2px !important;
+    }
+    .report-actions {
+        margin-left: 0 !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
 }
 
 @media (max-width: 640px) {
