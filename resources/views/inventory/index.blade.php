@@ -64,7 +64,7 @@
                             @endif
                             <div>
                                 <div class="cell-title">{{ $product->name }}</div>
-                                <div class="cell-sub">SKU {{ $product->sku }}</div>
+                                <div class="cell-sub">{{ $product->sku }}</div>
                             </div>
                         </div>
                     </td>

@@ -29,7 +29,7 @@
                     </span>
                 @endif
                 <span class="product-name">{{ $product->name }}</span>
-                <span class="product-sku">SKU {{ $product->sku }}</span>
+                <span class="product-sku">{{ $product->sku }}</span>
                 <span class="product-price">@rupiah($product->price_sell)</span>
                 <span class="product-stock">
                     @if($product->stock_filled <= 0)
