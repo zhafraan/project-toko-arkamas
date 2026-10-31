@@ -38,6 +38,7 @@
         .r-status.lunas { background: #e0f6ec; color: #05694a; }
         .r-status.belum { background: #fdeaea; color: #a8262b; }
         .r-loan { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: #fff3d1; color: #835400; font-size: 12px; }
+        .r-notice { margin-top: 12px; padding: 8px 10px; border-radius: 8px; background: #f8f9fa; border: 1px dashed #b9bdd2; font-size: 11px; line-height: 1.45; color: #4b4f6e; text-align: center; }
         .r-foot { text-align: center; color: #6b6f8c; font-size: 12px; margin-top: 14px; }
         .num { font-variant-numeric: tabular-nums; }
         .receipt-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
@@ -114,10 +115,14 @@
                 @if($loan->deposit_amount > 0) · deposit @rupiah($loan->deposit_amount) @endif
             </div>
             @endforeach
-            <div style="margin-top:4px;">Mohon jika ada kebocoran gas segera untuk dikembalikan maksimal 12 jam setelah pembelian 
-                untuk di tukar jika lebih dari itu maka tidak bisa ditukar.</div>
+            <div style="margin-top:4px;">Mohon kembalikan tabung dalam kondisi bersih.</div>
         </div>
         @endif
+
+        <div class="r-notice">
+            <strong>Note:</strong>
+            Mohon jika ada kebocoran gas segera untuk dikembalikan maksimal 12 jam setelah pembelian untuk ditukar jika lebih dari itu maka tidak bisa ditukar.
+        </div>
 
         <div class="r-foot">
             Terima kasih telah berbelanja di Toko ARKAMAS.<br>Simpan nota ini sebagai bukti pembelian.
