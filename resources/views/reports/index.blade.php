@@ -84,16 +84,17 @@
     </div>
 </div>
 
-<div class="layout-side">
-    <div class="card">
+<div class="layout-side layout-dashboard-cards">
+    <div class="card card-main">
         <div class="card-head"><span class="card-title">Detail Transaksi</span></div>
+        @if($transactions->count() > 0)
         <div class="table-wrap">
             <table class="table table-stack">
                 <thead>
                     <tr><th>Invoice</th><th>Pelanggan</th><th>Tanggal</th><th class="num">Total</th><th>Metode</th><th>Status</th></tr>
                 </thead>
                 <tbody>
-                    @forelse($transactions as $trx)
+                    @foreach($transactions as $trx)
                     <tr>
                         <td class="cell-title nowrap" data-label="Invoice">{{ $trx->invoice_number }}</td>
                         <td data-label="Pelanggan">{{ $trx->customer?->name ?? 'Umum' }}</td>
@@ -114,15 +115,20 @@
                             @endif
                         </td>
                     </tr>
-                    @empty
-                    <tr class="empty-row"><td colspan="6"><div class="empty"><div class="empty-icon"><x-icon name="inbox" size="24" /></div><div class="empty-title">Tidak ada transaksi pada periode ini</div></div></td></tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
+        @else
+        <div class="empty">
+            <div class="empty-icon"><x-icon name="inbox" size="24" /></div>
+            <div class="empty-title">Tidak ada transaksi pada periode ini</div>
+            <div>Transaksi yang dicatat pada rentang waktu ini akan muncul di sini.</div>
+        </div>
+        @endif
     </div>
 
-    <div class="card">
+    <div class="card card-main">
         <div class="card-head"><span class="card-title">Penjualan per produk</span></div>
         @forelse($metrics['productSummary'] as $item)
         <div class="stock-item">
@@ -132,7 +138,11 @@
             <div class="pay-line" style="margin-bottom:0;"><span>Laba kotor</span><strong class="num text-success">@rupiah($item['profit'])</strong></div>
         </div>
         @empty
-        <div class="empty"><div class="empty-title">Belum ada data</div></div>
+        <div class="empty">
+            <div class="empty-icon"><x-icon name="package" size="24" /></div>
+            <div class="empty-title">Belum ada penjualan</div>
+            <div>Data produk terjual pada periode ini akan muncul di sini.</div>
+        </div>
         @endforelse
     </div>
 </div>

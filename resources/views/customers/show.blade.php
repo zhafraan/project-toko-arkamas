@@ -59,7 +59,7 @@
     <div class="stack" style="gap:16px;">
         @if($customer->tubeLoans->count() > 0)
         <div class="card">
-            <div class="card-head"><span class="card-title"><x-icon name="package" /> Riwayat pinjaman tabung</span></div>
+            <div class="card-head"><span class="card-title">Riwayat pinjaman tabung</span></div>
             <div class="table-wrap">
                 <table class="table table-stack">
                     <thead><tr><th>Produk</th><th class="num">Pinjam</th><th class="num">Kembali</th><th>Status</th><th>Tgl pinjam</th></tr></thead>
@@ -88,32 +88,38 @@
         @endif
 
         <div class="card">
-            <div class="card-head"><span class="card-title"><x-icon name="receipt" /> Riwayat transaksi</span></div>
+            <div class="card-head"><span class="card-title">Riwayat transaksi</span></div>
+            @if($customer->transactions->count() > 0)
             <div class="table-wrap">
-                <table class="table">
+                <table class="table table-stack">
                     <thead><tr><th>Invoice</th><th>Tanggal</th><th class="num">Total</th><th class="num">Sisa</th><th>Status</th><th></th></tr></thead>
                     <tbody>
-                        @forelse($customer->transactions as $trx)
+                        @foreach($customer->transactions as $trx)
                         <tr>
-                            <td class="cell-title nowrap">{{ $trx->invoice_number }}</td>
-                            <td class="muted">{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
-                            <td class="num fw">@rupiah($trx->total_amount)</td>
-                            <td class="num {{ $trx->remaining_debt > 0 ? 'text-danger fw' : 'muted' }}">@rupiah($trx->remaining_debt)</td>
-                            <td>
+                            <td class="cell-title nowrap" data-label="Invoice">{{ $trx->invoice_number }}</td>
+                            <td class="muted" data-label="Tanggal">{{ $trx->transaction_date->isoFormat('D MMM Y') }}</td>
+                            <td class="num fw" data-label="Total">@rupiah($trx->total_amount)</td>
+                            <td class="num {{ $trx->remaining_debt > 0 ? 'text-danger fw' : 'muted' }}" data-label="Sisa">@rupiah($trx->remaining_debt)</td>
+                            <td data-label="Status">
                                 @if($trx->payment_status === 'lunas')
                                     <span class="badge badge-success">Lunas</span>
                                 @else
                                     <span class="badge badge-danger">Piutang</span>
                                 @endif
                             </td>
-                            <td><a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-outline btn-xs"><x-icon name="receipt" size="14" /> Nota</a></td>
+                            <td data-label="Aksi"><a href="{{ route('pos.receipt', $trx) }}" target="_blank" class="btn btn-outline btn-xs"><x-icon name="receipt" size="14" /> Nota</a></td>
                         </tr>
-                        @empty
-                        <tr><td colspan="6"><div class="empty"><div class="empty-title">Belum ada transaksi</div></div></td></tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
+            @else
+            <div class="empty">
+                <div class="empty-icon"><x-icon name="receipt" size="24" /></div>
+                <div class="empty-title">Belum ada transaksi</div>
+                <div>Riwayat belanja pelanggan ini akan muncul di sini.</div>
+            </div>
+            @endif
         </div>
     </div>
 </div>

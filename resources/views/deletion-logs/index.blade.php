@@ -30,13 +30,14 @@
         @endif
     </form>
 
+    @if($adjustments->count() > 0)
     <div class="table-wrap">
         <table class="table table-stack">
             <thead>
                 <tr><th>Waktu</th><th>Produk</th><th>Perubahan</th><th>Alasan</th><th>Petugas</th></tr>
             </thead>
             <tbody>
-                @forelse($adjustments as $adj)
+                @foreach($adjustments as $adj)
                 <tr>
                     <td class="muted nowrap" data-label="Waktu">{{ $adj->created_at->format('d/m/y H:i') }}</td>
                     <td data-label="Produk">
@@ -54,18 +55,17 @@
                     <td data-label="Alasan">{{ $adj->reason }}</td>
                     <td data-label="Petugas">{{ $adj->user?->name ?? '-' }}</td>
                 </tr>
-                @empty
-                <tr><td colspan="5">
-                    <div class="empty">
-                        <div class="empty-icon"><x-icon name="sliders" size="24" /></div>
-                        <div class="empty-title">Belum ada penyesuaian stok</div>
-                        <div>Setiap penyesuaian stok dari pemilik akan tercatat di sini beserta alasannya.</div>
-                    </div>
-                </td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+    @else
+    <div class="empty">
+        <div class="empty-icon"><x-icon name="sliders" size="24" /></div>
+        <div class="empty-title">Belum ada penyesuaian stok</div>
+        <div>Setiap penyesuaian stok dari pemilik akan tercatat di sini beserta alasannya.</div>
+    </div>
+    @endif
     {{ $adjustments->links('vendor.pagination.simple') }}
 </div>
 @else
@@ -78,7 +78,7 @@
         <select name="type" class="select" onchange="this.form.submit()" aria-label="Jenis data">
             <option value="">Semua jenis</option>
             <option value="Transaction" {{ request('type') === 'Transaction' ? 'selected' : '' }}>Nota</option>
-            <option value="AgentDelivery" {{ request('type') === 'AgentDelivery' ? 'selected' : '' }}>Penerimaan Agen</option>
+            <option value="AgentDelivery" {{ request('type') === 'AgentDelivery' ? 'selected' : '' }}>Pengiriman Agen</option>
             <option value="Customer" {{ request('type') === 'Customer' ? 'selected' : '' }}>Pelanggan</option>
             <option value="Product" {{ request('type') === 'Product' ? 'selected' : '' }}>Produk</option>
             <option value="User" {{ request('type') === 'User' ? 'selected' : '' }}>Pengguna</option>
@@ -89,20 +89,21 @@
         @endif
     </form>
 
+    @if($logs->count() > 0)
     <div class="table-wrap">
         <table class="table table-stack">
             <thead>
                 <tr><th>Waktu</th><th>Jenis</th><th>Data</th><th>Dihapus oleh</th></tr>
             </thead>
             <tbody>
-                @forelse($logs as $log)
+                @foreach($logs as $log)
                 <tr>
                     <td class="muted nowrap" data-label="Waktu">{{ $log->created_at->format('d/m/y H:i') }}</td>
                     <td data-label="Jenis">
                         @if($log->deletable_type === 'Transaction')
                             <span class="badge badge-danger">Nota</span>
                         @elseif($log->deletable_type === 'AgentDelivery')
-                            <span class="badge badge-warning">Penerimaan</span>
+                            <span class="badge badge-warning">Pengiriman Agen</span>
                         @elseif($log->deletable_type === 'Product')
                             <span class="badge badge-info">Produk</span>
                         @elseif($log->deletable_type === 'User')
@@ -129,20 +130,19 @@
                         <div class="cell-sub">{{ $log->data['phone'] ?? '-' }}{{ !empty($log->data['address']) ? ' · ' . $log->data['address'] : '' }}</div>
                         @endif
                     </td>
-                    <td>{{ $log->user?->name ?? '-' }}</td>
+                    <td data-label="Dihapus oleh">{{ $log->user?->name ?? '-' }}</td>
                 </tr>
-                @empty
-                <tr><td colspan="4">
-                    <div class="empty">
-                        <div class="empty-icon"><x-icon name="trash" size="24" /></div>
-                        <div class="empty-title">Belum ada data yang dihapus</div>
-                        <div>Riwayat penghapusan nota, penerimaan agen, produk, dan pelanggan akan muncul di sini.</div>
-                    </div>
-                </td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+    @else
+    <div class="empty">
+        <div class="empty-icon"><x-icon name="trash" size="24" /></div>
+        <div class="empty-title">Belum ada data yang dihapus</div>
+        <div>Riwayat audit penghapusan data akan muncul di sini.</div>
+    </div>
+    @endif
     {{ $logs->links('vendor.pagination.simple') }}
 </div>
 @endif

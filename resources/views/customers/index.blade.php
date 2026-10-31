@@ -24,6 +24,7 @@
         @endif
     </form>
 
+    @if($customers->count() > 0)
     <div class="table-wrap">
         <table class="table table-stack">
             <thead>
@@ -33,7 +34,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($customers as $customer)
+                @foreach($customers as $customer)
                 <tr>
                     <td data-label="Nama">
                         <a href="{{ route('customers.show', $customer) }}" class="cell-title">{{ $customer->name }}</a>
@@ -55,7 +56,7 @@
                     <td data-label="Aksi">
                         <div class="actions">
                             @if(auth()->user()->isOwner())
-                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}? Riwayat pembeliannya tetap tersimpan. Penghapusan tercatat di riwayat penghapusan.">
+                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="Hapus pelanggan {{ $customer->name }}? Riwayat pembeliannya tetap tersimpan. Tindakan ini tercatat di Riwayat Audit.">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus pelanggan" aria-label="Hapus pelanggan"><x-icon name="trash" size="15" /></button>
                             </form>
@@ -70,18 +71,17 @@
                         </div>
                     </td>
                 </tr>
-                @empty
-                <tr><td colspan="7">
-                    <div class="empty">
-                        <div class="empty-icon"><x-icon name="users" size="24" /></div>
-                        <div class="empty-title">{{ request('search') ? 'Pelanggan tidak ditemukan' : 'Belum ada pelanggan' }}</div>
-                        <div>{{ request('search') ? 'Coba kata kunci lain.' : 'Tambahkan pelanggan pertama Anda.' }}</div>
-                    </div>
-                </td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+    @else
+    <div class="empty">
+        <div class="empty-icon"><x-icon name="users" size="24" /></div>
+        <div class="empty-title">{{ request('search') ? 'Pelanggan tidak ditemukan' : 'Belum ada pelanggan' }}</div>
+        <div>{{ request('search') ? 'Coba kata kunci lain.' : 'Tambahkan pelanggan pertama Anda.' }}</div>
+    </div>
+    @endif
     {{ $customers->links('vendor.pagination.simple') }}
 </div>
 

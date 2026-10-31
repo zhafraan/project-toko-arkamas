@@ -33,6 +33,7 @@
         @endif
     </form>
 
+    @if($transactions->count() > 0)
     <div class="table-wrap">
         <table class="table table-stack">
             <thead>
@@ -42,7 +43,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($transactions as $trx)
+                @foreach($transactions as $trx)
                 <tr>
                     <td data-label="Invoice">
                         <div class="cell-title nowrap">{{ $trx->invoice_number }}</div>
@@ -76,18 +77,17 @@
                         @endif
                     </div></td>
                 </tr>
-                @empty
-                <tr><td colspan="8">
-                    <div class="empty">
-                        <div class="empty-icon"><x-icon name="receipt" size="24" /></div>
-                        <div class="empty-title">Tidak ada transaksi</div>
-                        <div>Coba ubah kata kunci atau filter.</div>
-                    </div>
-                </td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+    @else
+    <div class="empty">
+        <div class="empty-icon"><x-icon name="receipt" size="24" /></div>
+        <div class="empty-title">Tidak ada transaksi</div>
+        <div>{{ request('search') || request('payment_status') || request('payment_method') ? 'Coba ubah kata kunci atau filter pencarian.' : 'Transaksi yang dicatat kasir akan muncul di sini.' }}</div>
+    </div>
+    @endif
     {{ $transactions->links('vendor.pagination.simple') }}
 </div>
 @endsection

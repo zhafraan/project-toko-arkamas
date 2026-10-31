@@ -17,6 +17,7 @@
         <span class="badge badge-warning" style="margin-left:auto;">{{ $loans->total() }} pinjaman aktif</span>
     </form>
 
+    @if($loans->count() > 0)
     <div class="table-wrap">
         <table class="table table-stack">
             <thead>
@@ -27,7 +28,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($loans as $loan)
+                @foreach($loans as $loan)
                 <tr>
                     <td data-label="Pelanggan">
                         @if($loan->customer)
@@ -62,18 +63,17 @@
                         </div>
                     </td>
                 </tr>
-                @empty
-                <tr><td colspan="8">
-                    <div class="empty">
-                        <div class="empty-icon"><x-icon name="package" size="24" /></div>
-                        <div class="empty-title">{{ request('search') ? 'Tidak ditemukan' : 'Tidak ada pinjaman aktif' }}</div>
-                        <div>{{ request('search') ? 'Coba nama pelanggan lain.' : 'Seluruh tabung sudah dikembalikan.' }}</div>
-                    </div>
-                </td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+    @else
+    <div class="empty">
+        <div class="empty-icon"><x-icon name="package" size="24" /></div>
+        <div class="empty-title">{{ request('search') ? 'Tidak ditemukan' : 'Tidak ada pinjaman aktif' }}</div>
+        <div>{{ request('search') ? 'Coba nama pelanggan lain.' : 'Seluruh tabung sudah dikembalikan.' }}</div>
+    </div>
+    @endif
     {{ $loans->links('vendor.pagination.simple') }}
 </div>
 

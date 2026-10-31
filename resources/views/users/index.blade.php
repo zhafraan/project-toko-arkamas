@@ -13,6 +13,7 @@
 @php $reopen = old('_modal'); @endphp
 
 <div class="card">
+    @if($users->count() > 0)
     <div class="table-wrap">
         <table class="table table-stack">
             <thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Bergabung</th><th></th></tr></thead>
@@ -28,8 +29,8 @@
                             </div>
                         </div>
                     </td>
-                    <td data-label="Email">{{ $user->email }}</td>
-                    <td data-label="Peran">
+                    <td data-label="Username">{{ $user->email }}</td>
+                    <td data-label="Role">
                         @if($user->role === 'owner')
                             <span class="badge badge-warning">Pemilik</span>
                         @else
@@ -46,7 +47,7 @@
                                 <x-icon name="pencil" size="15" />
                             </button>
                             @if($user->id !== auth()->id())
-                            <form method="POST" action="{{ route('users.destroy', $user) }}" data-confirm="Hapus akun {{ $user->name }}?">
+                            <form method="POST" action="{{ route('users.destroy', $user) }}" data-confirm="Hapus akun {{ $user->name }}? Tindakan ini tercatat di Riwayat Audit.">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus akun" aria-label="Hapus akun"><x-icon name="trash" size="15" /></button>
                             </form>
@@ -58,6 +59,13 @@
             </tbody>
         </table>
     </div>
+    @else
+    <div class="empty">
+        <div class="empty-icon"><x-icon name="users" size="24" /></div>
+        <div class="empty-title">Belum ada akun pengguna</div>
+        <div>Tambahkan akun pengguna kasir atau pemilik toko.</div>
+    </div>
+    @endif
 </div>
 
 {{-- Tambah pengguna --}}
@@ -79,7 +87,7 @@
                 <input type="email" name="email" class="input" value="{{ $reopen === 'addUserModal' ? old('email') : '' }}" required>
             </div>
             <div class="field">
-                <label class="label">Peran</label>
+                <label class="label">Role</label>
                 <select name="role" class="select">
                     <option value="kasir">Kasir</option>
                     <option value="owner" {{ $reopen === 'addUserModal' && old('role') === 'owner' ? 'selected' : '' }}>Pemilik</option>
@@ -113,11 +121,11 @@
                 <input type="text" name="name" class="input" required>
             </div>
             <div class="field">
-                <label class="label">Email <span class="req">*</span></label>
-                <input type="email" name="email" class="input" required>
+                <label class="label">Username <span class="req">*</span></label>
+                <input type="text" name="email" class="input" required>
             </div>
             <div class="field">
-                <label class="label">Peran</label>
+                <label class="label">Role</label>
                 <select name="role" class="select">
                     <option value="kasir">Kasir</option>
                     <option value="owner">Pemilik</option>

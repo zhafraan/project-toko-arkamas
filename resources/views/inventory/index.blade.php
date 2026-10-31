@@ -38,6 +38,7 @@
 </div>
 
 <div class="card">
+    @if($products->count() > 0)
     <div class="table-wrap">
         <table class="table table-stack">
             <thead>
@@ -52,7 +53,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($products as $product)
+                @foreach($products as $product)
                 <tr>
                     <td data-label="Produk">
                         <div class="cell-title">{{ $product->name }}</div>
@@ -120,20 +121,19 @@
                     </td>
                     @endif
                 </tr>
-                @empty
-                <tr><td colspan="{{ $user->isOwner() ? 7 : 6 }}">
-                    <div class="empty">
-                        <div class="empty-icon"><x-icon name="package" size="24" /></div>
-                        <div class="empty-title">Belum ada produk</div>
-                        @if($user->isOwner())
-                        <div class="empty-sub">Tambahkan produk gas pertama Anda.</div>
-                        @endif
-                    </div>
-                </td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+    @else
+    <div class="empty">
+        <div class="empty-icon"><x-icon name="package" size="24" /></div>
+        <div class="empty-title">Belum ada produk</div>
+        @if($user->isOwner())
+        <div class="empty-sub">Tambahkan produk gas pertama Anda.</div>
+        @endif
+    </div>
+    @endif
     {{ $products->links('vendor.pagination.simple') }}
 </div>
 

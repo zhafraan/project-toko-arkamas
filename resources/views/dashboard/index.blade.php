@@ -144,7 +144,7 @@
 
         <div class="card card-main">
             <div class="card-head">
-                <span class="card-title"><x-icon name="stock" /> Stok</span>
+                <span class="card-title">Stok</span>
                 <div class="row" style="gap:8px;align-items:center;">
                     <a href="{{ route('inventory.index') }}" class="card-action-btn" title="{{ auth()->user()->isOwner() ? 'Kelola stok' : 'Lihat stok gas' }}" aria-label="Kelola stok">
                         <x-icon name="arrow-up-right" size="14" />

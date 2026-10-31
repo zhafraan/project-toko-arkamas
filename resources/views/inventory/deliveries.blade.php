@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Pengiriman dari Agen')
 @section('page-title', 'Pengiriman dari Agen')
-@section('page-sub', 'Catat tabung isi yang diterima dari agen')
+@section('page-sub', 'Catat tabung isi yang dikirim dari agen')
 
 @push('styles')
 <style>
@@ -16,7 +16,7 @@
 <div class="layout-side side-left">
 
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="truck" /> Catat penerimaan baru</span></div>
+        <div class="card-head"><span class="card-title">Catat pengiriman baru</span></div>
         <form method="POST" action="{{ route('inventory.storeDelivery') }}" class="card-body">
             @csrf
             <div class="field">
@@ -72,12 +72,13 @@
                 Tabung isi <span class="text-success fw">bertambah</span> dan tabung kosong <span class="text-danger fw">berkurang</span> sesuai jumlah yang diterima.<br>
                 <span class="muted">Pastikan stok tabung kosong mencukupi untuk diserahkan sebagai penukaran ke pihak agen.</span>
             </div>
-            <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Catat penerimaan</button>
+            <button type="submit" class="btn btn-primary btn-block"><x-icon name="check" /> Catat pengiriman</button>
         </form>
     </div>
 
     <div class="card">
-        <div class="card-head"><span class="card-title"><x-icon name="history" /> Riwayat penerimaan</span></div>
+        <div class="card-head"><span class="card-title">Riwayat pengiriman</span></div>
+        @if($deliveries->count() > 0)
         <div class="table-wrap">
             <table class="table table-stack">
                 <thead>
@@ -95,7 +96,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($deliveries as $delivery)
+                    @foreach($deliveries as $delivery)
                     <tr>
                         <td class="nowrap" data-label="Tanggal">{{ $delivery->delivery_date->isoFormat('D MMM Y') }}</td>
                         <td data-label="Produk">
@@ -118,9 +119,9 @@
                         <td data-label="Aksi">
                             <div class="actions">
                                 @if(auth()->user()->isOwner())
-                                <form method="POST" action="{{ route('inventory.destroyDelivery', $delivery) }}" data-confirm="Hapus penerimaan {{ $delivery->product->name }} tanggal {{ $delivery->delivery_date->isoFormat('D MMM Y') }}? Stok akan dikembalikan dan penghapusan tercatat di riwayat penghapusan.">
+                                <form method="POST" action="{{ route('inventory.destroyDelivery', $delivery) }}" data-confirm="Hapus pengiriman {{ $delivery->product->name }} tanggal {{ $delivery->delivery_date->isoFormat('D MMM Y') }}? Stok akan dikembalikan dan penghapusan tercatat di Riwayat Audit.">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus penerimaan" aria-label="Hapus penerimaan"><x-icon name="trash" size="15" /></button>
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-icon text-danger" title="Hapus pengiriman" aria-label="Hapus pengiriman"><x-icon name="trash" size="15" /></button>
                                 </form>
                                 @else
                                 <span class="spacer"></span>
@@ -128,17 +129,17 @@
                             </div>
                         </td>
                     </tr>
-                    @empty
-                    <tr><td colspan="{{ auth()->user()->isOwner() ? 8 : 5 }}">
-                        <div class="empty">
-                            <div class="empty-icon"><x-icon name="truck" size="24" /></div>
-                            <div class="empty-title">Belum ada penerimaan tercatat</div>
-                        </div>
-                    </td></tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
+        @else
+        <div class="empty">
+            <div class="empty-icon"><x-icon name="truck" size="24" /></div>
+            <div class="empty-title">Belum ada pengiriman tercatat</div>
+            <div>Pencatatan pengiriman dari agen akan muncul di sini.</div>
+        </div>
+        @endif
         {{ $deliveries->links('vendor.pagination.simple') }}
     </div>
 </div>
