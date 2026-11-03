@@ -25,3 +25,19 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Database files
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Tests (tidak diperlukan di production)
+/tests
+/phpunit.xml
+
+# Cache files
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
+/storage/framework/views/*.php
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing
